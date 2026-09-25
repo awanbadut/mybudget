@@ -20,20 +20,20 @@ export function MobileNav() {
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 pointer-events-none pb-[env(safe-area-inset-bottom)]">
-      {/* Dock Bar */}
-      <nav className="pointer-events-auto mx-3 mb-2 bg-white/95 backdrop-blur-md border border-gray-200/80 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] rounded-[26px] px-3 py-1.5 flex items-center justify-between">
+      {/* Precision Obsidian Dock */}
+      <nav className="pointer-events-auto mx-4 mb-2 bg-zinc-950/95 backdrop-blur-xl border border-zinc-800 shadow-[0_16px_40px_rgba(0,0,0,0.28)] rounded-3xl px-3 py-1.5 flex items-center justify-between text-zinc-400">
         {/* Home */}
         <Link
           href="/"
           className={cn(
             'flex-1 flex flex-col items-center justify-center py-1.5 rounded-2xl transition-all active:scale-95',
-            isHome ? 'text-blue-600 font-bold' : 'text-gray-400 hover:text-gray-600'
+            isHome ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
           )}
         >
-          <div className={cn('p-1 rounded-xl transition-colors', isHome && 'bg-blue-50 text-blue-600')}>
-            <Home className="w-5 h-5" />
+          <div className={cn('p-1 rounded-xl transition-colors', isHome && 'bg-zinc-850 text-white')}>
+            <Home className="w-4 h-4 stroke-[2.2]" />
           </div>
-          <span className="text-[10px] mt-0.5">Beranda</span>
+          <span className="text-[10px] mt-0.5 font-medium tracking-tight">Home</span>
         </Link>
 
         {/* Budget */}
@@ -41,23 +41,23 @@ export function MobileNav() {
           href="/budget"
           className={cn(
             'flex-1 flex flex-col items-center justify-center py-1.5 rounded-2xl transition-all active:scale-95',
-            isBudget ? 'text-blue-600 font-bold' : 'text-gray-400 hover:text-gray-600'
+            isBudget ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
           )}
         >
-          <div className={cn('p-1 rounded-xl transition-colors', isBudget && 'bg-blue-50 text-blue-600')}>
-            <PieChart className="w-5 h-5" />
+          <div className={cn('p-1 rounded-xl transition-colors', isBudget && 'bg-zinc-850 text-white')}>
+            <PieChart className="w-4 h-4 stroke-[2.2]" />
           </div>
-          <span className="text-[10px] mt-0.5">Budget</span>
+          <span className="text-[10px] mt-0.5 font-medium tracking-tight">Budget</span>
         </Link>
 
-        {/* Prominent Center FAB (+) */}
-        <div className="flex-1 flex justify-center -mt-6">
+        {/* Center Prominent Primary Action Button (+) */}
+        <div className="flex-1 flex justify-center -mt-5">
           <Link
             href="/transactions?action=new"
             aria-label="Tambah Transaksi"
-            className="w-13 h-13 w-[52px] h-[52px] rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-[0_8px_20px_rgba(37,99,235,0.4)] active:scale-90 hover:brightness-110 transition-all border-4 border-white"
+            className="w-12 h-12 rounded-full bg-white text-zinc-950 flex items-center justify-center shadow-[0_6px_20px_rgba(255,255,255,0.2)] active:scale-90 hover:brightness-95 transition-all border-[3px] border-zinc-950"
           >
-            <Plus className="w-6 h-6 stroke-[2.5]" />
+            <Plus className="w-5 h-5 stroke-[2.6]" />
           </Link>
         </div>
 
@@ -66,13 +66,13 @@ export function MobileNav() {
           href="/debts"
           className={cn(
             'flex-1 flex flex-col items-center justify-center py-1.5 rounded-2xl transition-all active:scale-95',
-            isDebts ? 'text-blue-600 font-bold' : 'text-gray-400 hover:text-gray-600'
+            isDebts ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
           )}
         >
-          <div className={cn('p-1 rounded-xl transition-colors', isDebts && 'bg-blue-50 text-blue-600')}>
-            <CreditCard className="w-5 h-5" />
+          <div className={cn('p-1 rounded-xl transition-colors', isDebts && 'bg-zinc-850 text-white')}>
+            <CreditCard className="w-4 h-4 stroke-[2.2]" />
           </div>
-          <span className="text-[10px] mt-0.5">Utang</span>
+          <span className="text-[10px] mt-0.5 font-medium tracking-tight">Utang</span>
         </Link>
 
         {/* Settings */}
@@ -80,13 +80,13 @@ export function MobileNav() {
           href="/settings"
           className={cn(
             'flex-1 flex flex-col items-center justify-center py-1.5 rounded-2xl transition-all active:scale-95',
-            isSettings ? 'text-blue-600 font-bold' : 'text-gray-400 hover:text-gray-600'
+            isSettings ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
           )}
         >
-          <div className={cn('p-1 rounded-xl transition-colors', isSettings && 'bg-blue-50 text-blue-600')}>
-            <Settings className="w-5 h-5" />
+          <div className={cn('p-1 rounded-xl transition-colors', isSettings && 'bg-zinc-850 text-white')}>
+            <Settings className="w-4 h-4 stroke-[2.2]" />
           </div>
-          <span className="text-[10px] mt-0.5">Setelan</span>
+          <span className="text-[10px] mt-0.5 font-medium tracking-tight">Akun</span>
         </Link>
       </nav>
     </div>

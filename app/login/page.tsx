@@ -115,7 +115,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          My Budget © 2026 — Kelola keuangan dengan bijak
+          My Budget (c) 2026. Kelola keuangan dengan bijak.
         </p>
       </div>
     </div>

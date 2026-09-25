@@ -173,23 +173,23 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Modern Mobile App Header */}
+      {/* Architectural Mobile App Header */}
       <div className="flex items-center justify-between pt-1 pb-1">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-extrabold text-base flex items-center justify-center shadow-md shadow-blue-500/20">
+          <div className="w-10 h-10 rounded-2xl bg-zinc-950 border border-zinc-800 text-zinc-100 font-mono font-bold text-sm flex items-center justify-center shadow-sm">
             {(user?.name || 'Zikry').charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="text-xs text-gray-400 font-medium">Selamat Datang 👋</p>
-            <h1 className="text-base sm:text-xl font-black text-gray-900 leading-tight">
+            <p className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Account</p>
+            <h1 className="text-base sm:text-lg font-bold text-zinc-900 leading-tight">
               {user?.name || 'Zikry Kurniawan'}
             </h1>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="bg-blue-50/90 border border-blue-100/80 text-blue-700 px-3 py-1.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+          <div className="bg-zinc-100 border border-zinc-200/90 text-zinc-700 px-3 py-1.5 rounded-full text-xs font-mono font-medium flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             <span className="text-[11px] sm:text-xs">
               Gajian {salaryDate} ({payrollCycle.daysRemaining}h lagi)
             </span>

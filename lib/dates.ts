@@ -79,7 +79,7 @@ export function getPayrollCycle(salaryDate: number = 25, refDate: Date = new Dat
     return `${y}-${m}-${day}`;
   };
 
-  const label = `${formatDateShort(startDate)} – ${formatDateShort(endDate)}`;
+  const label = `${formatDateShort(startDate)} - ${formatDateShort(endDate)}`;
 
   return {
     startDate,

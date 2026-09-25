@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { Sidebar } from '@/components/Sidebar';
 import { MobileNav } from '@/components/MobileNav';
@@ -8,7 +8,11 @@ import { getSession } from '@/lib/auth';
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar';
 import { InstallPWA } from '@/components/InstallPWA';
 
-const inter = Inter({ subsets: ['latin'] });
+const fontSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '500', '600', '700', '800'],
+});
 
 export const metadata: Metadata = {
   title: 'My Budget - Kelola Keuangan Pribadi',
@@ -60,7 +64,7 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className={`${inter.className} bg-gray-50 min-h-screen text-gray-900 antialiased`}>
+      <body className={`${fontSans.className} bg-[#fcfcfd] min-h-screen text-zinc-900 antialiased selection:bg-zinc-900 selection:text-white`}>
         <div className="flex min-h-screen">
           {/* Desktop Sidebar */}
           {session && (
