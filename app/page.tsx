@@ -9,13 +9,12 @@ import { calculateSavingRate } from '@/lib/calculations';
 import { getUserId } from '@/lib/auth';
 import { DashboardSummary } from '@/components/DashboardSummary';
 import { BudgetProgress } from '@/components/BudgetProgress';
-import { ExpenseChart } from '@/components/ExpenseChart';
-import { SavingsChart } from '@/components/SavingsChart';
 import { RecentTransactions } from '@/components/RecentTransactions';
 import { QuickActions } from '@/components/QuickActions';
 import { InsightCard } from '@/components/InsightCard';
 import { DailyBudget } from '@/components/DailyBudget';
 import { SavingsGoalCard } from '@/components/SavingsGoalCard';
+import { DashboardCharts } from '@/components/DashboardCharts';
 import Link from 'next/link';
 import { Plus, ChevronRight, AlertTriangle, Calendar } from 'lucide-react';
 
@@ -66,6 +65,7 @@ export default async function DashboardPage() {
       }),
       db.query.savingsGoals.findMany({
         where: (g, { eq: eqFn }) => eqFn(g.userId, DEV_USER_ID),
+        with: { transactions: true },
       }),
       db.query.debts.findMany({
         where: (d, { and: andFn, eq: eqFn }) =>
@@ -171,6 +171,29 @@ export default async function DashboardPage() {
   const salaryDate = userSettings?.salaryDate || 25;
   const payrollCycle = getPayrollCycle(salaryDate, new Date());
 
+  // Pre-calculate last 6 months savings chart data directly (0ms extra DB latency)
+  const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const months: { month: number; year: number; label: string }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    let m = currentMonth - i;
+    let y = currentYear;
+    if (m <= 0) { m += 12; y -= 1; }
+    months.push({ month: m, year: y, label: MONTH_NAMES[m - 1] });
+  }
+
+  let cumulativeSavings = 0;
+  const savingsChartData = months.map(({ month, year, label }) => {
+    const sDate = `${year}-${String(month).padStart(2, '0')}-01`;
+    const eDate = `${year}-${String(month).padStart(2, '0')}-31`;
+
+    const monthSavings = savingsGoalsList.flatMap((g: any) => g.transactions || [])
+      .filter((t: any) => t.transactionDate >= sDate && t.transactionDate <= eDate)
+      .reduce((sum: number, t: any) => sum + t.amount, 0);
+
+    cumulativeSavings += monthSavings;
+    return { label, amount: cumulativeSavings, monthly: monthSavings };
+  });
+
   return (
     <div className="space-y-5 sm:space-y-7 w-full max-w-full min-w-0 overflow-x-hidden">
       {/* ═══════════ Header ═══════════ */}
@@ -247,14 +270,11 @@ export default async function DashboardPage() {
       </section>
 
       {/* ═══════════ Visualisations (Charts) ═══════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 w-full min-w-0 overflow-hidden">
-        <div className="w-full min-w-0 overflow-hidden">
-          <ExpenseChart data={expenseByCategory} total={totalExpense} />
-        </div>
-        <div className="w-full min-w-0 overflow-hidden">
-          <SavingsChart userId={DEV_USER_ID} />
-        </div>
-      </div>
+      <DashboardCharts
+        expenseByCategory={expenseByCategory}
+        totalExpense={totalExpense}
+        savingsChartData={savingsChartData}
+      />
 
       {/* ═══════════ Target Tabungan ═══════════ */}
       {savingsGoalsList.length > 0 && (

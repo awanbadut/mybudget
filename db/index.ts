@@ -19,10 +19,8 @@ function getDb() {
   // Strip accidental quotes or whitespace
   rawUrl = rawUrl.trim().replace(/^["']|["']$/g, '');
 
-  // Neon HTTP Serverless driver requires direct compute endpoint (without -pooler)
-  // and does not use libpq TCP channel_binding parameters.
-  let normalizedUrl = rawUrl.replace('-pooler', '');
-  normalizedUrl = normalizedUrl
+  // Strip libpq TCP-only parameters like channel_binding unsupported by HTTP fetch
+  let normalizedUrl = rawUrl
     .replace(/([?&])channel_binding=[^&]*(&|$)/, '$1')
     .replace(/[?&]$/, '');
 
