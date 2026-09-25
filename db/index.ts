@@ -9,18 +9,22 @@ if (typeof dns !== 'undefined' && typeof dns.setDefaultResultOrder === 'function
 }
 
 function getDb() {
-  const rawUrl = process.env.DATABASE_URL;
+  let rawUrl = process.env.DATABASE_URL;
   if (!rawUrl || rawUrl === 'YOUR_NEON_POSTGRES_CONNECTION_STRING') {
     throw new Error(
-      'DATABASE_URL is not configured. Please set DATABASE_URL in Vercel project Environment Variables.'
+      'DATABASE_URL belum diatur di Environment Variables Vercel.'
     );
   }
 
+  // Strip accidental quotes or whitespace
+  rawUrl = rawUrl.trim().replace(/^["']|["']$/g, '');
+
   // Neon HTTP Serverless driver requires direct compute endpoint (without -pooler)
   // and does not use libpq TCP channel_binding parameters.
-  const normalizedUrl = rawUrl
-    .replace('-pooler', '')
-    .replace(/&channel_binding=[^&]+/, '');
+  let normalizedUrl = rawUrl.replace('-pooler', '');
+  normalizedUrl = normalizedUrl
+    .replace(/([?&])channel_binding=[^&]*(&|$)/, '$1')
+    .replace(/[?&]$/, '');
 
   const sql = neon(normalizedUrl);
   return drizzle(sql, { schema });

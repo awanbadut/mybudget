@@ -22,18 +22,23 @@ export async function SavingsChart({ userId }: SavingsChartProps) {
     months.push({ month: m, year: y, label: MONTH_NAMES[m - 1] });
   }
 
-  // Get all savings transactions
-  const allGoals = await db.query.savingsGoals.findMany({
-    where: (g, { eq: eqFn }) => eqFn(g.userId, userId),
-    with: { transactions: true },
-  });
+  // Get all savings transactions safely
+  let allGoals: any[] = [];
+  try {
+    allGoals = await db.query.savingsGoals.findMany({
+      where: (g, { eq: eqFn }) => eqFn(g.userId, userId),
+      with: { transactions: true },
+    });
+  } catch (err) {
+    console.error('SavingsChart error:', err);
+  }
 
   // Build cumulative savings per month
   let cumulative = 0;
   const chartData = months.map(({ month, year, label }) => {
     const { startDate, endDate } = getMonthDateRange(month, year);
     
-    const monthSavings = allGoals.flatMap(g => g.transactions)
+    const monthSavings = allGoals.flatMap(g => g.transactions || [])
       .filter(t => t.transactionDate >= startDate && t.transactionDate <= endDate)
       .reduce((sum, t) => sum + t.amount, 0);
     

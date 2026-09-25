@@ -2,10 +2,11 @@ export const dynamic = 'force-dynamic';
 
 import { db } from '@/db';
 import { transactions, budgets, categories, settings, users, savingsGoals, debts, debtInstallments } from '@/db/schema';
-import { eq, and, gte, lte, sum, sql } from 'drizzle-orm';
+import { eq, and, gte, lte } from 'drizzle-orm';
 import { formatCurrency } from '@/lib/currency';
 import { formatMonth, getCurrentMonth, calculateProratedSalary } from '@/lib/dates';
 import { calculateSavingRate } from '@/lib/calculations';
+import { getDevUserId } from '@/lib/server-utils';
 import { DashboardSummary } from '@/components/DashboardSummary';
 import { BudgetProgress } from '@/components/BudgetProgress';
 import { ExpenseChart } from '@/components/ExpenseChart';
@@ -16,11 +17,10 @@ import { InsightCard } from '@/components/InsightCard';
 import { DailyBudget } from '@/components/DailyBudget';
 import { SavingsGoalCard } from '@/components/SavingsGoalCard';
 import Link from 'next/link';
-import { Plus, ChevronRight } from 'lucide-react';
-
-const DEV_USER_ID = process.env.DEV_USER_ID || '00000000-0000-0000-0000-000000000001';
+import { Plus, ChevronRight, AlertTriangle } from 'lucide-react';
 
 export default async function DashboardPage() {
+  const DEV_USER_ID = getDevUserId();
   const { month, year } = getCurrentMonth();
   // Use September 2026 as current month since that's the app context
   const currentMonth = 9;
@@ -29,42 +29,75 @@ export default async function DashboardPage() {
   const startDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
   const endDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-30`;
 
-  // Fetch all data in parallel
-  const [userSettings, user, monthTransactions, monthBudgets, savingsGoalsList, activeDebts] = await Promise.all([
-    db.query.settings.findFirst({
-      where: (s, { eq: eqFn }) => eqFn(s.userId, DEV_USER_ID),
-    }),
-    db.query.users.findFirst({
-      where: (u, { eq: eqFn }) => eqFn(u.id, DEV_USER_ID),
-    }),
-    db.query.transactions.findMany({
-      where: (t, { and: andFn, eq: eqFn, gte: gteFn, lte: lteFn }) =>
-        andFn(
-          eqFn(t.userId, DEV_USER_ID),
-          gteFn(t.transactionDate, startDate),
-          lteFn(t.transactionDate, endDate)
-        ),
-      with: { category: true },
-      orderBy: (t, { desc }) => desc(t.transactionDate),
-    }),
-    db.query.budgets.findMany({
-      where: (b, { and: andFn, eq: eqFn }) =>
-        andFn(
-          eqFn(b.userId, DEV_USER_ID),
-          eqFn(b.month, currentMonth),
-          eqFn(b.year, currentYear)
-        ),
-      with: { category: true },
-    }),
-    db.query.savingsGoals.findMany({
-      where: (g, { eq: eqFn }) => eqFn(g.userId, DEV_USER_ID),
-    }),
-    db.query.debts.findMany({
-      where: (d, { and: andFn, eq: eqFn }) =>
-        andFn(eqFn(d.userId, DEV_USER_ID), eqFn(d.status, 'active')),
-      with: { installments: true },
-    }),
-  ]);
+  let userSettings: any = null;
+  let user: any = null;
+  let monthTransactions: any[] = [];
+  let monthBudgets: any[] = [];
+  let savingsGoalsList: any[] = [];
+  let activeDebts: any[] = [];
+  let fetchError: string | null = null;
+
+  try {
+    const data = await Promise.all([
+      db.query.settings.findFirst({
+        where: (s, { eq: eqFn }) => eqFn(s.userId, DEV_USER_ID),
+      }),
+      db.query.users.findFirst({
+        where: (u, { eq: eqFn }) => eqFn(u.id, DEV_USER_ID),
+      }),
+      db.query.transactions.findMany({
+        where: (t, { and: andFn, eq: eqFn, gte: gteFn, lte: lteFn }) =>
+          andFn(
+            eqFn(t.userId, DEV_USER_ID),
+            gteFn(t.transactionDate, startDate),
+            lteFn(t.transactionDate, endDate)
+          ),
+        with: { category: true },
+        orderBy: (t, { desc }) => desc(t.transactionDate),
+      }),
+      db.query.budgets.findMany({
+        where: (b, { and: andFn, eq: eqFn }) =>
+          andFn(
+            eqFn(b.userId, DEV_USER_ID),
+            eqFn(b.month, currentMonth),
+            eqFn(b.year, currentYear)
+          ),
+        with: { category: true },
+      }),
+      db.query.savingsGoals.findMany({
+        where: (g, { eq: eqFn }) => eqFn(g.userId, DEV_USER_ID),
+      }),
+      db.query.debts.findMany({
+        where: (d, { and: andFn, eq: eqFn }) =>
+          andFn(eqFn(d.userId, DEV_USER_ID), eqFn(d.status, 'active')),
+        with: { installments: true },
+      }),
+    ]);
+    [userSettings, user, monthTransactions, monthBudgets, savingsGoalsList, activeDebts] = data;
+  } catch (err: any) {
+    console.error('Error fetching dashboard data:', err);
+    fetchError = err?.message || String(err);
+  }
+
+  if (fetchError) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-red-100 p-8 max-w-lg mx-auto text-center space-y-4 my-8">
+        <div className="w-14 h-14 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto">
+          <AlertTriangle className="w-7 h-7" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900">Koneksi Database Gagal</h2>
+        <p className="text-sm text-gray-500">
+          Server Next.js tidak dapat menghubungi database PostgreSQL:
+        </p>
+        <div className="bg-red-50 text-red-800 p-3 rounded-xl text-xs font-mono text-left break-all">
+          {fetchError}
+        </div>
+        <p className="text-xs text-gray-500">
+          Pastikan <strong>DATABASE_URL</strong> sudah diatur dengan benar di tab Settings &rarr; Environment Variables di Vercel.
+        </p>
+      </div>
+    );
+  }
 
   // Calculate totals
   const totalIncome = monthTransactions
@@ -79,17 +112,17 @@ export default async function DashboardPage() {
   const savingRate = calculateSavingRate(totalIncome, balance);
 
   // Calculate total savings (from all savings goals)
-  const totalSavings = savingsGoalsList.reduce((sum, g) => sum + g.currentAmount, 0);
+  const totalSavings = savingsGoalsList.reduce((sum, g) => sum + (g.currentAmount || 0), 0);
 
   // Calculate effective income (with prorate if applicable)
   let effectiveIncome = userSettings?.salary || 0;
   if (userSettings?.salaryProrateEnabled && userSettings.startWorkDate) {
-    const startDate = userSettings.startWorkDate;
-    const [sy, sm] = startDate.split('-').map(Number);
+    const sDate = userSettings.startWorkDate;
+    const [sy, sm] = sDate.split('-').map(Number);
     if (sm === currentMonth && sy === currentYear) {
       effectiveIncome = calculateProratedSalary(
         effectiveIncome,
-        startDate,
+        sDate,
         (userSettings.salaryProrateMethod as 'calendar_days' | 'working_days') || 'calendar_days'
       );
     }
@@ -128,7 +161,7 @@ export default async function DashboardPage() {
 
   // Pending installments this month
   const pendingInstallments = activeDebts.flatMap(d =>
-    d.installments.filter(i =>
+    (d.installments || []).filter((i: any) =>
       i.status === 'pending' &&
       i.dueDate >= startDate &&
       i.dueDate <= endDate
