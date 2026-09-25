@@ -4,56 +4,201 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.75rem;
+    --background: 38 24% 94%;       /* #F4F0EA bone paper */
+    --foreground: 24 10% 13%;       /* #24201D deep ink */
+    --card: 38 22% 92%;             /* #EDE6DC toned paper */
+    --card-foreground: 24 10% 13%;  /* #24201D */
+    --popover: 38 24% 94%;
+    --popover-foreground: 24 10% 13%;
+    --primary: 9 76% 48%;           /* #D9381E riso vermilion */
+    --primary-foreground: 38 24% 96%;
+    --secondary: 38 18% 85%;        /* #E2D7C7 kraft paper */
+    --secondary-foreground: 24 10% 13%;
+    --muted: 38 15% 88%;
+    --muted-foreground: 28 8% 40%;  /* #706860 mute ink */
+    --accent: 188 53% 35%;          /* #2A7B88 mineral teal */
+    --accent-foreground: 38 24% 96%;
+    --destructive: 9 76% 48%;
+    --destructive-foreground: 38 24% 96%;
+    --border: 28 10% 75%;           /* #C8C0B5 hairline rule */
+    --input: 28 10% 75%;
+    --ring: 9 76% 48%;
+    --radius: 2px;                  /* Letterpress flat / minimal radius */
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    background-color: #F4F0EA;
+    color: #24201D;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: #F4F0EA;
+    color: #24201D;
+    font-feature-settings: "kern", "liga", "tnum", "zero";
+    position: relative;
+    min-height: 100vh;
+  }
+
+  /* Halftone dot pattern overlay (subtle newsprint texture) */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background-image: radial-gradient(rgba(36, 32, 29, 0.045) 0.8px, transparent 0.8px);
+    background-size: 6px 6px;
+  }
+
+  /* Directional diagonal newsprint grain */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background-image: repeating-linear-gradient(115deg, rgba(36, 32, 29, 0.02) 0 1px, transparent 1px 3px);
+    mix-blend-mode: multiply;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+/* ──────────────── Hallmark Custom-04 Elements ──────────────── */
+
+/* Letterpress Corner Crop Marks */
+.press-marks .crop {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: #24201D;
+  border-style: solid;
+  opacity: 0.6;
+}
+.press-marks .crop--tl { top: 14px; left: 14px; border-width: 2px 0 0 2px; }
+.press-marks .crop--tr { top: 14px; right: 14px; border-width: 2px 2px 0 0; }
+.press-marks .crop--bl { bottom: 14px; left: 14px; border-width: 0 0 2px 2px; }
+.press-marks .crop--br { bottom: 14px; right: 14px; border-width: 0 2px 2px 0; }
+
+/* Letterpress Rules */
+.rule-hair {
+  border-bottom: 1px solid rgba(36, 32, 29, 0.18);
+}
+.rule-press {
+  border-bottom: 2px solid rgba(36, 32, 29, 0.35);
+}
+.rule-ink {
+  border-bottom: 3px solid #24201D;
+}
+.rule-double {
+  border-bottom: 4px double #24201D;
+}
+
+/* Tape Marquee Band */
+.tape-band {
+  position: relative;
+  background-color: #E2D7C7;
+  border-top: 2px solid #24201D;
+  border-bottom: 2px solid #24201D;
+  transform: rotate(-0.8deg);
+}
+
+.tape-band::before,
+.tape-band::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 24px;
+  background: #EDE6DC;
+  opacity: 0.85;
+  transform: rotate(2deg);
+  z-index: 2;
+}
+.tape-band::before { left: -3px; }
+.tape-band::after { right: -3px; transform: rotate(-2deg); }
+
+/* Riso Ghost Offset Effect */
+.riso-ghost {
+  position: relative;
+  display: inline-block;
+}
+.riso-ghost .ink {
+  position: relative;
+  z-index: 2;
+  color: #24201D;
+}
+.riso-ghost .reg-teal {
+  position: absolute;
+  top: 1.5px;
+  left: 2px;
+  z-index: 1;
+  color: #2A7B88;
+  opacity: 0.55;
+  user-select: none;
+}
+.riso-ghost .reg-vermilion {
+  position: absolute;
+  top: 1.5px;
+  left: -2px;
+  z-index: 1;
+  color: #D9381E;
+  opacity: 0.55;
+  user-select: none;
+}
+
+/* Letterpress Plank Card */
+.plank-card {
+  background-color: #FAF7F2;
+  border: 1px solid rgba(36, 32, 29, 0.2);
+  box-shadow: 2px 2px 0px rgba(36, 32, 29, 0.1);
+  border-radius: 2px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.plank-card:hover {
+  box-shadow: 3px 3px 0px rgba(36, 32, 29, 0.16);
+}
+
+/* Letterpress Button */
+.btn-press-vermilion {
+  background-color: #D9381E;
+  color: #F4F0EA;
+  font-family: var(--font-mono), monospace;
+  font-weight: 600;
+  border: 1px solid #B82C15;
+  box-shadow: 2px 2px 0px #24201D;
+  border-radius: 2px;
+  transition: all 0.1s ease;
+}
+.btn-press-vermilion:hover {
+  background-color: #24201D;
+  border-color: #24201D;
+  color: #F4F0EA;
+}
+.btn-press-vermilion:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #24201D;
+}
+
+.btn-press-ink {
+  background-color: #24201D;
+  color: #F4F0EA;
+  font-family: var(--font-mono), monospace;
+  font-weight: 600;
+  border: 1px solid #24201D;
+  box-shadow: 2px 2px 0px rgba(36, 32, 29, 0.4);
+  border-radius: 2px;
+  transition: all 0.1s ease;
+}
+.btn-press-ink:hover {
+  background-color: #3D3834;
+}
+.btn-press-ink:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #24201D;
 }

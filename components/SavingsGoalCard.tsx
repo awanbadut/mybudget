@@ -14,28 +14,35 @@ export function SavingsGoalCard({ goal }: { goal: SavingsGoal }) {
   const progress = calculateProgress(goal.currentAmount, goal.targetAmount);
 
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
-          <Target className="w-5 h-5 text-blue-600" />
+    <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-4 sm:p-5 shadow-[3px_3px_0px_#24201D]">
+      <div className="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-[#24201D]/20">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 border border-[#24201D] bg-[#EDE6DC] flex items-center justify-center">
+            <Target className="w-3.5 h-3.5 text-[#24201D]" />
+          </div>
+          <div>
+            <h4 className="font-display font-bold text-base text-[#24201D] uppercase leading-tight">{goal.name}</h4>
+            {goal.deadline && <p className="font-mono text-[10px] text-[#706860]">Target: 1 tahun</p>}
+          </div>
         </div>
-        <div>
-          <h4 className="text-sm font-semibold text-gray-900">{goal.name}</h4>
-          {goal.deadline && <p className="text-xs text-gray-400">Target: 1 tahun</p>}
-        </div>
+
+        <span className="font-mono text-xs font-bold text-[#2A7B88] px-2 py-0.5 bg-[#EAF4F5] border border-[#2A7B88]">
+          {progress}%
+        </span>
       </div>
+
       <div className="space-y-2">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500">{formatCurrency(goal.currentAmount)}</span>
-          <span className="font-medium text-gray-900">{formatCurrency(goal.targetAmount)}</span>
+        <div className="flex justify-between font-mono text-xs">
+          <span className="text-[#706860] tabular-nums">Terkumpul: <strong className="text-[#24201D]">{formatCurrency(goal.currentAmount)}</strong></span>
+          <span className="font-bold text-[#24201D] tabular-nums">{formatCurrency(goal.targetAmount)}</span>
         </div>
-        <div className="w-full bg-gray-100 rounded-full h-2">
+
+        <div className="w-full bg-[#E2D7C7] h-2.5 border border-[#24201D] p-[0.5px]">
           <div
-            className="h-2 bg-blue-600 rounded-full transition-all"
+            className="h-full bg-[#2A7B88] transition-all"
             style={{ width: `${progress}%` }}
           />
         </div>
-        <p className="text-xs text-gray-400 text-right">{progress}% tercapai</p>
       </div>
     </div>
   );

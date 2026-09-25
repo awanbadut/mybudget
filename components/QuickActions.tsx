@@ -1,58 +1,89 @@
 'use client';
 import Link from 'next/link';
-import { ArrowUpRight, ArrowDownLeft, Target, CreditCard } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Target, CreditCard, PlusCircle } from 'lucide-react';
 
 const actions = [
   {
     href: '/transactions?action=new&type=expense',
+    code: '01',
     label: 'Catat Keluar',
+    desc: 'Pengeluaran',
     icon: ArrowUpRight,
-    iconColor: 'text-rose-600',
-    iconBg: 'bg-rose-50 border-rose-100',
+    borderColor: 'border-[#D9381E]',
+    textColor: 'text-[#D9381E]',
+    bgColor: 'bg-[#FBEBE8]',
   },
   {
     href: '/transactions?action=new&type=income',
+    code: '02',
     label: 'Catat Masuk',
+    desc: 'Pemasukan',
     icon: ArrowDownLeft,
-    iconColor: 'text-emerald-600',
-    iconBg: 'bg-emerald-50 border-emerald-100',
+    borderColor: 'border-[#2A7B88]',
+    textColor: 'text-[#2A7B88]',
+    bgColor: 'bg-[#EAF4F5]',
   },
   {
     href: '/savings',
+    code: '03',
     label: 'Tabungan',
+    desc: 'Target Dana',
     icon: Target,
-    iconColor: 'text-zinc-800',
-    iconBg: 'bg-zinc-100 border-zinc-200',
+    borderColor: 'border-[#24201D]/40',
+    textColor: 'text-[#24201D]',
+    bgColor: 'bg-[#EDE6DC]',
   },
   {
     href: '/debts',
-    label: 'Cicilan',
+    code: '04',
+    label: 'Cicilan Utang',
+    desc: 'Jadwal Bayar',
     icon: CreditCard,
-    iconColor: 'text-zinc-800',
-    iconBg: 'bg-zinc-100 border-zinc-200',
+    borderColor: 'border-[#24201D]/40',
+    textColor: 'text-[#24201D]',
+    bgColor: 'bg-[#EDE6DC]',
   },
 ];
 
 export function QuickActions() {
   return (
-    <div className="grid grid-cols-4 gap-2 sm:gap-3">
-      {actions.map((action) => {
-        const Icon = action.icon;
-        return (
-          <Link
-            key={action.href}
-            href={action.href}
-            className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-white border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:border-zinc-300 active:scale-[0.95] transition-all text-center group"
-          >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-transform group-hover:scale-105 ${action.iconBg}`}>
-              <Icon className={`w-4 h-4 stroke-[2.2] ${action.iconColor}`} />
-            </div>
-            <span className="text-[11px] font-semibold text-zinc-700 leading-tight">
-              {action.label}
-            </span>
-          </Link>
-        );
-      })}
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 px-1">
+        <span className="font-mono text-xs font-bold text-[#D9381E] uppercase">PLANK 03</span>
+        <span className="text-[#24201D]/30">/</span>
+        <span className="font-mono text-xs font-semibold text-[#706860] uppercase">Aksi Cepat Transaksi</span>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+        {actions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <Link
+              key={action.href}
+              href={action.href}
+              className="bg-[#FAF7F2] border-2 border-[#24201D] p-3 shadow-[2px_2px_0px_#24201D] hover:bg-[#EDE6DC] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#24201D] transition-all flex flex-col justify-between group"
+            >
+              <div className="flex items-start justify-between mb-2">
+                <span className="font-mono text-[10px] font-bold text-[#706860]">
+                  [{action.code}]
+                </span>
+                <div className={`w-7 h-7 border rounded-[2px] flex items-center justify-center ${action.borderColor} ${action.bgColor}`}>
+                  <Icon className={`w-3.5 h-3.5 ${action.textColor}`} />
+                </div>
+              </div>
+
+              <div>
+                <p className="font-display font-bold text-base sm:text-lg text-[#24201D] uppercase leading-tight group-hover:text-[#D9381E] transition-colors">
+                  {action.label}
+                </p>
+                <p className="font-mono text-[10px] text-[#706860] uppercase mt-0.5">
+                  {action.desc}
+                </p>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }

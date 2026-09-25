@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ChevronDown, Filter } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -145,54 +145,79 @@ export function TransactionListClient({ transactions, categories, initialType, o
   const totalExpense = filtered.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Transaksi</h1>
-        <Button onClick={() => { resetForm(); setShowForm(true); }} size="sm" className="gap-2">
-          <Plus className="w-4 h-4" /> Tambah
-        </Button>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#24201D] pb-3">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-mono text-[10px] font-bold text-[#D9381E] uppercase">LEDGER Nº 02</span>
+            <span className="text-[#24201D]/30">/</span>
+            <span className="font-mono text-[10px] text-[#706860] uppercase">Rekam Catatan Kas</span>
+          </div>
+          <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-[#24201D] uppercase leading-none">
+            BUKU TRANSAKSI
+          </h1>
+        </div>
+
+        <button
+          onClick={() => { resetForm(); setShowForm(true); }}
+          className="bg-[#D9381E] hover:bg-[#24201D] text-[#F4F0EA] border border-[#B82C15] px-3.5 py-2 font-mono text-xs font-bold flex items-center gap-1.5 shadow-[2px_2px_0px_#24201D] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+        >
+          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+          <span>+ CATAT BARU</span>
+        </button>
       </div>
 
       {/* Summary strip */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-green-50 rounded-xl p-3">
-          <p className="text-xs text-green-600">Pemasukan</p>
-          <p className="text-base font-bold text-green-700">{formatCurrency(totalIncome)}</p>
+        <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-3 shadow-[2px_2px_0px_#24201D]">
+          <p className="font-mono text-[10px] font-bold text-[#2A7B88] uppercase tracking-wider">Total Pemasukan</p>
+          <p className="font-mono text-base sm:text-lg font-bold text-[#2A7B88] tabular-nums mt-0.5">
+            {formatCurrency(totalIncome)}
+          </p>
         </div>
-        <div className="bg-red-50 rounded-xl p-3">
-          <p className="text-xs text-red-500">Pengeluaran</p>
-          <p className="text-base font-bold text-red-600">{formatCurrency(totalExpense)}</p>
+        <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-3 shadow-[2px_2px_0px_#24201D]">
+          <p className="font-mono text-[10px] font-bold text-[#D9381E] uppercase tracking-wider">Total Pengeluaran</p>
+          <p className="font-mono text-base sm:text-lg font-bold text-[#D9381E] tabular-nums mt-0.5">
+            {formatCurrency(totalExpense)}
+          </p>
         </div>
       </div>
 
       {/* Filters */}
       <div className="space-y-2">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            placeholder="Cari transaksi..."
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#706860]" />
+          <input
+            placeholder="Cari transaksi berdasarkan nama atau kategori..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="w-full pl-9 pr-3.5 py-2.5 bg-[#FAF7F2] border-2 border-[#24201D] font-mono text-xs text-[#24201D] placeholder-[#706860]/60 outline-none shadow-[2px_2px_0px_#24201D]"
           />
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
+
+        <div className="flex gap-2 overflow-x-auto pb-1 font-mono text-xs">
           {(['all', 'expense', 'income'] as const).map(type => (
             <button
               key={type}
               onClick={() => setFilterType(type)}
-              className={cn('px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors', filterType === type ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')}
+              className={cn(
+                'px-3 py-1.5 border-2 border-[#24201D] font-bold uppercase transition-all whitespace-nowrap',
+                filterType === type
+                  ? 'bg-[#24201D] text-[#F4F0EA] shadow-[2px_2px_0px_#D9381E]'
+                  : 'bg-[#EDE6DC] text-[#24201D] hover:bg-[#FAF7F2]'
+              )}
             >
-              {type === 'all' ? 'Semua' : type === 'expense' ? 'Pengeluaran' : 'Pemasukan'}
+              {type === 'all' ? 'SEMUA' : type === 'expense' ? 'PENGELUARAN' : 'PEMASUKAN'}
             </button>
           ))}
+
           <select
             value={filterMonth}
             onChange={e => setFilterMonth(e.target.value)}
-            className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border-0 outline-none"
+            className="px-3 py-1.5 border-2 border-[#24201D] font-mono text-xs font-bold uppercase bg-[#EDE6DC] text-[#24201D] outline-none"
           >
-            <option value="all">Semua Bulan</option>
+            <option value="all">SEMUA BULAN</option>
             {months.map(m => {
               const [y, mo] = m.split('-').map(Number);
               return <option key={m} value={m}>{MONTH_NAMES[mo-1]} {y}</option>;
@@ -203,38 +228,68 @@ export function TransactionListClient({ transactions, categories, initialType, o
 
       {/* Transaction List */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl p-8 text-center shadow-sm border border-gray-100">
-          <p className="text-gray-500 font-medium">Belum ada transaksi</p>
-          <p className="text-gray-400 text-sm mt-1">Yuk mulai catat pengeluaran pertamamu.</p>
-          <Button className="mt-4" onClick={() => { resetForm(); setShowForm(true); }}>+ Tambah transaksi</Button>
+        <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-8 text-center shadow-[3px_3px_0px_#24201D] space-y-2">
+          <p className="font-display font-bold text-lg text-[#24201D] uppercase">Belum Ada Transaksi</p>
+          <p className="font-sans text-xs text-[#706860]">Yuk mulai catat pengeluaran pertamamu.</p>
+          <button
+            className="mt-2 font-mono text-xs font-bold text-[#F4F0EA] bg-[#D9381E] px-4 py-2 border border-[#B82C15] shadow-[2px_2px_0px_#24201D]"
+            onClick={() => { resetForm(); setShowForm(true); }}
+          >
+            + TAMBAH TRANSAKSI
+          </button>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y divide-gray-50">
+        <div className="bg-[#FAF7F2] border-2 border-[#24201D] shadow-[3px_3px_0px_#24201D] divide-y divide-[#24201D]/20 overflow-hidden">
+          <div className="p-3 bg-[#EDE6DC] flex items-center justify-between font-mono text-xs border-b border-[#24201D]">
+            <span className="font-bold text-[#24201D] uppercase">Daftar Transaksi ({filtered.length})</span>
+            <span className="font-bold text-[#706860] uppercase">Nominal & Aksi</span>
+          </div>
+
           {filtered.map(tx => {
-            const iconName = tx.category?.icon || 'MoreHorizontal';
-            const Icon = ICON_MAP[iconName] || MoreHorizontal;
-            const color = tx.category?.color || '#94a3b8';
             const isIncome = tx.type === 'income';
             return (
-              <div key={tx.id} className="flex items-center gap-3 p-4">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}20` }}>
-                  <Icon className="w-5 h-5" style={{ color }} />
-                </div>
+              <div key={tx.id} className="flex items-center justify-between gap-3 p-3.5 hover:bg-[#EDE6DC]/50 transition-colors">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{tx.name}</p>
-                  <p className="text-xs text-gray-400">{tx.category?.name} · {formatDateShort(tx.transactionDate)}</p>
-                  {tx.note && <p className="text-xs text-gray-300 truncate">{tx.note}</p>}
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className={cn('text-sm font-semibold', isIncome ? 'text-green-600' : 'text-gray-900')}>
-                    {isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
+                  <div className="flex items-baseline gap-2">
+                    <p className="font-display font-bold text-base sm:text-lg text-[#24201D] uppercase truncate leading-tight">
+                      {tx.name}
+                    </p>
+                    <span className="font-mono text-[10px] uppercase px-1.5 py-0.2 bg-[#EDE6DC] border border-[#24201D]/25 text-[#706860]">
+                      {tx.category?.name || 'Umum'}
+                    </span>
                   </div>
-                  <button onClick={() => openEdit(tx)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
-                    <Pencil className="w-3.5 h-3.5 text-gray-400" />
-                  </button>
-                  <button onClick={() => setDeleteId(tx.id)} className="p-1.5 hover:bg-red-50 rounded-lg transition-colors">
-                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                  </button>
+                  <p className="font-mono text-xs text-[#706860] mt-0.5">
+                    {formatDateShort(tx.transactionDate)}
+                    {tx.note && <span className="ml-1 text-[#24201D]/60 font-sans italic">· {tx.note}</span>}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="text-right">
+                    <p className={cn(
+                      'font-mono font-bold text-sm sm:text-base tabular-nums',
+                      isIncome ? 'text-[#2A7B88]' : 'text-[#24201D]'
+                    )}>
+                      {isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => openEdit(tx)}
+                      className="p-1.5 border border-[#24201D]/30 bg-[#EDE6DC] hover:bg-[#24201D] hover:text-[#F4F0EA] transition-colors"
+                      title="Edit"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteId(tx.id)}
+                      className="p-1.5 border border-[#D9381E]/40 bg-[#FBEBE8] text-[#D9381E] hover:bg-[#D9381E] hover:text-[#F4F0EA] transition-colors"
+                      title="Hapus"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -244,11 +299,13 @@ export function TransactionListClient({ transactions, categories, initialType, o
 
       {/* Add/Edit Form Dialog */}
       <Dialog open={showForm} onOpenChange={(open) => { if (!open) { setShowForm(false); resetForm(); } }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md bg-[#FAF7F2] border-2 border-[#24201D] shadow-[6px_6px_0px_#24201D]">
           <DialogHeader>
-            <DialogTitle>{editingTx ? 'Edit Transaksi' : 'Tambah Transaksi'}</DialogTitle>
+            <DialogTitle className="font-display font-bold text-xl uppercase text-[#24201D]">
+              {editingTx ? 'Ubah Catatan Transaksi' : 'Entri Transaksi Baru'}
+            </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3.5 font-mono text-xs">
             {/* Type toggle */}
             <div className="flex gap-2">
               {(['expense', 'income'] as const).map(type => (
@@ -256,47 +313,53 @@ export function TransactionListClient({ transactions, categories, initialType, o
                   key={type}
                   type="button"
                   onClick={() => { setFormType(type); setFormCategory(''); }}
-                  className={cn('flex-1 py-2 rounded-xl text-sm font-medium transition-colors', formType === type ? (type === 'expense' ? 'bg-red-600 text-white' : 'bg-green-600 text-white') : 'bg-gray-100 text-gray-600')}
+                  className={cn(
+                    'flex-1 py-2 border-2 border-[#24201D] font-bold uppercase transition-all',
+                    formType === type
+                      ? (type === 'expense' ? 'bg-[#D9381E] text-[#F4F0EA]' : 'bg-[#2A7B88] text-[#F4F0EA]')
+                      : 'bg-[#EDE6DC] text-[#24201D]'
+                  )}
                 >
-                  {type === 'expense' ? 'Pengeluaran' : 'Pemasukan'}
+                  {type === 'expense' ? 'PENGELUARAN' : 'PEMASUKAN'}
                 </button>
               ))}
             </div>
 
             <div className="space-y-1">
-              <Label>Nama</Label>
-              <Input placeholder="Contoh: Makan siang" value={formName} onChange={e => setFormName(e.target.value)} />
+              <label className="font-bold text-[#24201D] uppercase">Nama Transaksi</label>
+              <input
+                placeholder="Contoh: Makan Siang / Gaji"
+                value={formName}
+                onChange={e => setFormName(e.target.value)}
+                className="w-full px-3 py-2 bg-[#EDE6DC] border border-[#24201D] text-[#24201D] outline-none"
+              />
             </div>
 
             <div className="space-y-1">
-              <Label>Kategori</Label>
-              <Select value={formCategory} onValueChange={setFormCategory}>
-                <SelectTrigger><SelectValue placeholder="Pilih kategori" /></SelectTrigger>
-                <SelectContent>
-                  {filteredCategories.map(cat => (
-                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <label className="font-bold text-[#24201D] uppercase">Kategori</label>
+              <select
+                value={formCategory}
+                onChange={e => setFormCategory(e.target.value)}
+                className="w-full px-3 py-2 bg-[#EDE6DC] border border-[#24201D] text-[#24201D] outline-none"
+              >
+                <option value="">PILIH KATEGORI</option>
+                {filteredCategories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Nominal (Rp)</Label>
-              <Input
+            <div className="space-y-1">
+              <label className="font-bold text-[#24201D] uppercase">Nominal (Rp)</label>
+              <input
                 placeholder="0"
                 value={formAmount}
                 onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
                 inputMode="numeric"
-                className="text-base font-bold text-gray-900"
+                className="w-full px-3 py-2 bg-[#EDE6DC] border border-[#24201D] font-mono font-bold text-base text-[#24201D] outline-none tabular-nums"
               />
-              {/* Live Preview */}
-              {formAmount && (
-                <p className="text-xs font-bold text-blue-600">
-                  {formatCurrency(parseInt(formAmount, 10) || 0)}
-                </p>
-              )}
               {/* Quick Nominal Chips */}
-              <div className="flex gap-1.5 overflow-x-auto pt-1 pb-1 scrollbar-none">
+              <div className="flex gap-1.5 overflow-x-auto pt-1 pb-1">
                 {[10000, 25000, 50000, 100000, 500000].map(amt => (
                   <button
                     key={amt}
@@ -305,7 +368,7 @@ export function TransactionListClient({ transactions, categories, initialType, o
                       const cur = parseInt(formAmount || '0', 10);
                       setFormAmount(String(cur + amt));
                     }}
-                    className="px-2.5 py-1 rounded-xl bg-gray-100 hover:bg-blue-50 hover:text-blue-600 text-xs font-semibold text-gray-600 active:scale-95 transition-all flex-shrink-0"
+                    className="px-2 py-0.5 bg-[#EDE6DC] border border-[#24201D]/40 hover:bg-[#24201D] hover:text-[#F4F0EA] text-[10px] font-bold text-[#24201D] transition-all flex-shrink-0"
                   >
                     +{amt >= 1000000 ? `${amt / 1000000}jt` : `${amt / 1000}rb`}
                   </button>
@@ -314,20 +377,43 @@ export function TransactionListClient({ transactions, categories, initialType, o
             </div>
 
             <div className="space-y-1">
-              <Label>Tanggal</Label>
-              <Input type="date" value={formDate} onChange={e => setFormDate(e.target.value)} />
+              <label className="font-bold text-[#24201D] uppercase">Tanggal</label>
+              <input
+                type="date"
+                value={formDate}
+                onChange={e => setFormDate(e.target.value)}
+                className="w-full px-3 py-2 bg-[#EDE6DC] border border-[#24201D] text-[#24201D] outline-none"
+              />
             </div>
 
             <div className="space-y-1">
-              <Label>Catatan (opsional)</Label>
-              <Textarea placeholder="Tambah catatan..." value={formNote} onChange={e => setFormNote(e.target.value)} rows={2} />
+              <label className="font-bold text-[#24201D] uppercase">Catatan (opsional)</label>
+              <textarea
+                placeholder="Catatan tambahan..."
+                value={formNote}
+                onChange={e => setFormNote(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 bg-[#EDE6DC] border border-[#24201D] text-[#24201D] outline-none"
+              />
             </div>
 
-            {formError && <p className="text-sm text-red-500">{formError}</p>}
+            {formError && <p className="text-xs font-bold text-[#D9381E]">{formError}</p>}
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => { setShowForm(false); resetForm(); }}>Batal</Button>
-              <Button type="submit" disabled={isPending}>{isPending ? 'Menyimpan...' : 'Simpan'}</Button>
+            <DialogFooter className="pt-2">
+              <button
+                type="button"
+                onClick={() => { setShowForm(false); resetForm(); }}
+                className="px-4 py-2 border border-[#24201D] bg-[#EDE6DC] text-[#24201D] font-bold uppercase hover:bg-[#FAF7F2]"
+              >
+                BATAL
+              </button>
+              <button
+                type="submit"
+                disabled={isPending}
+                className="px-4 py-2 bg-[#D9381E] hover:bg-[#24201D] text-[#F4F0EA] border border-[#B82C15] font-bold uppercase shadow-[2px_2px_0px_#24201D]"
+              >
+                {isPending ? 'MENYIMPAN...' : 'SIMPAN CATATAN'}
+              </button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -335,16 +421,29 @@ export function TransactionListClient({ transactions, categories, initialType, o
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteId} onOpenChange={(open) => { if (!open) setDeleteId(null); }}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm bg-[#FAF7F2] border-2 border-[#24201D] shadow-[6px_6px_0px_#24201D]">
           <DialogHeader>
-            <DialogTitle>Hapus Transaksi</DialogTitle>
+            <DialogTitle className="font-display font-bold text-lg uppercase text-[#24201D]">
+              Hapus Transaksi
+            </DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-gray-600">Apakah kamu yakin ingin menghapus transaksi ini?</p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteId(null)}>Batal</Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isPending}>
-              {isPending ? 'Menghapus...' : 'Hapus'}
-            </Button>
+          <p className="font-sans text-xs text-[#3D3834]">
+            Apakah kamu yakin ingin menghapus baris transaksi ini dari buku kas?
+          </p>
+          <DialogFooter className="pt-2">
+            <button
+              onClick={() => setDeleteId(null)}
+              className="px-3 py-1.5 border border-[#24201D] bg-[#EDE6DC] text-[#24201D] font-mono text-xs font-bold uppercase"
+            >
+              BATAL
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={isPending}
+              className="px-3 py-1.5 bg-[#D9381E] hover:bg-[#24201D] text-[#F4F0EA] border border-[#B82C15] font-mono text-xs font-bold uppercase shadow-[2px_2px_0px_#24201D]"
+            >
+              {isPending ? 'MENGHAPUS...' : 'YA, HAPUS'}
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

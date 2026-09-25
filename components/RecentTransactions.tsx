@@ -56,50 +56,59 @@ interface RecentTransactionsProps {
 export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   if (transactions.length === 0) {
     return (
-      <div className="bg-white rounded-3xl p-8 shadow-[0_1px_3px_rgba(0,0,0,0.03)] border border-zinc-200/90 text-center space-y-2">
-        <div className="w-10 h-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center mx-auto">
+      <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-6 sm:p-8 text-center space-y-2 shadow-[3px_3px_0px_#24201D]">
+        <div className="w-9 h-9 border border-[#24201D] bg-[#EDE6DC] text-[#24201D] flex items-center justify-center mx-auto">
           <MoreHorizontal className="w-5 h-5" />
         </div>
-        <p className="text-zinc-800 text-sm font-bold">Belum Ada Transaksi</p>
-        <p className="text-zinc-400 text-xs">Tekan tombol (+) di bawah untuk mencatat pengeluaran pertamamu.</p>
+        <p className="font-display font-bold text-lg text-[#24201D] uppercase">Belum Ada Transaksi Tercatat</p>
+        <p className="font-sans text-xs text-[#706860]">Mulai catat transaksi pertamamu untuk melacak buku kas.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-3xl shadow-[0_1px_3px_rgba(0,0,0,0.03)] border border-zinc-200/90 divide-y divide-zinc-100 overflow-hidden">
+    <div className="bg-[#FAF7F2] border-2 border-[#24201D] shadow-[3px_3px_0px_#24201D] divide-y divide-[#24201D]/20 overflow-hidden">
+      {/* Table Head */}
+      <div className="p-3 bg-[#EDE6DC] flex items-center justify-between font-mono text-xs border-b border-[#24201D]">
+        <span className="font-bold text-[#24201D] uppercase tracking-wider">Entri Buku Kas</span>
+        <span className="font-bold text-[#706860] uppercase tracking-wider">Nominal Rupiah</span>
+      </div>
+
       {transactions.map((tx) => {
-        const iconName = tx.category?.icon || 'MoreHorizontal';
-        const Icon = ICON_MAP[iconName] || MoreHorizontal;
         const isIncome = tx.type === 'income';
 
         return (
           <Link
             key={tx.id}
             href="/transactions"
-            className="flex items-center gap-3.5 p-3.5 sm:p-4 hover:bg-zinc-50/70 active:bg-zinc-100/70 transition-colors"
+            className="flex items-center justify-between gap-3 p-3.5 sm:p-4 hover:bg-[#EDE6DC]/60 active:bg-[#EDE6DC] transition-colors"
           >
-            <div className="w-10 h-10 rounded-xl bg-zinc-100 border border-zinc-200/70 text-zinc-700 flex items-center justify-center flex-shrink-0">
-              <Icon className="w-4 h-4" />
-            </div>
-
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-zinc-900 truncate leading-snug">{tx.name}</p>
-              <div className="flex items-center gap-1.5 mt-0.5 font-mono text-[11px] text-zinc-400">
-                <span className="truncate">{tx.category?.name || 'Umum'}</span>
-                <span>•</span>
-                <span>{formatDateShort(tx.transactionDate)}</span>
+              <div className="flex items-baseline gap-2">
+                <p className="font-display font-bold text-base sm:text-lg text-[#24201D] uppercase truncate leading-tight">
+                  {tx.name}
+                </p>
+                <span className="font-mono text-[10px] uppercase px-1.5 py-0.2 bg-[#EDE6DC] border border-[#24201D]/25 text-[#706860]">
+                  {tx.category?.name || 'Umum'}
+                </span>
               </div>
+              <p className="font-mono text-xs text-[#706860] mt-0.5">
+                {formatDateShort(tx.transactionDate)}
+              </p>
             </div>
 
-            <div className="text-right flex-shrink-0 pl-2">
-              <p className={cn('text-sm font-bold font-mono tabular-nums', isIncome ? 'text-emerald-600' : 'text-zinc-900')}>
+            <div className="text-right flex-shrink-0">
+              <p className={cn(
+                'font-mono font-bold text-sm sm:text-base tabular-nums',
+                isIncome ? 'text-[#2A7B88]' : 'text-[#24201D]'
+              )}>
                 {isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
               </p>
-              <span className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded-full inline-block mt-0.5 ${
-                isIncome ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-500'
-              }`}>
-                {isIncome ? 'Masuk' : 'Keluar'}
+              <span className={cn(
+                'font-mono text-[10px] font-bold uppercase tracking-wider',
+                isIncome ? 'text-[#2A7B88]' : 'text-[#706860]'
+              )}>
+                {isIncome ? 'MASUK' : 'KELUAR'}
               </span>
             </div>
           </Link>

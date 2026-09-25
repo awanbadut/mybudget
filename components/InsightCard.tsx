@@ -1,4 +1,4 @@
-import { Lightbulb, AlertTriangle, Target, TrendingUp } from 'lucide-react';
+import { Lightbulb, AlertTriangle, Target } from 'lucide-react';
 import { formatCurrency } from '@/lib/currency';
 
 interface BudgetItem {
@@ -32,19 +32,19 @@ export function InsightCard({
     if (budget.amount > 0 && budget.percentage >= 85 && budget.percentage < 100) {
       insights.push({
         type: 'warning',
-        text: `Pengeluaran ${budget.category?.name || 'kategori'} sudah mencapai ${budget.percentage}% dari budget.`,
+        text: `Pengeluaran ${budget.category?.name || 'kategori'} telah mencapai ${budget.percentage}% dari pagu alokasi.`,
       });
     }
     if (budget.amount > 0 && budget.percentage >= 100) {
       insights.push({
         type: 'warning',
-        text: `Budget ${budget.category?.name || 'kategori'} sudah melebihi batas!`,
+        text: `Budget ${budget.category?.name || 'kategori'} telah melampaui batas yang direncanakan.`,
       });
     }
     if (budget.amount > 0 && budget.percentage < 50 && budget.spent > 0) {
       insights.push({
         type: 'success',
-        text: `Pengeluaran ${budget.category?.name || 'kategori'} masih dalam batas budget. Bagus!`,
+        text: `Pengeluaran ${budget.category?.name || 'kategori'} terkendali sangat baik di bawah 50%.`,
       });
     }
   }
@@ -54,7 +54,7 @@ export function InsightCard({
   if (effectiveIncome > 0 || totalIncome > 0) {
     insights.push({
       type: 'info',
-      text: `Dengan pola pengeluaran saat ini, estimasi tabungan bulan ini: ${formatCurrency(Math.max(0, estimatedSavings))}.`,
+      text: `Estimasi surplus dana yang dapat disisihkan pada siklus ini: ${formatCurrency(Math.max(0, estimatedSavings))}.`,
     });
   }
 
@@ -62,34 +62,57 @@ export function InsightCard({
   if (pendingInstallmentsCount > 0) {
     insights.push({
       type: 'warning',
-      text: `Ada ${pendingInstallmentsCount} cicilan yang perlu dibayar bulan ini.`,
+      text: `Terdapat ${pendingInstallmentsCount} jadwal cicilan jatuh tempo yang perlu diselesaikan.`,
     });
   }
 
-  // No insights case
   if (insights.length === 0) {
     insights.push({
       type: 'info',
-      text: 'Mulai tambah transaksi untuk melihat insight keuanganmu.',
+      text: 'Catat transaksi operasional secara berkala untuk menerima analisis disiplin anggaran.',
     });
   }
 
-  const iconMap = {
-    info: { Icon: Lightbulb, color: 'text-blue-500', bg: 'bg-blue-50' },
-    warning: { Icon: AlertTriangle, color: 'text-orange-500', bg: 'bg-orange-50' },
-    success: { Icon: Target, color: 'text-green-500', bg: 'bg-green-50' },
-  };
-
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-      <h3 className="text-base font-semibold text-gray-900 mb-4">Insight Keuangan</h3>
-      <div className="space-y-3">
+    <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-4 sm:p-6 shadow-[3px_3px_0px_#24201D] space-y-3">
+      <div className="flex items-center gap-2 border-b border-[#24201D]/20 pb-2.5">
+        <span className="font-mono text-xs font-bold text-[#D9381E] uppercase">PLANK 05</span>
+        <span className="text-[#24201D]/30">/</span>
+        <h3 className="font-mono text-xs font-bold text-[#24201D] uppercase tracking-wider">
+          Audit & Evaluasi Finansial
+        </h3>
+      </div>
+
+      <div className="space-y-2">
         {insights.slice(0, 4).map((insight, i) => {
-          const { Icon, color, bg } = iconMap[insight.type];
+          const isWarn = insight.type === 'warning';
+          const isSuccess = insight.type === 'success';
+
           return (
-            <div key={i} className={`flex gap-3 p-3 rounded-lg ${bg}`}>
-              <Icon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${color}`} />
-              <p className="text-sm text-gray-700 leading-relaxed">{insight.text}</p>
+            <div
+              key={i}
+              className={`p-3 border flex gap-3 items-start ${
+                isWarn
+                  ? 'bg-[#FBEBE8] border-[#D9381E]/40 text-[#24201D]'
+                  : isSuccess
+                  ? 'bg-[#EAF4F5] border-[#2A7B88]/40 text-[#24201D]'
+                  : 'bg-[#EDE6DC] border-[#24201D]/20 text-[#24201D]'
+              }`}
+            >
+              <span
+                className={`font-mono text-[10px] font-bold px-1.5 py-0.5 border flex-shrink-0 mt-0.5 ${
+                  isWarn
+                    ? 'border-[#D9381E] text-[#D9381E] bg-[#FAF7F2]'
+                    : isSuccess
+                    ? 'border-[#2A7B88] text-[#2A7B88] bg-[#FAF7F2]'
+                    : 'border-[#24201D] text-[#24201D] bg-[#FAF7F2]'
+                }`}
+              >
+                {isWarn ? 'PERHATIAN' : isSuccess ? 'BAGUS' : 'CATATAN'}
+              </span>
+              <p className="font-sans text-xs text-[#3D3834] leading-relaxed">
+                {insight.text}
+              </p>
             </div>
           );
         })}

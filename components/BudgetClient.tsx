@@ -3,11 +3,7 @@ import { useState, useTransition } from 'react';
 import { formatCurrency } from '@/lib/currency';
 import { formatMonth } from '@/lib/dates';
 import { upsertBudget, deleteBudget } from '@/actions/budgets';
-import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, PieChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -90,73 +86,114 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 font-sans">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#24201D] pb-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Budget</h1>
-          <p className="text-sm text-gray-500">{formatMonth(month, year)}</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-mono text-[10px] font-bold text-[#D9381E] uppercase">LEDGER Nº 03</span>
+            <span className="text-[#24201D]/30">/</span>
+            <span className="font-mono text-[10px] text-[#706860] uppercase">{formatMonth(month, year)}</span>
+          </div>
+          <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-[#24201D] uppercase leading-none">
+            PAGU ANGGARAN
+          </h1>
         </div>
-        <Button size="sm" onClick={() => { resetForm(); setShowForm(true); }} className="gap-2">
-          <Plus className="w-4 h-4" /> Tambah
-        </Button>
+        <button
+          onClick={() => { resetForm(); setShowForm(true); }}
+          className="bg-[#D9381E] hover:bg-[#24201D] text-[#F4F0EA] border border-[#B82C15] px-3.5 py-2 font-mono text-xs font-bold flex items-center gap-1.5 shadow-[2px_2px_0px_#24201D] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+        >
+          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+          <span>+ ANGGARAN BARU</span>
+        </button>
       </div>
 
-      {/* Overview */}
-      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <div className="flex justify-between mb-2">
-          <span className="text-sm text-gray-600">Total Pengeluaran</span>
-          <span className="text-sm font-medium text-gray-900">{overallPct}%</span>
+      {/* Overview Card */}
+      <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-4 sm:p-5 shadow-[3px_3px_0px_#24201D] space-y-2.5">
+        <div className="flex justify-between items-baseline font-mono text-xs">
+          <span className="font-bold text-[#706860] uppercase tracking-wider">Realisasi Total Anggaran</span>
+          <span className="font-bold text-[#24201D] text-sm tabular-nums">{overallPct}% TERCAPAI</span>
         </div>
-        <div className="w-full bg-gray-100 rounded-full h-3 mb-2">
+
+        {/* Ruler Progress Bar */}
+        <div className="w-full bg-[#E2D7C7] h-3 border border-[#24201D] p-[1px] overflow-hidden">
           <div
-            className={cn('h-3 rounded-full transition-all', overallPct < 70 ? 'bg-green-500' : overallPct <= 90 ? 'bg-yellow-500' : 'bg-red-500')}
+            className={cn('h-full transition-all', overallPct < 70 ? 'bg-[#2A7B88]' : overallPct <= 90 ? 'bg-[#D97706]' : 'bg-[#D9381E]')}
             style={{ width: `${Math.min(overallPct, 100)}%` }}
           />
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500">{formatCurrency(totalSpent)} terpakai</span>
-          <span className="font-medium text-gray-900">dari {formatCurrency(totalBudget)}</span>
+
+        <div className="flex justify-between font-mono text-xs pt-1">
+          <span className="text-[#706860] tabular-nums">{formatCurrency(totalSpent)} terpakai</span>
+          <span className="font-bold text-[#24201D] tabular-nums">Pagu: {formatCurrency(totalBudget)}</span>
         </div>
       </div>
 
       {/* Budget list */}
       {budgets.length === 0 ? (
-        <div className="bg-white rounded-xl p-8 text-center shadow-sm border border-gray-100">
-          <PieChart className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 font-medium">Belum ada budget</p>
-          <Button className="mt-4" onClick={() => { resetForm(); setShowForm(true); }}>+ Tambah budget</Button>
+        <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-8 text-center shadow-[3px_3px_0px_#24201D] space-y-2">
+          <PieChart className="w-8 h-8 text-[#706860] mx-auto mb-1" />
+          <p className="font-display font-bold text-lg text-[#24201D] uppercase">Belum Ada Anggaran Tercatat</p>
+          <button
+            className="mt-2 font-mono text-xs font-bold text-[#F4F0EA] bg-[#D9381E] px-4 py-2 border border-[#B82C15] shadow-[2px_2px_0px_#24201D]"
+            onClick={() => { resetForm(); setShowForm(true); }}
+          >
+            + TAMBAH ANGGARAN
+          </button>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="bg-[#FAF7F2] border-2 border-[#24201D] shadow-[3px_3px_0px_#24201D] divide-y divide-[#24201D]/20 overflow-hidden">
+          <div className="p-3 bg-[#EDE6DC] flex items-center justify-between font-mono text-xs border-b border-[#24201D]">
+            <span className="font-bold text-[#24201D] uppercase">Kategori Pos Belanja</span>
+            <span className="font-bold text-[#706860] uppercase">Realisasi & Limit</span>
+          </div>
+
           {budgets.map(budget => {
             const pct = Math.min(budget.percentage, 100);
-            const barColor = budget.percentage < 70 ? 'bg-green-500' : budget.percentage <= 90 ? 'bg-yellow-500' : 'bg-red-500';
+            const isDanger = budget.percentage > 90;
+
             return (
-              <div key={budget.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-gray-900">{budget.category?.name}</span>
+              <div key={budget.id} className="p-3.5 sm:p-4 hover:bg-[#EDE6DC]/50 transition-colors space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-display font-bold text-base sm:text-lg text-[#24201D] uppercase">
+                    {budget.category?.name}
+                  </span>
                   <div className="flex items-center gap-1">
-                    <button onClick={() => openEdit(budget)} className="p-1.5 hover:bg-gray-100 rounded-lg">
-                      <Pencil className="w-3.5 h-3.5 text-gray-400" />
+                    <button
+                      onClick={() => openEdit(budget)}
+                      className="p-1.5 border border-[#24201D]/30 bg-[#EDE6DC] hover:bg-[#24201D] hover:text-[#F4F0EA] transition-colors"
+                      title="Edit"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
                     </button>
-                    <button onClick={() => setDeleteId(budget.id)} className="p-1.5 hover:bg-red-50 rounded-lg">
-                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                    <button
+                      onClick={() => setDeleteId(budget.id)}
+                      className="p-1.5 border border-[#D9381E]/40 bg-[#FBEBE8] text-[#D9381E] hover:bg-[#D9381E] hover:text-[#F4F0EA] transition-colors"
+                      title="Hapus"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-600">{formatCurrency(budget.spent)}</span>
-                  <span className="text-gray-400">/ {formatCurrency(budget.amount)}</span>
+
+                <div className="flex justify-between font-mono text-xs">
+                  <span className="text-[#3D3834] tabular-nums font-bold">{formatCurrency(budget.spent)}</span>
+                  <span className="text-[#706860] tabular-nums">/ {formatCurrency(budget.amount)}</span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-2 mb-1">
-                  <div className={cn('h-2 rounded-full transition-all', barColor)} style={{ width: `${pct}%` }} />
+
+                <div className="w-full bg-[#E2D7C7] h-2 border border-[#24201D] p-[0.5px]">
+                  <div
+                    className={cn('h-full transition-all', isDanger ? 'bg-[#D9381E]' : 'bg-[#2A7B88]')}
+                    style={{ width: `${pct}%` }}
+                  />
                 </div>
-                <div className="flex justify-between text-xs">
-                  <span className={cn('font-medium', budget.percentage < 70 ? 'text-green-600' : budget.percentage <= 90 ? 'text-yellow-600' : 'text-red-600')}>
-                    {budget.percentage}%
+
+                <div className="flex justify-between font-mono text-[11px]">
+                  <span className={cn('font-bold', isDanger ? 'text-[#D9381E]' : 'text-[#2A7B88]')}>
+                    {budget.percentage}% TERCAPAI
                   </span>
-                  <span className={cn(budget.remaining >= 0 ? 'text-gray-400' : 'text-red-500')}>
-                    {budget.remaining >= 0 ? `Sisa ${formatCurrency(budget.remaining)}` : `Lebih ${formatCurrency(Math.abs(budget.remaining))}`}
+                  <span className={cn(budget.remaining >= 0 ? 'text-[#706860]' : 'text-[#D9381E] font-bold')}>
+                    {budget.remaining >= 0 ? `Sisa: ${formatCurrency(budget.remaining)}` : `Lebih: ${formatCurrency(Math.abs(budget.remaining))}`}
                   </span>
                 </div>
               </div>
@@ -167,41 +204,38 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
 
       {/* Form Dialog */}
       <Dialog open={showForm} onOpenChange={(open) => { if (!open) { setShowForm(false); resetForm(); } }}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm bg-[#FAF7F2] border-2 border-[#24201D] shadow-[6px_6px_0px_#24201D]">
           <DialogHeader>
-            <DialogTitle>{editBudget ? 'Edit Budget' : 'Tambah Budget'}</DialogTitle>
+            <DialogTitle className="font-display font-bold text-xl uppercase text-[#24201D]">
+              {editBudget ? 'Ubah Alokasi Anggaran' : 'Tetapkan Anggaran Baru'}
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-3.5 font-mono text-xs">
             <div className="space-y-1">
-              <Label>Kategori</Label>
-              <Select
+              <label className="font-bold text-[#24201D] uppercase">Kategori</label>
+              <select
                 value={formCategory}
-                onValueChange={setFormCategory}
+                onChange={e => setFormCategory(e.target.value)}
                 disabled={!!editBudget}
+                className="w-full px-3 py-2 bg-[#EDE6DC] border border-[#24201D] text-[#24201D] outline-none disabled:opacity-60"
               >
-                <SelectTrigger><SelectValue placeholder="Pilih kategori" /></SelectTrigger>
-                <SelectContent>
-                  {(editBudget ? categories : availableCategories).map(cat => (
-                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <option value="">PILIH KATEGORI</option>
+                {(editBudget ? categories : availableCategories).map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
             </div>
-            <div className="space-y-1.5">
-              <Label>Budget (Rp)</Label>
-              <Input
+
+            <div className="space-y-1">
+              <label className="font-bold text-[#24201D] uppercase">Nominal Anggaran (Rp)</label>
+              <input
                 placeholder="0"
                 value={formAmount}
                 onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
                 inputMode="numeric"
-                className="text-base font-bold text-gray-900"
+                className="w-full px-3 py-2 bg-[#EDE6DC] border border-[#24201D] font-mono font-bold text-base text-[#24201D] outline-none tabular-nums"
               />
-              {formAmount && (
-                <p className="text-xs font-bold text-blue-600">
-                  {formatCurrency(parseInt(formAmount, 10) || 0)}
-                </p>
-              )}
-              <div className="flex gap-1.5 overflow-x-auto pt-1 pb-1 scrollbar-none">
+              <div className="flex gap-1.5 overflow-x-auto pt-1 pb-1">
                 {[100000, 250000, 500000, 1000000, 2000000].map(amt => (
                   <button
                     key={amt}
@@ -210,7 +244,7 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
                       const cur = parseInt(formAmount || '0', 10);
                       setFormAmount(String(cur + amt));
                     }}
-                    className="px-2.5 py-1 rounded-xl bg-gray-100 hover:bg-blue-50 hover:text-blue-600 text-xs font-semibold text-gray-600 active:scale-95 transition-all flex-shrink-0"
+                    className="px-2 py-0.5 bg-[#EDE6DC] border border-[#24201D]/40 hover:bg-[#24201D] hover:text-[#F4F0EA] text-[10px] font-bold text-[#24201D] transition-all flex-shrink-0"
                   >
                     +{amt >= 1000000 ? `${amt / 1000000}jt` : `${amt / 1000}rb`}
                   </button>
@@ -218,21 +252,47 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowForm(false); resetForm(); }}>Batal</Button>
-            <Button onClick={handleSave} disabled={isPending}>{isPending ? 'Menyimpan...' : 'Simpan'}</Button>
+          <DialogFooter className="pt-2 font-mono text-xs">
+            <button
+              onClick={() => { setShowForm(false); resetForm(); }}
+              className="px-3.5 py-1.5 border border-[#24201D] bg-[#EDE6DC] text-[#24201D] font-bold uppercase hover:bg-[#FAF7F2]"
+            >
+              BATAL
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isPending}
+              className="px-3.5 py-1.5 bg-[#D9381E] hover:bg-[#24201D] text-[#F4F0EA] border border-[#B82C15] font-bold uppercase shadow-[2px_2px_0px_#24201D]"
+            >
+              {isPending ? 'MENYIMPAN...' : 'SIMPAN ANGGARAN'}
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteId} onOpenChange={(open) => { if (!open) setDeleteId(null); }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle>Hapus Budget</DialogTitle></DialogHeader>
-          <p className="text-sm text-gray-600">Apakah kamu yakin ingin menghapus budget ini?</p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteId(null)}>Batal</Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isPending}>{isPending ? 'Menghapus...' : 'Hapus'}</Button>
+        <DialogContent className="max-w-sm bg-[#FAF7F2] border-2 border-[#24201D] shadow-[6px_6px_0px_#24201D]">
+          <DialogHeader>
+            <DialogTitle className="font-display font-bold text-lg uppercase text-[#24201D]">
+              Hapus Anggaran
+            </DialogTitle>
+          </DialogHeader>
+          <p className="font-sans text-xs text-[#3D3834]">Apakah kamu yakin ingin menghapus alokasi anggaran ini?</p>
+          <DialogFooter className="pt-2 font-mono text-xs">
+            <button
+              onClick={() => setDeleteId(null)}
+              className="px-3 py-1.5 border border-[#24201D] bg-[#EDE6DC] text-[#24201D] font-bold uppercase"
+            >
+              BATAL
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={isPending}
+              className="px-3 py-1.5 bg-[#D9381E] hover:bg-[#24201D] text-[#F4F0EA] border border-[#B82C15] font-bold uppercase shadow-[2px_2px_0px_#24201D]"
+            >
+              {isPending ? 'MENGHAPUS...' : 'YA, HAPUS'}
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { formatCurrency } from '@/lib/currency';
-import { ArrowUpRight, ArrowDownLeft, Eye, EyeOff, ShieldCheck, Landmark } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Eye, EyeOff, Wallet, PiggyBank } from 'lucide-react';
 
 interface DashboardSummaryProps {
   balance: number;
@@ -29,92 +29,135 @@ export function DashboardSummary({
     return isNegative ? `-${formatted}` : formatted;
   };
 
-  return (
-    <div className="space-y-3">
-      {/* Architectural Obsidian Wallet Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-zinc-950 text-white p-5 sm:p-6 border border-zinc-800/90 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-        {/* Subtle, restrained top sheen (not loud purple AI glow) */}
-        <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-zinc-800/40 via-zinc-900/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+  const isPositive = balance >= 0;
 
-        {/* Top bar with Card identifier & Privacy Toggle */}
-        <div className="relative z-10 flex items-center justify-between mb-4">
+  return (
+    <section className="space-y-2">
+      {/* BroadSheet Ledger Card - Hallmark Custom-04 Aesthetic */}
+      <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-4 sm:p-6 shadow-[3px_3px_0px_#24201D] relative">
+        {/* Top Header Bar / Press Stamp */}
+        <div className="flex items-center justify-between border-b border-[#24201D]/20 pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
-              <Landmark className="w-3.5 h-3.5" />
-            </div>
-            <span className="text-[11px] font-mono tracking-widest text-zinc-400 uppercase">
-              Main Balance
+            <span className="font-mono text-xs font-bold text-[#D9381E] tracking-wider uppercase">
+              PLANK 01
+            </span>
+            <span className="text-[#24201D]/30">/</span>
+            <span className="font-mono text-xs font-semibold text-[#706860] uppercase tracking-wider">
+              Buku Kas & Saldo Operasional
             </span>
           </div>
 
           <button
             type="button"
             onClick={() => setShowAmount(!showAmount)}
-            className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-900/80 border border-zinc-800/80 px-2.5 py-1 rounded-full transition-all active:scale-95"
+            className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-[#24201D] hover:text-[#D9381E] bg-[#EDE6DC] border border-[#24201D]/30 px-2.5 py-1 rounded-[2px] transition-colors"
             aria-label={showAmount ? 'Sembunyikan saldo' : 'Tampilkan saldo'}
           >
-            {showAmount ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-            <span className="font-mono">{showAmount ? 'Hide' : 'Show'}</span>
+            {showAmount ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5 text-[#2A7B88]" />}
+            <span>{showAmount ? 'HIDE' : 'SHOW'}</span>
           </button>
         </div>
 
-        {/* Dominant Net Balance */}
-        <div className="relative z-10 mb-6">
-          <div className="flex items-baseline gap-2">
-            <p className="text-3xl sm:text-4xl font-extrabold tracking-tight tabular-nums text-zinc-50">
+        {/* Main Display: Net Balance */}
+        <div className="mb-5">
+          <p className="font-mono text-[11px] text-[#706860] uppercase tracking-widest mb-1">
+            Saldo Kas Bersih Saat Ini
+          </p>
+          <div className="flex flex-wrap items-baseline gap-2 sm:gap-3">
+            <p className="font-display font-extrabold text-3xl sm:text-5xl tracking-tight text-[#24201D] tabular-nums">
               {display(balance, balance < 0)}
             </p>
+            <span
+              className={`font-mono text-xs font-semibold px-2 py-0.5 border rounded-[2px] uppercase ${
+                isPositive
+                  ? 'bg-[#EAF4F5] border-[#2A7B88] text-[#2A7B88]'
+                  : 'bg-[#FBEBE8] border-[#D9381E] text-[#D9381E]'
+              }`}
+            >
+              {isPositive ? 'KAS AMAN' : 'DEFISIT'}
+            </span>
           </div>
-          <p className="text-xs text-zinc-400 mt-1 flex items-center gap-1.5">
-            <span className={`w-1.5 h-1.5 rounded-full ${balance >= 0 ? 'bg-emerald-400' : 'bg-rose-400'}`} />
-            {balance >= 0 ? 'Saldo bersih operasional bulan ini' : 'Pengeluaran melebihi total pemasukan'}
+          <p className="font-sans text-xs text-[#706860] mt-1.5 flex items-center gap-1.5">
+            <span
+              className={`w-2 h-2 rounded-full inline-block ${
+                isPositive ? 'bg-[#2A7B88]' : 'bg-[#D9381E]'
+              }`}
+            />
+            {isPositive
+              ? 'Arus kas berada pada level aman untuk siklus operasional.'
+              : 'Perhatian: Total pengeluaran melampaui pemasukan tercatat.'}
           </p>
         </div>
 
-        {/* Structured Financial Division Strip */}
-        <div className="relative z-10 grid grid-cols-2 gap-2 pt-3 border-t border-zinc-850 border-zinc-800/80">
-          {/* Income Sub-panel */}
-          <div className="bg-zinc-900/60 rounded-2xl p-3 border border-zinc-800/70">
-            <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-semibold mb-1">
-              <ArrowDownLeft className="w-3.5 h-3.5" />
-              <span className="text-[11px] tracking-wide uppercase font-mono text-zinc-400">Pemasukan</span>
+        {/* Financial Division Grid (4 Columns) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 pt-3 border-t-2 border-[#24201D]">
+          {/* Pemasukan */}
+          <div className="bg-[#EDE6DC] border border-[#24201D]/25 p-3 rounded-[2px]">
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-mono text-[11px] font-bold text-[#2A7B88] uppercase tracking-wider">
+                Pemasukan
+              </span>
+              <ArrowDownLeft className="w-3.5 h-3.5 text-[#2A7B88]" />
             </div>
-            <p className="text-sm sm:text-base font-bold text-zinc-100 tabular-nums truncate">
+            <p className="font-mono font-bold text-base sm:text-lg text-[#24201D] tabular-nums truncate">
               {display(totalIncome)}
             </p>
             {effectiveIncome > 0 && effectiveIncome !== totalIncome && (
-              <p className="text-[10px] text-zinc-400 truncate mt-0.5">
-                Estimasi gaji: {display(effectiveIncome)}
+              <p className="font-mono text-[10px] text-[#706860] mt-0.5 truncate">
+                Est. Gaji: {display(effectiveIncome)}
               </p>
             )}
           </div>
 
-          {/* Expense Sub-panel */}
-          <div className="bg-zinc-900/60 rounded-2xl p-3 border border-zinc-800/70">
-            <div className="flex items-center gap-1.5 text-zinc-300 text-xs font-semibold mb-1">
-              <ArrowUpRight className="w-3.5 h-3.5 text-rose-400" />
-              <span className="text-[11px] tracking-wide uppercase font-mono text-zinc-400">Pengeluaran</span>
+          {/* Pengeluaran */}
+          <div className="bg-[#EDE6DC] border border-[#24201D]/25 p-3 rounded-[2px]">
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-mono text-[11px] font-bold text-[#D9381E] uppercase tracking-wider">
+                Pengeluaran
+              </span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-[#D9381E]" />
             </div>
-            <p className="text-sm sm:text-base font-bold text-zinc-100 tabular-nums truncate">
+            <p className="font-mono font-bold text-base sm:text-lg text-[#24201D] tabular-nums truncate">
               {display(totalExpense)}
             </p>
-            <p className="text-[10px] text-zinc-400 truncate mt-0.5">Bulan berjalan</p>
+            <p className="font-mono text-[10px] text-[#706860] mt-0.5">
+              Bulan ini
+            </p>
           </div>
-        </div>
 
-        {/* Tabungan & Saving Rate mini status footer */}
-        <div className="relative z-10 mt-2.5 flex items-center justify-between text-xs text-zinc-400 bg-zinc-900/40 rounded-xl px-3 py-2 border border-zinc-850 border-zinc-800/50">
-          <div className="flex items-center gap-1.5 truncate">
-            <span className="text-zinc-500 font-mono text-[11px]">Tabungan:</span>
-            <span className="font-semibold text-zinc-200 tabular-nums truncate">{display(totalSavings)}</span>
+          {/* Tabungan */}
+          <div className="bg-[#EDE6DC] border border-[#24201D]/25 p-3 rounded-[2px]">
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-mono text-[11px] font-bold text-[#24201D] uppercase tracking-wider">
+                Tabungan
+              </span>
+              <PiggyBank className="w-3.5 h-3.5 text-[#24201D]" />
+            </div>
+            <p className="font-mono font-bold text-base sm:text-lg text-[#24201D] tabular-nums truncate">
+              {display(totalSavings)}
+            </p>
+            <p className="font-mono text-[10px] text-[#706860] mt-0.5">
+              Total terkumpul
+            </p>
           </div>
-          {savingRate > 0 && (
-            <span className="font-mono text-[10px] font-semibold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-full">
-              {savingRate}% Saving Rate
-            </span>
-          )}
+
+          {/* Saving Rate */}
+          <div className="bg-[#EDE6DC] border border-[#24201D]/25 p-3 rounded-[2px]">
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-mono text-[11px] font-bold text-[#24201D] uppercase tracking-wider">
+                Rasio Simpan
+              </span>
+              <Wallet className="w-3.5 h-3.5 text-[#24201D]" />
+            </div>
+            <p className="font-mono font-bold text-base sm:text-lg text-[#24201D] tabular-nums truncate">
+              {savingRate}%
+            </p>
+            <p className="font-mono text-[10px] text-[#2A7B88] mt-0.5 font-semibold">
+              Target min. 20%
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Plus_Jakarta_Sans } from 'next/font/google';
+import { Big_Shoulders, Spline_Sans_Mono, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { Sidebar } from '@/components/Sidebar';
 import { MobileNav } from '@/components/MobileNav';
@@ -8,10 +8,26 @@ import { getSession } from '@/lib/auth';
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar';
 import { InstallPWA } from '@/components/InstallPWA';
 
+const fontDisplay = Big_Shoulders({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '600', '700', '800', '900'],
+  variable: '--font-display',
+  adjustFontFallback: false,
+});
+
+const fontMono = Spline_Sans_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-mono',
+});
+
 const fontSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
   display: 'swap',
   weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-sans',
 });
 
 export const metadata: Metadata = {
@@ -64,8 +80,16 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className={`${fontSans.className} bg-[#fcfcfd] min-h-screen text-zinc-900 antialiased selection:bg-zinc-900 selection:text-white`}>
-        <div className="flex min-h-screen">
+      <body className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable} font-sans bg-[#F4F0EA] text-[#24201D] min-h-screen antialiased selection:bg-[#D9381E] selection:text-[#F4F0EA]`}>
+        {/* Hallmark press marks - corner crops (fixed, subtle letterpress registration) */}
+        <div className="press-marks hidden lg:block pointer-events-none fixed inset-0 z-40" aria-hidden="true">
+          <span className="crop crop--tl" />
+          <span className="crop crop--tr" />
+          <span className="crop crop--bl" />
+          <span className="crop crop--br" />
+        </div>
+
+        <div className="flex min-h-screen relative z-10">
           {/* Desktop Sidebar */}
           {session && (
             <Sidebar userName={session.name} userRole={session.role} />
@@ -73,7 +97,7 @@ export default async function RootLayout({
 
           {/* Main Content */}
           <main className={`flex-1 ${session ? 'md:ml-64' : ''} pb-28 md:pb-8`}>
-            <div className="max-w-md sm:max-w-2xl md:max-w-screen-xl mx-auto px-3.5 sm:px-6 py-3 md:p-6">
+            <div className="max-w-md sm:max-w-2xl md:max-w-5xl mx-auto px-3.5 sm:px-6 py-3 md:py-6">
               {children}
             </div>
           </main>
