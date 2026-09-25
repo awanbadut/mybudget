@@ -3,7 +3,7 @@
 import { db } from '@/db';
 import { savingsGoals, savingsTransactions } from '@/db/schema';
 import { SavingsGoalSchema, SavingsTransactionSchema } from '@/lib/validation';
-import { safeRevalidate } from '@/lib/utils';
+import { safeRevalidate } from '@/lib/server-utils';
 import { eq, and } from 'drizzle-orm';
 
 const DEV_USER_ID = process.env.DEV_USER_ID || '00000000-0000-0000-0000-000000000001';
