@@ -3,19 +3,26 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
 import dns from 'dns';
 
-// Ensure IPv4 first to avoid IPv6 connection timeouts on certain networks
+// Ensure IPv4 first to avoid IPv6 connection timeouts on certain network environments
 if (typeof dns !== 'undefined' && typeof dns.setDefaultResultOrder === 'function') {
   dns.setDefaultResultOrder('ipv4first');
 }
 
 function getDb() {
-  const url = process.env.DATABASE_URL;
-  if (!url || url === 'YOUR_NEON_POSTGRES_CONNECTION_STRING') {
+  const rawUrl = process.env.DATABASE_URL;
+  if (!rawUrl || rawUrl === 'YOUR_NEON_POSTGRES_CONNECTION_STRING') {
     throw new Error(
       'DATABASE_URL is not configured. Please set DATABASE_URL in Vercel project Environment Variables.'
     );
   }
-  const sql = neon(url);
+
+  // Neon HTTP Serverless driver requires direct compute endpoint (without -pooler)
+  // and does not use libpq TCP channel_binding parameters.
+  const normalizedUrl = rawUrl
+    .replace('-pooler', '')
+    .replace(/&channel_binding=[^&]+/, '');
+
+  const sql = neon(normalizedUrl);
   return drizzle(sql, { schema });
 }
 
