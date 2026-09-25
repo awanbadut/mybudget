@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { formatCurrency } from '@/lib/currency';
-import { ArrowUpRight, ArrowDownLeft, Eye, EyeOff, Wallet, PiggyBank } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Eye, EyeOff, Wallet, PiggyBank, Sparkles } from 'lucide-react';
 
 interface DashboardSummaryProps {
   balance: number;
@@ -32,132 +32,120 @@ export function DashboardSummary({
   const isPositive = balance >= 0;
 
   return (
-    <section className="space-y-2">
-      {/* BroadSheet Ledger Card - Hallmark Custom-04 Aesthetic */}
-      <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-4 sm:p-6 shadow-[3px_3px_0px_#24201D] relative">
-        {/* Top Header Bar / Press Stamp */}
-        <div className="flex items-center justify-between border-b border-[#24201D]/20 pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-bold text-[#D9381E] tracking-wider uppercase">
-              PLANK 01
-            </span>
-            <span className="text-[#24201D]/30">/</span>
-            <span className="font-mono text-xs font-semibold text-[#706860] uppercase tracking-wider">
-              Buku Kas & Saldo Operasional
-            </span>
-          </div>
+    <div className="bg-white rounded-2xl border border-stone-200/80 p-5 sm:p-7 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-6">
+      {/* Top Header Row */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-zinc-500 tracking-wide uppercase">
+          Saldo Tersedia
+        </span>
 
-          <button
-            type="button"
-            onClick={() => setShowAmount(!showAmount)}
-            className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-[#24201D] hover:text-[#D9381E] bg-[#EDE6DC] border border-[#24201D]/30 px-2.5 py-1 rounded-[2px] transition-colors"
-            aria-label={showAmount ? 'Sembunyikan saldo' : 'Tampilkan saldo'}
-          >
-            {showAmount ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5 text-[#2A7B88]" />}
-            <span>{showAmount ? 'HIDE' : 'SHOW'}</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setShowAmount(!showAmount)}
+          className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 bg-stone-100/80 hover:bg-stone-200/70 px-2.5 py-1 rounded-lg transition-colors font-medium"
+          aria-label={showAmount ? 'Sembunyikan saldo' : 'Tampilkan saldo'}
+        >
+          {showAmount ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5 text-emerald-600" />}
+          <span>{showAmount ? 'Sembunyikan' : 'Tampilkan'}</span>
+        </button>
+      </div>
 
-        {/* Main Display: Net Balance */}
-        <div className="mb-5">
-          <p className="font-mono text-[11px] text-[#706860] uppercase tracking-widest mb-1">
-            Saldo Kas Bersih Saat Ini
+      {/* Main Balance Display */}
+      <div>
+        <div className="flex flex-wrap items-baseline gap-3">
+          <p className="font-sans font-bold text-3xl sm:text-4xl lg:text-5xl text-zinc-900 tracking-tight tabular-nums">
+            {display(balance, balance < 0)}
           </p>
-          <div className="flex flex-wrap items-baseline gap-2 sm:gap-3">
-            <p className="font-display font-extrabold text-3xl sm:text-5xl tracking-tight text-[#24201D] tabular-nums">
-              {display(balance, balance < 0)}
-            </p>
+          <span
+            className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${
+              isPositive
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200/70'
+                : 'bg-rose-50 text-rose-700 border-rose-200/70'
+            }`}
+          >
             <span
-              className={`font-mono text-xs font-semibold px-2 py-0.5 border rounded-[2px] uppercase ${
-                isPositive
-                  ? 'bg-[#EAF4F5] border-[#2A7B88] text-[#2A7B88]'
-                  : 'bg-[#FBEBE8] border-[#D9381E] text-[#D9381E]'
-              }`}
-            >
-              {isPositive ? 'KAS AMAN' : 'DEFISIT'}
-            </span>
-          </div>
-          <p className="font-sans text-xs text-[#706860] mt-1.5 flex items-center gap-1.5">
-            <span
-              className={`w-2 h-2 rounded-full inline-block ${
-                isPositive ? 'bg-[#2A7B88]' : 'bg-[#D9381E]'
+              className={`w-1.5 h-1.5 rounded-full ${
+                isPositive ? 'bg-emerald-500' : 'bg-rose-500'
               }`}
             />
-            {isPositive
-              ? 'Arus kas berada pada level aman untuk siklus operasional.'
-              : 'Perhatian: Total pengeluaran melampaui pemasukan tercatat.'}
+            {isPositive ? 'Arus Kas Aman' : 'Defisit Pengeluaran'}
+          </span>
+        </div>
+        <p className="text-xs text-zinc-500 mt-1.5">
+          {isPositive
+            ? 'Kondisi kas terkendali. Surplus operasional siap dialokasikan ke tabungan.'
+            : 'Perhatian: Total pengeluaran melebihi pemasukan yang tercatat bulan ini.'}
+        </p>
+      </div>
+
+      {/* 4 Financial Sub-Metrics Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-stone-100">
+        {/* Pemasukan */}
+        <div className="bg-stone-50/60 rounded-xl p-3.5 border border-stone-200/60">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-zinc-500">Pemasukan</span>
+            <div className="w-6 h-6 rounded-lg bg-emerald-100/70 text-emerald-700 flex items-center justify-center">
+              <ArrowDownLeft className="w-3.5 h-3.5 stroke-[2.5]" />
+            </div>
+          </div>
+          <p className="font-sans font-semibold text-base sm:text-lg text-zinc-900 tabular-nums truncate">
+            {display(totalIncome)}
+          </p>
+          <p className="text-[11px] text-zinc-500 mt-0.5 truncate">
+            {effectiveIncome > 0 && effectiveIncome !== totalIncome
+              ? `Est. Gaji: ${display(effectiveIncome)}`
+              : 'Bulan ini'}
           </p>
         </div>
 
-        {/* Financial Division Grid (4 Columns) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 pt-3 border-t-2 border-[#24201D]">
-          {/* Pemasukan */}
-          <div className="bg-[#EDE6DC] border border-[#24201D]/25 p-3 rounded-[2px]">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-mono text-[11px] font-bold text-[#2A7B88] uppercase tracking-wider">
-                Pemasukan
-              </span>
-              <ArrowDownLeft className="w-3.5 h-3.5 text-[#2A7B88]" />
+        {/* Pengeluaran */}
+        <div className="bg-stone-50/60 rounded-xl p-3.5 border border-stone-200/60">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-zinc-500">Pengeluaran</span>
+            <div className="w-6 h-6 rounded-lg bg-rose-100/70 text-rose-700 flex items-center justify-center">
+              <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
             </div>
-            <p className="font-mono font-bold text-base sm:text-lg text-[#24201D] tabular-nums truncate">
-              {display(totalIncome)}
-            </p>
-            {effectiveIncome > 0 && effectiveIncome !== totalIncome && (
-              <p className="font-mono text-[10px] text-[#706860] mt-0.5 truncate">
-                Est. Gaji: {display(effectiveIncome)}
-              </p>
-            )}
           </div>
+          <p className="font-sans font-semibold text-base sm:text-lg text-zinc-900 tabular-nums truncate">
+            {display(totalExpense)}
+          </p>
+          <p className="text-[11px] text-zinc-500 mt-0.5">
+            Bulan ini
+          </p>
+        </div>
 
-          {/* Pengeluaran */}
-          <div className="bg-[#EDE6DC] border border-[#24201D]/25 p-3 rounded-[2px]">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-mono text-[11px] font-bold text-[#D9381E] uppercase tracking-wider">
-                Pengeluaran
-              </span>
-              <ArrowUpRight className="w-3.5 h-3.5 text-[#D9381E]" />
+        {/* Tabungan */}
+        <div className="bg-stone-50/60 rounded-xl p-3.5 border border-stone-200/60">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-zinc-500">Tabungan</span>
+            <div className="w-6 h-6 rounded-lg bg-indigo-100/70 text-indigo-700 flex items-center justify-center">
+              <PiggyBank className="w-3.5 h-3.5 stroke-[2.2]" />
             </div>
-            <p className="font-mono font-bold text-base sm:text-lg text-[#24201D] tabular-nums truncate">
-              {display(totalExpense)}
-            </p>
-            <p className="font-mono text-[10px] text-[#706860] mt-0.5">
-              Bulan ini
-            </p>
           </div>
+          <p className="font-sans font-semibold text-base sm:text-lg text-zinc-900 tabular-nums truncate">
+            {display(totalSavings)}
+          </p>
+          <p className="text-[11px] text-zinc-500 mt-0.5">
+            Total terkumpul
+          </p>
+        </div>
 
-          {/* Tabungan */}
-          <div className="bg-[#EDE6DC] border border-[#24201D]/25 p-3 rounded-[2px]">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-mono text-[11px] font-bold text-[#24201D] uppercase tracking-wider">
-                Tabungan
-              </span>
-              <PiggyBank className="w-3.5 h-3.5 text-[#24201D]" />
+        {/* Saving Rate */}
+        <div className="bg-stone-50/60 rounded-xl p-3.5 border border-stone-200/60">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-zinc-500">Rasio Simpan</span>
+            <div className="w-6 h-6 rounded-lg bg-amber-100/70 text-amber-700 flex items-center justify-center">
+              <Wallet className="w-3.5 h-3.5 stroke-[2.2]" />
             </div>
-            <p className="font-mono font-bold text-base sm:text-lg text-[#24201D] tabular-nums truncate">
-              {display(totalSavings)}
-            </p>
-            <p className="font-mono text-[10px] text-[#706860] mt-0.5">
-              Total terkumpul
-            </p>
           </div>
-
-          {/* Saving Rate */}
-          <div className="bg-[#EDE6DC] border border-[#24201D]/25 p-3 rounded-[2px]">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-mono text-[11px] font-bold text-[#24201D] uppercase tracking-wider">
-                Rasio Simpan
-              </span>
-              <Wallet className="w-3.5 h-3.5 text-[#24201D]" />
-            </div>
-            <p className="font-mono font-bold text-base sm:text-lg text-[#24201D] tabular-nums truncate">
-              {savingRate}%
-            </p>
-            <p className="font-mono text-[10px] text-[#2A7B88] mt-0.5 font-semibold">
-              Target min. 20%
-            </p>
-          </div>
+          <p className="font-sans font-semibold text-base sm:text-lg text-zinc-900 tabular-nums truncate">
+            {savingRate}%
+          </p>
+          <p className="text-[11px] text-zinc-500 mt-0.5">
+            Target ideal 20%
+          </p>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

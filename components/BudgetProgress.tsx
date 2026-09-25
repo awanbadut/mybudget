@@ -49,77 +49,72 @@ interface BudgetProgressProps {
 export function BudgetProgress({ budgets }: BudgetProgressProps) {
   if (budgets.length === 0) {
     return (
-      <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-6 sm:p-8 text-center space-y-3 shadow-[3px_3px_0px_#24201D]">
-        <div className="w-10 h-10 border border-[#24201D] bg-[#EDE6DC] text-[#24201D] flex items-center justify-center mx-auto">
+      <div className="bg-white rounded-2xl border border-stone-200/80 p-8 text-center space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="w-10 h-10 rounded-xl bg-stone-100 text-zinc-500 flex items-center justify-center mx-auto">
           <PieChart className="w-5 h-5" />
         </div>
-        <p className="font-display font-bold text-lg text-[#24201D] uppercase">
+        <p className="font-semibold text-sm text-zinc-900">
           Belum Ada Alokasi Anggaran Bulanan
         </p>
-        <p className="font-sans text-xs text-[#706860] max-w-sm mx-auto">
-          Tetapkan batas belanja operasional untuk mencegah overbudget.
+        <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+          Tetapkan batas belanja operasional untuk mencegah pengeluaran berlebih.
         </p>
         <Link
           href="/budget"
-          className="inline-block mt-2 font-mono text-xs font-bold text-[#F4F0EA] bg-[#D9381E] border border-[#B82C15] px-4 py-2 hover:bg-[#24201D] transition-colors shadow-[2px_2px_0px_#24201D]"
+          className="inline-flex items-center justify-center font-medium text-xs text-white bg-zinc-900 hover:bg-zinc-800 px-4 py-2 rounded-xl transition-colors shadow-sm"
         >
-          + BUAT ANGGARAN SEKARANG
+          Buat Anggaran Sekarang
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#FAF7F2] border-2 border-[#24201D] shadow-[3px_3px_0px_#24201D] divide-y divide-[#24201D]/20 overflow-hidden">
-      {/* Table Head / Header info */}
-      <div className="p-3.5 bg-[#EDE6DC] flex items-center justify-between font-mono text-xs border-b border-[#24201D]">
-        <span className="font-bold text-[#24201D] uppercase tracking-wider">Kategori Pengeluaran</span>
-        <span className="font-bold text-[#706860] uppercase tracking-wider">Realisasi / Target</span>
-      </div>
-
-      {budgets.map((budget, index) => {
+    <div className="bg-white rounded-2xl border border-stone-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] divide-y divide-stone-100 overflow-hidden">
+      {budgets.map((budget) => {
         const pct = Math.min(budget.percentage, 100);
         const iconName = budget.category?.icon || 'MoreHorizontal';
         const Icon = ICON_MAP[iconName] || MoreHorizontal;
         const isOver = budget.percentage > 90;
+        const isWarning = budget.percentage >= 70 && budget.percentage <= 90;
 
         return (
-          <div key={budget.id} className="p-3.5 sm:p-4 hover:bg-[#EDE6DC]/50 transition-colors space-y-2">
+          <div key={budget.id} className="p-4 sm:p-5 hover:bg-stone-50/50 transition-colors space-y-2.5">
             <div className="flex justify-between items-center gap-2">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="font-mono text-xs font-bold text-[#706860]">
-                  {String(index + 1).padStart(2, '0')}.
-                </span>
-                <span className="font-display font-bold text-base sm:text-lg text-[#24201D] uppercase truncate">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-stone-100 text-zinc-700 flex items-center justify-center flex-shrink-0">
+                  <Icon className="w-4 h-4" />
+                </div>
+                <span className="font-semibold text-sm text-zinc-900 truncate">
                   {budget.category?.name || 'Kategori'}
                 </span>
               </div>
 
               <div className="text-right flex-shrink-0">
-                <span className="font-mono text-xs sm:text-sm font-bold text-[#24201D] tabular-nums">
+                <span className="font-semibold text-sm text-zinc-900 tabular-nums">
                   {formatCurrency(budget.spent)}
                 </span>
-                <span className="font-mono text-[11px] text-[#706860] tabular-nums">
+                <span className="text-xs text-zinc-400 tabular-nums">
                   {' '}/ {formatCurrency(budget.amount)}
                 </span>
               </div>
             </div>
 
-            {/* Letterpress ruler progress bar */}
-            <div className="w-full bg-[#E2D7C7] h-2 border border-[#24201D] p-[0.5px]">
+            {/* Modern hairline progress bar */}
+            <div className="w-full bg-stone-100 h-2 rounded-full overflow-hidden">
               <div
-                className={`h-full transition-all duration-300 ${
-                  isOver ? 'bg-[#D9381E]' : 'bg-[#2A7B88]'
+                className={`h-full rounded-full transition-all duration-300 ${
+                  isOver ? 'bg-rose-500' : isWarning ? 'bg-amber-500' : 'bg-emerald-500'
                 }`}
                 style={{ width: `${pct}%` }}
               />
             </div>
 
-            <div className="flex justify-between items-center text-[11px] font-mono">
-              <span className={`font-bold ${isOver ? 'text-[#D9381E]' : 'text-[#2A7B88]'}`}>
-                {budget.percentage}% TERCAPAI
+            <div className="flex justify-between items-center text-xs">
+              <span className={`font-medium ${isOver ? 'text-rose-600' : isWarning ? 'text-amber-600' : 'text-emerald-600'}`}>
+                {budget.percentage}% terpakai
               </span>
-              <span className={budget.remaining >= 0 ? 'text-[#706860]' : 'text-[#D9381E] font-bold'}>
+              <span className={budget.remaining >= 0 ? 'text-zinc-500' : 'text-rose-600 font-medium'}>
                 {budget.remaining >= 0
                   ? `Sisa: ${formatCurrency(budget.remaining)}`
                   : `Lebih: ${formatCurrency(Math.abs(budget.remaining))}`}

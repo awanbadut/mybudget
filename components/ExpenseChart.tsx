@@ -1,16 +1,17 @@
 'use client';
+
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatCurrency } from '@/lib/currency';
 
 const COLORS = [
-  '#24201D', // Deep iron
-  '#D9381E', // Riso vermilion
-  '#2A7B88', // Mineral teal
-  '#276738', // Forest green
-  '#706860', // Mute ink
-  '#B82C15', // Deep vermilion
-  '#1E5E69', // Deep teal
-  '#4A433D', // Charcoal
+  '#18181B', // Zinc 900
+  '#2563EB', // Blue 600
+  '#059669', // Emerald 600
+  '#D97706', // Amber 600
+  '#7C3AED', // Violet 600
+  '#DB2777', // Pink 600
+  '#0891B2', // Cyan 600
+  '#71717A', // Zinc 500
 ];
 
 interface ExpenseChartProps {
@@ -30,27 +31,25 @@ export function ExpenseChart({ data, total }: ExpenseChartProps) {
 
   if (chartData.length === 0) {
     return (
-      <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-5 shadow-[3px_3px_0px_#24201D]">
-        <div className="border-b border-[#24201D]/20 pb-2 mb-3">
-          <h3 className="font-mono text-xs font-bold text-[#24201D] uppercase tracking-wider">
-            Distribusi Belanja
-          </h3>
-        </div>
-        <div className="flex items-center justify-center h-40 text-[#706860] font-mono text-xs">
-          Belum ada catatan pengeluaran
+      <div className="bg-white rounded-2xl border border-stone-200/80 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+        <h3 className="font-semibold text-sm text-zinc-900 mb-3">
+          Pengeluaran per Kategori
+        </h3>
+        <div className="flex items-center justify-center h-44 text-zinc-400 text-xs">
+          Belum ada catatan pengeluaran bulan ini
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-4 sm:p-5 shadow-[3px_3px_0px_#24201D]">
-      <div className="border-b border-[#24201D]/20 pb-2.5 mb-3 flex items-center justify-between">
-        <h3 className="font-mono text-xs font-bold text-[#24201D] uppercase tracking-wider">
-          Distribusi Belanja Kategori
+    <div className="bg-white rounded-2xl border border-stone-200/80 p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-sm text-zinc-900">
+          Pengeluaran per Kategori
         </h3>
-        <span className="font-mono text-xs font-bold text-[#D9381E] tabular-nums">
-          TOTAL: {formatCurrency(total)}
+        <span className="text-xs font-semibold text-zinc-900 tabular-nums bg-stone-100 px-2.5 py-1 rounded-full">
+          Total: {formatCurrency(total)}
         </span>
       </div>
 
@@ -61,12 +60,12 @@ export function ExpenseChart({ data, total }: ExpenseChartProps) {
               data={chartData}
               cx="50%"
               cy="50%"
-              innerRadius={50}
-              outerRadius={80}
-              paddingAngle={2}
+              innerRadius={55}
+              outerRadius={82}
+              paddingAngle={3}
               dataKey="value"
-              stroke="#24201D"
-              strokeWidth={1}
+              stroke="#FFFFFF"
+              strokeWidth={2}
             >
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -77,9 +76,9 @@ export function ExpenseChart({ data, total }: ExpenseChartProps) {
                 if (active && payload && payload.length) {
                   const item = payload[0];
                   return (
-                    <div className="bg-[#24201D] text-[#F4F0EA] p-2 text-xs font-mono border border-[#F4F0EA]/20 shadow-md">
-                      <p className="font-bold uppercase">{item.name}</p>
-                      <p className="text-[#E2D7C7]">{formatCurrency(Number(item.value))}</p>
+                    <div className="bg-zinc-900 text-white p-2.5 text-xs rounded-xl shadow-lg border border-zinc-800">
+                      <p className="font-medium">{item.name}</p>
+                      <p className="font-semibold text-stone-200 mt-0.5">{formatCurrency(Number(item.value))}</p>
                     </div>
                   );
                 }
@@ -91,16 +90,16 @@ export function ExpenseChart({ data, total }: ExpenseChartProps) {
       </div>
 
       {/* Legend list */}
-      <div className="space-y-1.5 mt-3 pt-3 border-t border-[#24201D]/20">
+      <div className="space-y-2 pt-2 border-t border-stone-100">
         {chartData.slice(0, 5).map((item, i) => (
-          <div key={item.name} className="flex items-center justify-between font-mono text-xs">
+          <div key={item.name} className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-2.5 h-2.5 border border-[#24201D] flex-shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-              <span className="text-[#3D3834] truncate">{item.name}</span>
+              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+              <span className="text-zinc-600 truncate">{item.name}</span>
             </div>
             <div className="text-right flex-shrink-0">
-              <span className="font-bold text-[#24201D] tabular-nums">{formatCurrency(item.value)}</span>
-              <span className="text-[#706860] ml-1">({item.percentage}%)</span>
+              <span className="font-semibold text-zinc-900 tabular-nums">{formatCurrency(item.value)}</span>
+              <span className="text-zinc-400 ml-1">({item.percentage}%)</span>
             </div>
           </div>
         ))}

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Big_Shoulders, Spline_Sans_Mono, Plus_Jakarta_Sans } from 'next/font/google';
+import { Spline_Sans_Mono, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { Sidebar } from '@/components/Sidebar';
 import { MobileNav } from '@/components/MobileNav';
@@ -7,14 +7,6 @@ import { Toaster } from '@/components/ui/toaster';
 import { getSession } from '@/lib/auth';
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar';
 import { InstallPWA } from '@/components/InstallPWA';
-
-const fontDisplay = Big_Shoulders({
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['400', '600', '700', '800', '900'],
-  variable: '--font-display',
-  adjustFontFallback: false,
-});
 
 const fontMono = Spline_Sans_Mono({
   subsets: ['latin'],
@@ -32,7 +24,7 @@ const fontSans = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: 'My Budget - Kelola Keuangan Pribadi',
-  description: 'Aplikasi budgeting pribadi untuk mengelola keuangan Anda dengan mudah',
+  description: 'Aplikasi pencatatan keuangan pribadi yang simpel, elegan, dan terstruktur',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -54,7 +46,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#2563eb',
+  themeColor: '#FAFAF9',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -80,24 +72,16 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable} font-sans bg-[#F4F0EA] text-[#24201D] min-h-screen antialiased selection:bg-[#D9381E] selection:text-[#F4F0EA]`}>
-        {/* Hallmark press marks - corner crops (fixed, subtle letterpress registration) */}
-        <div className="press-marks hidden lg:block pointer-events-none fixed inset-0 z-40" aria-hidden="true">
-          <span className="crop crop--tl" />
-          <span className="crop crop--tr" />
-          <span className="crop crop--bl" />
-          <span className="crop crop--br" />
-        </div>
-
-        <div className="flex min-h-screen relative z-10">
+      <body className={`${fontSans.variable} ${fontMono.variable} font-sans bg-[#FAFAF9] text-zinc-900 min-h-screen antialiased selection:bg-zinc-900 selection:text-white`}>
+        <div className="flex min-h-screen">
           {/* Desktop Sidebar */}
           {session && (
             <Sidebar userName={session.name} userRole={session.role} />
           )}
 
           {/* Main Content */}
-          <main className={`flex-1 ${session ? 'md:ml-64' : ''} pb-28 md:pb-8`}>
-            <div className="max-w-md sm:max-w-2xl md:max-w-5xl mx-auto px-3.5 sm:px-6 py-3 md:py-6">
+          <main className={`flex-1 ${session ? 'md:ml-64' : ''} pb-28 md:pb-10`}>
+            <div className="max-w-md sm:max-w-xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-4 md:py-8">
               {children}
             </div>
           </main>

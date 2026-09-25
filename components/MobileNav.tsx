@@ -19,45 +19,44 @@ export function MobileNav() {
   const isSettings = pathname.startsWith('/settings') || pathname.startsWith('/reports');
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 pointer-events-none pb-[env(safe-area-inset-bottom)] px-3 mb-2">
-      {/* Hallmark Custom-04 Letterpress Mobile Dock */}
-      <nav className="pointer-events-auto bg-[#F4F0EA] border-2 border-[#24201D] shadow-[4px_4px_0px_#24201D] px-2 py-1.5 flex items-center justify-between">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 pointer-events-none pb-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] px-4 mb-2">
+      <nav className="pointer-events-auto bg-white/95 backdrop-blur-md border border-stone-200/80 shadow-[0_8px_24px_rgba(0,0,0,0.06)] rounded-2xl max-w-sm mx-auto px-2 py-1.5 flex items-center justify-between">
         {/* Home */}
         <Link
           href="/"
           className={cn(
-            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:translate-y-[1px]',
-            isHome ? 'text-[#24201D]' : 'text-[#706860] hover:text-[#24201D]'
+            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:scale-95',
+            isHome ? 'text-zinc-900 font-semibold' : 'text-zinc-400 hover:text-zinc-700 font-medium'
           )}
         >
-          <div className={cn('p-1 rounded-[2px] transition-colors', isHome && 'bg-[#EDE6DC] border border-[#24201D]')}>
+          <div className={cn('p-1 rounded-xl transition-colors', isHome && 'bg-stone-100')}>
             <Home className="w-4 h-4 stroke-[2.2]" />
           </div>
-          <span className="font-mono text-[9px] font-bold uppercase tracking-wider mt-0.5">Buku</span>
+          <span className="text-[10px] mt-0.5">Beranda</span>
         </Link>
 
         {/* Budget */}
         <Link
           href="/budget"
           className={cn(
-            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:translate-y-[1px]',
-            isBudget ? 'text-[#24201D]' : 'text-[#706860] hover:text-[#24201D]'
+            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:scale-95',
+            isBudget ? 'text-zinc-900 font-semibold' : 'text-zinc-400 hover:text-zinc-700 font-medium'
           )}
         >
-          <div className={cn('p-1 rounded-[2px] transition-colors', isBudget && 'bg-[#EDE6DC] border border-[#24201D]')}>
+          <div className={cn('p-1 rounded-xl transition-colors', isBudget && 'bg-stone-100')}>
             <PieChart className="w-4 h-4 stroke-[2.2]" />
           </div>
-          <span className="font-mono text-[9px] font-bold uppercase tracking-wider mt-0.5">Budget</span>
+          <span className="text-[10px] mt-0.5">Budget</span>
         </Link>
 
-        {/* Center Primary Action Button (+) - Stamped Riso Vermilion */}
-        <div className="flex-1 flex justify-center -mt-6">
+        {/* Center Action (+) */}
+        <div className="flex-1 flex justify-center -mt-5">
           <Link
             href="/transactions?action=new"
-            aria-label="Tambah Transaksi"
-            className="w-12 h-12 bg-[#D9381E] text-[#F4F0EA] border-2 border-[#24201D] shadow-[2px_2px_0px_#24201D] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#24201D] hover:bg-[#24201D] flex items-center justify-center transition-all"
+            aria-label="Catat Transaksi"
+            className="w-12 h-12 bg-zinc-900 text-white rounded-full shadow-lg shadow-zinc-900/20 hover:bg-zinc-800 active:scale-95 flex items-center justify-center transition-all border-2 border-white"
           >
-            <Plus className="w-6 h-6 stroke-[2.8]" />
+            <Plus className="w-6 h-6 stroke-[2.5]" />
           </Link>
         </div>
 
@@ -65,28 +64,28 @@ export function MobileNav() {
         <Link
           href="/debts"
           className={cn(
-            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:translate-y-[1px]',
-            isDebts ? 'text-[#24201D]' : 'text-[#706860] hover:text-[#24201D]'
+            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:scale-95',
+            isDebts ? 'text-zinc-900 font-semibold' : 'text-zinc-400 hover:text-zinc-700 font-medium'
           )}
         >
-          <div className={cn('p-1 rounded-[2px] transition-colors', isDebts && 'bg-[#EDE6DC] border border-[#24201D]')}>
+          <div className={cn('p-1 rounded-xl transition-colors', isDebts && 'bg-stone-100')}>
             <CreditCard className="w-4 h-4 stroke-[2.2]" />
           </div>
-          <span className="font-mono text-[9px] font-bold uppercase tracking-wider mt-0.5">Utang</span>
+          <span className="text-[10px] mt-0.5">Utang</span>
         </Link>
 
         {/* Settings */}
         <Link
           href="/settings"
           className={cn(
-            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:translate-y-[1px]',
-            isSettings ? 'text-[#24201D]' : 'text-[#706860] hover:text-[#24201D]'
+            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:scale-95',
+            isSettings ? 'text-zinc-900 font-semibold' : 'text-zinc-400 hover:text-zinc-700 font-medium'
           )}
         >
-          <div className={cn('p-1 rounded-[2px] transition-colors', isSettings && 'bg-[#EDE6DC] border border-[#24201D]')}>
+          <div className={cn('p-1 rounded-xl transition-colors', isSettings && 'bg-stone-100')}>
             <Settings className="w-4 h-4 stroke-[2.2]" />
           </div>
-          <span className="font-mono text-[9px] font-bold uppercase tracking-wider mt-0.5">Akun</span>
+          <span className="text-[10px] mt-0.5">Akun</span>
         </Link>
       </nav>
     </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { formatCurrency } from '@/lib/currency';
-import { Utensils, Calendar, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Utensils, Calendar, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { getPayrollCycle } from '@/lib/dates';
 
 interface DailyBudgetProps {
@@ -39,83 +39,98 @@ export function DailyBudget({
   if (foodBudgetTotal === 0) return null;
 
   return (
-    <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-4 sm:p-6 shadow-[3px_3px_0px_#24201D] space-y-4">
+    <div className="bg-white rounded-2xl border border-stone-200/80 p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-5">
       {/* Header bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#24201D]/20 pb-3">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-xs font-bold text-[#D9381E] tracking-wider uppercase">
-            PLANK 02
-          </span>
-          <span className="text-[#24201D]/30">/</span>
-          <div className="flex items-center gap-1.5 font-mono text-xs font-semibold text-[#706860] uppercase">
-            <Utensils className="w-3.5 h-3.5 text-[#24201D]" />
-            <span>Pacing Makan Harian (Siklus 25-25)</span>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+            <Utensils className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-sm text-zinc-900 leading-none">
+              Pacing Makan Harian
+            </h3>
+            <p className="text-xs text-zinc-500 mt-1">
+              Siklus Gaji: {label}
+            </p>
           </div>
         </div>
 
-        <div className="bg-[#EDE6DC] border border-[#24201D]/30 text-[#24201D] px-2.5 py-1 text-[11px] font-mono font-bold tracking-wider">
-          TGL GAJIAN: {salaryDate} · {daysRemaining} HARI LAGI
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border bg-stone-50 border-stone-200/70 text-zinc-600">
+          <Clock className="w-3.5 h-3.5 text-zinc-400" />
+          <span>Gajian tgl {salaryDate} ({daysRemaining} hari lagi)</span>
         </div>
       </div>
 
       {/* Main Focus: Jatah Makan Hari Ini */}
-      <div className="bg-[#EDE6DC] border-2 border-[#24201D] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-stone-50/70 rounded-xl p-4 sm:p-5 border border-stone-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="font-mono text-[11px] font-bold text-[#706860] uppercase tracking-widest block mb-1">
+          <span className="text-xs font-medium text-zinc-500 block mb-1">
             Jatah Aman Konsumsi Hari Ini
           </span>
           <div className="flex items-baseline gap-2">
-            <span className="font-display font-extrabold text-3xl sm:text-4xl text-[#24201D] tabular-nums">
+            <span className="font-sans font-bold text-3xl sm:text-4xl text-zinc-900 tabular-nums">
               {formatCurrency(dailyAllowance)}
             </span>
-            <span className="font-mono text-xs text-[#706860]">/ hari</span>
+            <span className="text-xs text-zinc-500 font-medium">/ hari</span>
           </div>
-          <p className="font-sans text-xs text-[#3D3834] mt-1.5">
-            Target standar ideal: <strong className="font-mono">{formatCurrency(dailyTarget)}/hari</strong> untuk siklus {label} ({totalDays} hari penuh).
+          <p className="text-xs text-zinc-500 mt-1">
+            Target ideal: <strong className="text-zinc-800 font-semibold">{formatCurrency(dailyTarget)}/hari</strong> untuk {totalDays} hari penuh.
           </p>
         </div>
 
-        <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 border-t sm:border-t-0 border-[#24201D]/20 pt-3 sm:pt-0">
-          <div className="bg-[#FAF7F2] border border-[#24201D] px-3 py-1.5 text-center">
-            <span className="font-mono text-[10px] text-[#706860] uppercase block">Sisa Hari Siklus</span>
-            <span className="font-display font-bold text-xl text-[#24201D] tabular-nums">{daysRemaining} Hari</span>
-          </div>
-          <span className={`font-mono text-[11px] font-bold px-2 py-0.5 border uppercase ${
-            isOverBudget
-              ? 'bg-[#FBEBE8] border-[#D9381E] text-[#D9381E]'
-              : 'bg-[#EAF4F5] border-[#2A7B88] text-[#2A7B88]'
-          }`}>
-            {isOverBudget ? 'PERLU REM' : 'PACING AMAN'}
+        <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-200/50">
+          <span
+            className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${
+              isOverBudget
+                ? 'bg-rose-50 text-rose-700 border-rose-200/70'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200/70'
+            }`}
+          >
+            {isOverBudget ? (
+              <>
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>Perlu Rem Belanja</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Pacing Terkendali</span>
+              </>
+            )}
+          </span>
+          <span className="text-xs text-zinc-500">
+            Sisa waktu: <strong className="text-zinc-900 font-semibold">{daysRemaining} hari</strong>
           </span>
         </div>
       </div>
 
       {/* Progress & Breakdown Strip */}
-      <div className="space-y-2 pt-1">
-        <div className="flex justify-between text-xs font-mono">
-          <span className="text-[#706860]">
-            Terpakai: <strong className="text-[#24201D] tabular-nums">{formatCurrency(foodSpent)}</strong> ({percentageSpent}%)
+      <div className="space-y-2">
+        <div className="flex justify-between text-xs font-medium">
+          <span className="text-zinc-500">
+            Terpakai: <strong className="text-zinc-900 tabular-nums">{formatCurrency(foodSpent)}</strong> ({percentageSpent}%)
           </span>
-          <span className="text-[#706860]">
-            Sisa Budget: <strong className={budgetRemaining >= 0 ? 'text-[#2A7B88] tabular-nums' : 'text-[#D9381E] tabular-nums'}>
+          <span className="text-zinc-500">
+            Sisa Budget: <strong className={budgetRemaining >= 0 ? 'text-emerald-600 tabular-nums' : 'text-rose-600 tabular-nums'}>
               {formatCurrency(budgetRemaining)}
             </strong>
           </span>
         </div>
 
-        {/* Letterpress Pacing Ruler Bar */}
-        <div className="w-full bg-[#E2D7C7] h-3 border border-[#24201D] p-[1px] relative overflow-hidden">
+        {/* Smooth modern progress bar */}
+        <div className="w-full bg-stone-100 h-2.5 rounded-full overflow-hidden">
           <div
-            className={`h-full transition-all duration-300 ${
-              isOverBudget ? 'bg-[#D9381E]' : 'bg-[#2A7B88]'
+            className={`h-full rounded-full transition-all duration-300 ${
+              isOverBudget ? 'bg-rose-500' : 'bg-emerald-500'
             }`}
             style={{ width: `${percentageSpent}%` }}
           />
         </div>
 
-        <div className="flex justify-between items-center text-[11px] font-mono text-[#706860]">
-          <span>Total Alokasi: {formatCurrency(foodBudgetTotal)}</span>
-          <span>Rerata Tercatat: {formatCurrency(dailyActual)}/hari</span>
+        <div className="flex justify-between items-center text-[11px] text-zinc-500 pt-0.5">
+          <span>Pagu Total: {formatCurrency(foodBudgetTotal)}</span>
+          <span>Rata-rata Terpakai: {formatCurrency(dailyActual)}/hari</span>
         </div>
       </div>
     </div>

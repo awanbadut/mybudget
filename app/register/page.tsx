@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Wallet, CheckCircle2 } from 'lucide-react';
 import { registerAction } from '@/actions/auth';
 
 export default function RegisterPage() {
@@ -34,21 +34,21 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-[#F4F0EA] flex items-center justify-center p-4">
-        <div className="bg-[#FAF7F2] border-2 border-[#24201D] shadow-[4px_4px_0px_#24201D] p-8 text-center max-w-md w-full space-y-4">
-          <div className="w-12 h-12 bg-[#EAF4F5] border border-[#2A7B88] text-[#2A7B88] font-mono font-bold text-lg flex items-center justify-center mx-auto">
-            OK
+      <div className="min-h-screen bg-[#FAFAF9] flex items-center justify-center p-4 font-sans text-zinc-900">
+        <div className="bg-white rounded-2xl border border-stone-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-8 text-center max-w-md w-full space-y-4">
+          <div className="w-12 h-12 bg-emerald-50 border border-emerald-200 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+            <CheckCircle2 className="w-6 h-6" />
           </div>
-          <h2 className="font-display font-bold text-2xl text-[#24201D] uppercase">Akun Berhasil Dibuat</h2>
-          <p className="font-sans text-xs text-[#706860]">Selamat datang di My Budget. Membuka dashboard operasional...</p>
+          <h2 className="font-bold text-xl text-zinc-900">Akun Berhasil Dibuat</h2>
+          <p className="text-xs text-zinc-500">Selamat datang di My Budget. Membuka dashboard pribadi Anda...</p>
           <button
             onClick={() => {
               router.push('/');
               router.refresh();
             }}
-            className="w-full bg-[#D9381E] text-[#F4F0EA] border border-[#B82C15] py-2.5 font-mono text-xs font-bold uppercase shadow-[2px_2px_0px_#24201D]"
+            className="w-full bg-zinc-900 hover:bg-zinc-800 text-white py-2.5 rounded-xl text-xs font-semibold shadow-sm transition-all"
           >
-            Buka Buku Kas Sekarang
+            Buka Dashboard Sekarang
           </button>
         </div>
       </div>
@@ -56,61 +56,66 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F0EA] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#FAFAF9] flex items-center justify-center p-4 font-sans text-zinc-900">
       <div className="w-full max-w-md space-y-6">
-        {/* Editorial Masthead */}
+        {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-block bg-[#EDE6DC] border-2 border-[#24201D] px-3 py-1 font-mono text-xs font-bold text-[#D9381E] uppercase tracking-wider shadow-[2px_2px_0px_#24201D]">
-            REGISTRASI PENGGUNA BARU
+          <div className="w-11 h-11 bg-zinc-900 text-white rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+            <Wallet className="w-6 h-6 stroke-[2.2]" />
           </div>
-          <h1 className="font-display font-extrabold text-4xl sm:text-5xl text-[#24201D] uppercase tracking-tight leading-none">
-            MY BUDGET
+          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 tracking-tight">
+            Daftar Akun Baru
           </h1>
-          <p className="font-mono text-xs text-[#706860] uppercase">
-            Buku Besar Keuangan Pribadi
+          <p className="text-xs sm:text-sm text-zinc-500">
+            Mulai kelola keuangan pribadi dengan disiplin siklus gaji
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-[#FAF7F2] border-2 border-[#24201D] p-6 sm:p-8 shadow-[4px_4px_0px_#24201D] space-y-5">
-          <div className="border-b border-[#24201D]/20 pb-3 flex items-center justify-between">
-            <h2 className="font-display font-bold text-2xl text-[#24201D] uppercase">
-              Registrasi Akun
-            </h2>
-            <span className="font-mono text-xs text-[#706860]">NEW REGISTRY</span>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block font-mono text-xs font-bold text-[#24201D] uppercase mb-1">
+        <div className="bg-white rounded-2xl border border-stone-200/80 p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            <div className="space-y-1.5">
+              <label className="block font-semibold text-zinc-700">
                 Nama Lengkap
               </label>
               <input
                 name="name"
                 type="text"
-                placeholder="cth: Zikry Kurniawan"
+                placeholder="Contoh: Zikry Kurniawan"
                 required
-                className="w-full px-3.5 py-2.5 bg-[#EDE6DC] border border-[#24201D] font-mono text-sm text-[#24201D] placeholder-[#706860]/60 focus:outline-none focus:ring-1 focus:ring-[#24201D] rounded-[2px]"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900"
               />
             </div>
 
-            <div>
-              <label className="block font-mono text-xs font-bold text-[#24201D] uppercase mb-1">
+            <div className="space-y-1.5">
+              <label className="block font-semibold text-zinc-700">
                 Username
               </label>
               <input
                 name="username"
                 type="text"
-                placeholder="cth: zikry_k"
+                placeholder="Contoh: zikrykurniawan"
                 required
-                pattern="[a-zA-Z0-9_]+"
-                title="Hanya huruf, angka, dan underscore"
-                className="w-full px-3.5 py-2.5 bg-[#EDE6DC] border border-[#24201D] font-mono text-sm text-[#24201D] placeholder-[#706860]/60 focus:outline-none focus:ring-1 focus:ring-[#24201D] rounded-[2px]"
+                autoComplete="username"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900"
               />
             </div>
 
-            <div>
-              <label className="block font-mono text-xs font-bold text-[#24201D] uppercase mb-1">
+            <div className="space-y-1.5">
+              <label className="block font-semibold text-zinc-700">
+                Email (opsional)
+              </label>
+              <input
+                name="email"
+                type="email"
+                placeholder="nama@email.com"
+                autoComplete="email"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block font-semibold text-zinc-700">
                 Password
               </label>
               <div className="relative">
@@ -119,50 +124,49 @@ export default function RegisterPage() {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Minimal 6 karakter"
                   required
-                  minLength={6}
                   autoComplete="new-password"
-                  className="w-full px-3.5 py-2.5 bg-[#EDE6DC] border border-[#24201D] font-mono text-sm text-[#24201D] placeholder-[#706860]/60 focus:outline-none focus:ring-1 focus:ring-[#24201D] rounded-[2px] pr-10"
+                  className="w-full px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#706860] hover:text-[#24201D]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block font-mono text-xs font-bold text-[#24201D] uppercase mb-1">
-                  Gaji Bulanan
-                </label>
-                <input
-                  name="salary"
-                  type="number"
-                  defaultValue={4000000}
-                  className="w-full px-3.5 py-2.5 bg-[#EDE6DC] border border-[#24201D] font-mono text-sm text-[#24201D] rounded-[2px]"
-                />
-              </div>
+            <div className="space-y-1.5">
+              <label className="block font-semibold text-zinc-700">
+                Gaji Pokok Bulanan (Rp)
+              </label>
+              <input
+                name="salary"
+                type="number"
+                placeholder="4000000"
+                defaultValue={4000000}
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
+              />
+            </div>
 
-              <div>
-                <label className="block font-mono text-xs font-bold text-[#24201D] uppercase mb-1">
-                  Tanggal Gajian
-                </label>
-                <input
-                  name="salaryDate"
-                  type="number"
-                  min={1}
-                  max={31}
-                  defaultValue={25}
-                  className="w-full px-3.5 py-2.5 bg-[#EDE6DC] border border-[#24201D] font-mono text-sm text-[#24201D] rounded-[2px]"
-                />
-              </div>
+            <div className="space-y-1.5">
+              <label className="block font-semibold text-zinc-700">
+                Tanggal Gajian Siklus (1 sampai 31)
+              </label>
+              <input
+                name="salaryDate"
+                type="number"
+                placeholder="25"
+                defaultValue={25}
+                min={1}
+                max={31}
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
+              />
             </div>
 
             {error && (
-              <div className="bg-[#FBEBE8] border border-[#D9381E] text-[#D9381E] px-3.5 py-2.5 font-mono text-xs">
+              <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-xl text-xs">
                 {error}
               </div>
             )}
@@ -170,22 +174,16 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full bg-[#D9381E] hover:bg-[#24201D] text-[#F4F0EA] border border-[#B82C15] py-3 font-mono font-bold text-sm uppercase shadow-[3px_3px_0px_#24201D] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#24201D] transition-all flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-semibold text-xs sm:text-sm shadow-sm transition-all active:scale-[0.99] flex items-center justify-center gap-2 mt-2"
             >
-              {isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>MEMBUAT AKUN...</span>
-                </>
-              ) : (
-                'BUAT AKUN SEKARANG'
-              )}
+              {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              <span>{isPending ? 'Mendaftarkan Akun...' : 'Daftar Sekarang'}</span>
             </button>
           </form>
 
-          <div className="text-center font-mono text-xs text-[#706860]">
+          <div className="text-center pt-2 text-xs text-zinc-500">
             Sudah punya akun?{' '}
-            <Link href="/login" className="text-[#D9381E] font-bold hover:underline">
+            <Link href="/login" className="font-semibold text-zinc-900 hover:underline">
               Masuk di sini
             </Link>
           </div>
