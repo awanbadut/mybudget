@@ -19,13 +19,13 @@ export function MobileNav() {
   const isSettings = pathname.startsWith('/settings') || pathname.startsWith('/reports');
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 pointer-events-none pb-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] px-4 mb-2">
-      <nav className="pointer-events-auto bg-white/95 backdrop-blur-md border border-stone-200/80 shadow-[0_8px_24px_rgba(0,0,0,0.06)] rounded-2xl max-w-sm mx-auto px-2 py-1.5 flex items-center justify-between">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 pointer-events-none pb-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] px-3 mb-1.5">
+      <nav className="pointer-events-auto bg-white/95 backdrop-blur-md border border-stone-200/80 shadow-[0_8px_24px_rgba(0,0,0,0.06)] rounded-2xl w-full max-w-md mx-auto px-2 py-1.5 flex items-center justify-between">
         {/* Home */}
         <Link
           href="/"
           className={cn(
-            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:scale-95',
+            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:scale-95 touch-manipulation',
             isHome ? 'text-zinc-900 font-semibold' : 'text-zinc-400 hover:text-zinc-700 font-medium'
           )}
         >
@@ -39,7 +39,7 @@ export function MobileNav() {
         <Link
           href="/budget"
           className={cn(
-            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:scale-95',
+            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:scale-95 touch-manipulation',
             isBudget ? 'text-zinc-900 font-semibold' : 'text-zinc-400 hover:text-zinc-700 font-medium'
           )}
         >
@@ -54,7 +54,7 @@ export function MobileNav() {
           <Link
             href="/transactions?action=new"
             aria-label="Catat Transaksi"
-            className="w-12 h-12 bg-zinc-900 text-white rounded-full shadow-lg shadow-zinc-900/20 hover:bg-zinc-800 active:scale-95 flex items-center justify-center transition-all border-2 border-white"
+            className="w-12 h-12 bg-zinc-900 text-white rounded-full shadow-lg shadow-zinc-900/20 hover:bg-zinc-800 active:scale-95 flex items-center justify-center transition-all border-2 border-white touch-manipulation"
           >
             <Plus className="w-6 h-6 stroke-[2.5]" />
           </Link>
@@ -64,7 +64,7 @@ export function MobileNav() {
         <Link
           href="/debts"
           className={cn(
-            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:scale-95',
+            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:scale-95 touch-manipulation',
             isDebts ? 'text-zinc-900 font-semibold' : 'text-zinc-400 hover:text-zinc-700 font-medium'
           )}
         >
@@ -78,7 +78,7 @@ export function MobileNav() {
         <Link
           href="/settings"
           className={cn(
-            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:scale-95',
+            'flex-1 flex flex-col items-center justify-center py-1 transition-all active:scale-95 touch-manipulation',
             isSettings ? 'text-zinc-900 font-semibold' : 'text-zinc-400 hover:text-zinc-700 font-medium'
           )}
         >

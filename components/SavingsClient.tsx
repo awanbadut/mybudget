@@ -262,7 +262,7 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
                 value={savingsAmount}
                 onChange={e => setSavingsAmount(e.target.value.replace(/[^0-9]/g, ''))}
                 inputMode="numeric"
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
               />
             </div>
             <div className="space-y-1">
@@ -271,7 +271,7 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
                 type="date"
                 value={savingsDate}
                 onChange={e => setSavingsDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
               />
             </div>
             <div className="space-y-1">
@@ -280,21 +280,21 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
                 placeholder="Contoh: Tabungan sisa gaji bulan ini"
                 value={savingsNote}
                 onChange={e => setSavingsNote(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
               />
             </div>
           </div>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => setAddSavingsGoalId(null)}
-              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs"
+              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs touch-manipulation"
             >
               Batal
             </button>
             <button
               onClick={handleAddSavings}
               disabled={isPending}
-              className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all"
+              className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
             >
               {isPending ? 'Menyimpan...' : 'Simpan Setoran'}
             </button>
@@ -317,7 +317,7 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
                 placeholder="Contoh: Dana Darurat / Laptop Baru"
                 value={goalName}
                 onChange={e => setGoalName(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
               />
             </div>
             <div className="space-y-1">
@@ -327,7 +327,7 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
                 value={goalTarget}
                 onChange={e => setGoalTarget(e.target.value.replace(/[^0-9]/g, ''))}
                 inputMode="numeric"
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
               />
             </div>
             <div className="space-y-1">
@@ -336,21 +336,21 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
                 type="date"
                 value={goalDeadline}
                 onChange={e => setGoalDeadline(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
               />
             </div>
           </div>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => { setShowAddGoal(false); setEditGoal(null); resetGoalForm(); }}
-              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs"
+              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs touch-manipulation"
             >
               Batal
             </button>
             <button
               onClick={editGoal ? handleUpdateGoal : handleCreateGoal}
               disabled={isPending}
-              className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all"
+              className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
             >
               {isPending ? 'Menyimpan...' : 'Simpan Target'}
             </button>

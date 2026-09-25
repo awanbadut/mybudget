@@ -31,7 +31,7 @@ export function ExpenseChart({ data, total }: ExpenseChartProps) {
 
   if (chartData.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-stone-200/80 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+      <div className="bg-white rounded-2xl border border-stone-200/80 p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] w-full min-w-0">
         <h3 className="font-semibold text-sm text-zinc-900 mb-3">
           Pengeluaran per Kategori
         </h3>
@@ -43,25 +43,25 @@ export function ExpenseChart({ data, total }: ExpenseChartProps) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-stone-200/80 p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-sm text-zinc-900">
+    <div className="bg-white rounded-2xl border border-stone-200/80 p-4 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-4 w-full min-w-0 overflow-hidden">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="font-semibold text-xs sm:text-sm text-zinc-900 truncate">
           Pengeluaran per Kategori
         </h3>
-        <span className="text-xs font-semibold text-zinc-900 tabular-nums bg-stone-100 px-2.5 py-1 rounded-full">
+        <span className="text-[11px] sm:text-xs font-semibold text-zinc-900 tabular-nums bg-stone-100 px-2.5 py-1 rounded-full flex-shrink-0">
           Total: {formatCurrency(total)}
         </span>
       </div>
 
-      <div className="h-[210px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-[200px] sm:h-[210px] w-full min-w-0 overflow-hidden">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <PieChart>
             <Pie
               data={chartData}
               cx="50%"
               cy="50%"
-              innerRadius={55}
-              outerRadius={82}
+              innerRadius={48}
+              outerRadius={74}
               paddingAngle={3}
               dataKey="value"
               stroke="#FFFFFF"
@@ -90,9 +90,9 @@ export function ExpenseChart({ data, total }: ExpenseChartProps) {
       </div>
 
       {/* Legend list */}
-      <div className="space-y-2 pt-2 border-t border-stone-100">
+      <div className="space-y-2 pt-2 border-t border-stone-100 min-w-0">
         {chartData.slice(0, 5).map((item, i) => (
-          <div key={item.name} className="flex items-center justify-between text-xs">
+          <div key={item.name} className="flex items-center justify-between text-xs gap-2 min-w-0">
             <div className="flex items-center gap-2 min-w-0">
               <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
               <span className="text-zinc-600 truncate">{item.name}</span>

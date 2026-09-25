@@ -263,7 +263,7 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
                 value={formAmount}
                 onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
                 inputMode="numeric"
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
               />
             </div>
             <div className="space-y-1">
@@ -272,21 +272,21 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
                 type="date"
                 value={formDate}
                 onChange={e => setFormDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
               />
             </div>
           </div>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => setShowAddInstallment(null)}
-              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs"
+              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs touch-manipulation"
             >
               Batal
             </button>
             <button
               onClick={() => showAddInstallment && handleAddInstallment(showAddInstallment)}
               disabled={isPending}
-              className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all"
+              className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
             >
               {isPending ? 'Menyimpan...' : 'Simpan Angsuran'}
             </button>
@@ -309,7 +309,7 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
                 value={formAmount}
                 onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
                 inputMode="numeric"
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
               />
             </div>
             <div className="space-y-1">
@@ -318,21 +318,21 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
                 type="date"
                 value={formDate}
                 onChange={e => setFormDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
               />
             </div>
           </div>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => setEditInstallment(null)}
-              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs"
+              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs touch-manipulation"
             >
               Batal
             </button>
             <button
               onClick={handleUpdateInstallment}
               disabled={isPending}
-              className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all"
+              className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
             >
               {isPending ? 'Menyimpan...' : 'Simpan'}
             </button>

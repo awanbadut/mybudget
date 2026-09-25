@@ -163,11 +163,11 @@ export function TransactionListClient({ transactions, categories, initialType, o
   const totalExpense = filtered.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-5 sm:space-y-6 font-sans w-full max-w-full min-w-0 overflow-x-hidden">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
         <div>
-          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 tracking-tight">
+          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 tracking-tight leading-tight">
             Buku Transaksi
           </h1>
           <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">
@@ -177,59 +177,59 @@ export function TransactionListClient({ transactions, categories, initialType, o
 
         <button
           onClick={() => { resetForm(); setShowForm(true); }}
-          className="inline-flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 flex-shrink-0" />
           <span>Catat Transaksi</span>
         </button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white rounded-2xl border border-stone-200/80 p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-medium text-zinc-500">Total Pemasukan</span>
-            <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <ArrowDownLeft className="w-3.5 h-3.5 stroke-[2.5]" />
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full min-w-0">
+        <div className="bg-white rounded-2xl border border-stone-200/80 p-3.5 sm:p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)] min-w-0">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] sm:text-xs font-medium text-zinc-500 truncate">Total Pemasukan</span>
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+              <ArrowDownLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
             </div>
           </div>
-          <p className="font-sans text-base sm:text-xl font-bold text-emerald-600 tabular-nums">
+          <p className="font-sans text-sm sm:text-lg lg:text-xl font-bold text-emerald-600 tabular-nums truncate">
             {formatCurrency(totalIncome)}
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-stone-200/80 p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-medium text-zinc-500">Total Pengeluaran</span>
-            <div className="w-6 h-6 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-              <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+        <div className="bg-white rounded-2xl border border-stone-200/80 p-3.5 sm:p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)] min-w-0">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] sm:text-xs font-medium text-zinc-500 truncate">Total Pengeluaran</span>
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
+              <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
             </div>
           </div>
-          <p className="font-sans text-base sm:text-xl font-bold text-zinc-900 tabular-nums">
+          <p className="font-sans text-sm sm:text-lg lg:text-xl font-bold text-zinc-900 tabular-nums truncate">
             {formatCurrency(totalExpense)}
           </p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="space-y-2.5">
-        <div className="relative">
+      <div className="space-y-2.5 w-full min-w-0">
+        <div className="relative w-full min-w-0">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input
-            placeholder="Cari transaksi berdasarkan nama, kategori, atau catatan..."
+            placeholder="Cari transaksi berdasarkan nama, pos belanja, atau catatan..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
           />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1 text-xs">
+        <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 text-xs w-full min-w-0 max-w-full">
           {(['all', 'expense', 'income'] as const).map(type => (
             <button
               key={type}
               onClick={() => setFilterType(type)}
               className={cn(
-                'px-3.5 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap border',
+                'px-3 sm:px-3.5 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap border flex-shrink-0',
                 filterType === type
                   ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm'
                   : 'bg-white text-zinc-600 hover:text-zinc-900 border-stone-200/80 hover:bg-stone-50'
@@ -242,7 +242,7 @@ export function TransactionListClient({ transactions, categories, initialType, o
           <select
             value={filterMonth}
             onChange={e => setFilterMonth(e.target.value)}
-            className="px-3 py-1.5 rounded-xl text-xs font-medium bg-white text-zinc-700 border border-stone-200/80 outline-none focus:ring-1 focus:ring-zinc-900"
+            className="px-3 py-1.5 rounded-xl text-base sm:text-xs font-medium bg-white text-zinc-700 border border-stone-200/80 outline-none focus:ring-1 focus:ring-zinc-900 flex-shrink-0"
           >
             <option value="all">Semua Bulan</option>
             {months.map(m => {
@@ -266,62 +266,62 @@ export function TransactionListClient({ transactions, categories, initialType, o
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-stone-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] divide-y divide-stone-100 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-stone-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] divide-y divide-stone-100 overflow-hidden w-full min-w-0">
           {filtered.map(tx => {
             const isIncome = tx.type === 'income';
             const iconName = tx.category?.icon || 'MoreHorizontal';
             const Icon = ICON_MAP[iconName] || MoreHorizontal;
 
             return (
-              <div key={tx.id} className="flex items-center justify-between gap-3 p-4 hover:bg-stone-50/60 transition-colors">
-                <div className="flex items-center gap-3 min-w-0">
+              <div key={tx.id} className="flex items-center justify-between gap-2.5 sm:gap-3 p-3.5 sm:p-4 hover:bg-stone-50/60 transition-colors min-w-0">
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                   <div
                     className={cn(
-                      'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0',
+                      'w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0',
                       isIncome ? 'bg-emerald-50 text-emerald-600' : 'bg-stone-100 text-zinc-700'
                     )}
                   >
                     <Icon className="w-4 h-4" />
                   </div>
 
-                  <div className="min-w-0">
-                    <p className="font-semibold text-sm text-zinc-900 truncate">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-xs sm:text-sm text-zinc-900 truncate">
                       {tx.name}
                     </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-xs text-zinc-500">
+                      <span className="text-[11px] sm:text-xs text-zinc-500 truncate">
                         {tx.category?.name || 'Umum'}
                       </span>
                       <span className="text-zinc-300 text-xs">·</span>
-                      <span className="text-xs text-zinc-400">
+                      <span className="text-[10px] sm:text-xs text-zinc-400 flex-shrink-0">
                         {formatDateShort(tx.transactionDate)}
                       </span>
-                      {tx.note && <span className="text-xs text-zinc-400 italic truncate max-w-[120px]">· {tx.note}</span>}
+                      {tx.note && <span className="text-[10px] sm:text-xs text-zinc-400 italic truncate max-w-[100px] hidden sm:inline">· {tx.note}</span>}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <div className="text-right">
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                  <div className="text-right flex-shrink-0">
                     <p className={cn(
-                      'font-sans font-semibold text-sm sm:text-base tabular-nums',
+                      'font-sans font-semibold text-xs sm:text-sm md:text-base tabular-nums',
                       isIncome ? 'text-emerald-600' : 'text-zinc-900'
                     )}>
                       {isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
                     <button
                       onClick={() => openEdit(tx)}
-                      className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-stone-100 rounded-lg transition-colors"
+                      className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-stone-100 rounded-lg transition-colors touch-manipulation"
                       title="Edit"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setDeleteId(tx.id)}
-                      className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                      className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors touch-manipulation"
                       title="Hapus"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -336,14 +336,14 @@ export function TransactionListClient({ transactions, categories, initialType, o
 
       {/* Add/Edit Form Dialog */}
       <Dialog open={showForm} onOpenChange={(open) => { if (!open) { setShowForm(false); resetForm(); } }}>
-        <DialogContent className="max-w-md bg-white border border-stone-200/80 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-md bg-white border border-stone-200/80 rounded-2xl shadow-xl p-5 sm:p-6 w-full">
           <DialogHeader>
-            <DialogTitle className="font-bold text-lg text-zinc-900">
+            <DialogTitle className="font-bold text-base sm:text-lg text-zinc-900">
               {editingTx ? 'Ubah Catatan Transaksi' : 'Catat Transaksi Baru'}
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs pt-2">
+          <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4 text-xs pt-1 sm:pt-2">
             {/* Type toggle */}
             <div className="flex gap-2 p-1 bg-stone-100 rounded-xl">
               {(['expense', 'income'] as const).map(type => (
@@ -352,7 +352,7 @@ export function TransactionListClient({ transactions, categories, initialType, o
                   type="button"
                   onClick={() => { setFormType(type); setFormCategory(''); }}
                   className={cn(
-                    'flex-1 py-1.5 rounded-lg font-semibold text-xs transition-all',
+                    'flex-1 py-1.5 rounded-lg font-semibold text-xs transition-all touch-manipulation',
                     formType === type
                       ? (type === 'expense' ? 'bg-white text-rose-600 shadow-sm' : 'bg-white text-emerald-600 shadow-sm')
                       : 'text-zinc-500 hover:text-zinc-900'
@@ -369,7 +369,7 @@ export function TransactionListClient({ transactions, categories, initialType, o
                 placeholder="Contoh: Makan Siang / Gaji Bulanan"
                 value={formName}
                 onChange={e => setFormName(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
               />
             </div>
 
@@ -378,7 +378,7 @@ export function TransactionListClient({ transactions, categories, initialType, o
               <select
                 value={formCategory}
                 onChange={e => setFormCategory(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
               >
                 <option value="">Pilih Kategori</option>
                 {filteredCategories.map(cat => (
@@ -394,10 +394,10 @@ export function TransactionListClient({ transactions, categories, initialType, o
                 value={formAmount}
                 onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
                 inputMode="numeric"
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-lg text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
               />
               {/* Quick Nominal Chips */}
-              <div className="flex gap-1.5 overflow-x-auto pt-1 pb-1">
+              <div className="flex gap-1.5 overflow-x-auto pt-1 pb-1 w-full max-w-full">
                 {[10000, 25000, 50000, 100000, 500000].map(amt => (
                   <button
                     key={amt}
@@ -406,7 +406,7 @@ export function TransactionListClient({ transactions, categories, initialType, o
                       const cur = parseInt(formAmount || '0', 10);
                       setFormAmount(String(cur + amt));
                     }}
-                    className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-zinc-700 rounded-lg text-[11px] font-medium transition-colors flex-shrink-0"
+                    className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-zinc-700 rounded-lg text-[11px] font-medium transition-colors flex-shrink-0 touch-manipulation"
                   >
                     +{amt >= 1000000 ? `${amt / 1000000}jt` : `${amt / 1000}rb`}
                   </button>
@@ -420,7 +420,7 @@ export function TransactionListClient({ transactions, categories, initialType, o
                 type="date"
                 value={formDate}
                 onChange={e => setFormDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
               />
             </div>
 
@@ -431,24 +431,24 @@ export function TransactionListClient({ transactions, categories, initialType, o
                 value={formNote}
                 onChange={e => setFormNote(e.target.value)}
                 rows={2}
-                className="w-full px-3.5 py-2 bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
               />
             </div>
 
             {formError && <p className="text-xs font-semibold text-rose-600">{formError}</p>}
 
-            <DialogFooter className="pt-2 flex gap-2 sm:justify-end">
+            <DialogFooter className="pt-2 flex flex-row gap-2 justify-end">
               <button
                 type="button"
                 onClick={() => { setShowForm(false); resetForm(); }}
-                className="px-4 py-2 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50"
+                className="flex-1 sm:flex-initial px-4 py-2 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 touch-manipulation"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={isPending}
-                className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-medium shadow-sm"
+                className="flex-1 sm:flex-initial px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-medium shadow-sm touch-manipulation"
               >
                 {isPending ? 'Menyimpan...' : 'Simpan Transaksi'}
               </button>
@@ -459,7 +459,7 @@ export function TransactionListClient({ transactions, categories, initialType, o
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteId} onOpenChange={(open) => { if (!open) setDeleteId(null); }}>
-        <DialogContent className="max-w-sm bg-white border border-stone-200/80 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-sm bg-white border border-stone-200/80 rounded-2xl shadow-xl p-5 sm:p-6 w-full">
           <DialogHeader>
             <DialogTitle className="font-bold text-base text-zinc-900">
               Hapus Transaksi
@@ -468,17 +468,17 @@ export function TransactionListClient({ transactions, categories, initialType, o
           <p className="text-xs text-zinc-500">
             Apakah kamu yakin ingin menghapus catatan transaksi ini?
           </p>
-          <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
+          <DialogFooter className="pt-3 flex flex-row gap-2 justify-end">
             <button
               onClick={() => setDeleteId(null)}
-              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50"
+              className="flex-1 sm:flex-initial px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50"
             >
               Batal
             </button>
             <button
               onClick={handleDelete}
               disabled={isPending}
-              className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-medium shadow-sm"
+              className="flex-1 sm:flex-initial px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-medium shadow-sm"
             >
               {isPending ? 'Menghapus...' : 'Hapus'}
             </button>

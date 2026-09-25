@@ -17,7 +17,7 @@ import { InsightCard } from '@/components/InsightCard';
 import { DailyBudget } from '@/components/DailyBudget';
 import { SavingsGoalCard } from '@/components/SavingsGoalCard';
 import Link from 'next/link';
-import { Plus, ChevronRight, AlertTriangle, Calendar, Sparkles } from 'lucide-react';
+import { Plus, ChevronRight, AlertTriangle, Calendar } from 'lucide-react';
 
 export default async function DashboardPage() {
   const DEV_USER_ID = await getUserId();
@@ -81,7 +81,7 @@ export default async function DashboardPage() {
 
   if (fetchError) {
     return (
-      <div className="bg-white rounded-2xl border border-rose-200 p-6 sm:p-8 max-w-lg mx-auto text-center space-y-4 my-8 shadow-sm">
+      <div className="bg-white rounded-2xl border border-rose-200 p-6 sm:p-8 max-w-lg mx-auto text-center space-y-4 my-8 shadow-sm w-full">
         <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto border border-rose-100">
           <AlertTriangle className="w-6 h-6" />
         </div>
@@ -172,22 +172,22 @@ export default async function DashboardPage() {
   const payrollCycle = getPayrollCycle(salaryDate, new Date());
 
   return (
-    <div className="space-y-6 sm:space-y-7">
+    <div className="space-y-5 sm:space-y-7 w-full max-w-full min-w-0 overflow-x-hidden">
       {/* ═══════════ Header ═══════════ */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 min-w-0">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1 min-w-0">
             <span className="text-xs font-medium text-zinc-500">
               {formatMonth(currentMonth, currentYear)}
             </span>
             <span className="text-zinc-300">·</span>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-stone-100 text-zinc-700">
-              <Calendar className="w-3 h-3 text-zinc-400" />
-              <span>Gajian tgl {salaryDate} ({payrollCycle.daysRemaining} hari lagi)</span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-stone-100 text-zinc-700 max-w-full truncate">
+              <Calendar className="w-3 h-3 text-zinc-400 flex-shrink-0" />
+              <span className="truncate">Gajian tgl {salaryDate} ({payrollCycle.daysRemaining} hari lagi)</span>
             </div>
           </div>
 
-          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 tracking-tight">
+          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 tracking-tight leading-tight">
             Halo, {user?.name || 'Zikry'}
           </h1>
           <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">
@@ -195,12 +195,12 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
           <Link
             href="/transactions?action=new"
-            className="inline-flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 flex-shrink-0" />
             <span>Catat Transaksi</span>
           </Link>
         </div>
@@ -227,13 +227,13 @@ export default async function DashboardPage() {
       <QuickActions />
 
       {/* ═══════════ Pagu Anggaran Kategori ═══════════ */}
-      <section className="space-y-3">
+      <section className="space-y-2.5 sm:space-y-3 w-full min-w-0">
         <div className="flex items-center justify-between px-1">
           <div>
-            <h2 className="font-semibold text-base text-zinc-900">
+            <h2 className="font-semibold text-sm sm:text-base text-zinc-900">
               Pagu Anggaran Kategori
             </h2>
-            <p className="text-xs text-zinc-500">Batas pengeluaran per pos belanja</p>
+            <p className="text-[11px] sm:text-xs text-zinc-500">Batas pengeluaran per pos belanja</p>
           </div>
           <Link
             href="/budget"
@@ -247,20 +247,24 @@ export default async function DashboardPage() {
       </section>
 
       {/* ═══════════ Visualisations (Charts) ═══════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        <ExpenseChart data={expenseByCategory} total={totalExpense} />
-        <SavingsChart userId={DEV_USER_ID} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 w-full min-w-0 overflow-hidden">
+        <div className="w-full min-w-0 overflow-hidden">
+          <ExpenseChart data={expenseByCategory} total={totalExpense} />
+        </div>
+        <div className="w-full min-w-0 overflow-hidden">
+          <SavingsChart userId={DEV_USER_ID} />
+        </div>
       </div>
 
       {/* ═══════════ Target Tabungan ═══════════ */}
       {savingsGoalsList.length > 0 && (
-        <section className="space-y-3">
+        <section className="space-y-2.5 sm:space-y-3 w-full min-w-0">
           <div className="flex items-center justify-between px-1">
             <div>
-              <h2 className="font-semibold text-base text-zinc-900">
-                Target Tabungan & Dana Impian
+              <h2 className="font-semibold text-sm sm:text-base text-zinc-900">
+                Target Tabungan
               </h2>
-              <p className="text-xs text-zinc-500">Progres pencapaian simpanan dana</p>
+              <p className="text-[11px] sm:text-xs text-zinc-500">Progres pencapaian simpanan dana</p>
             </div>
             <Link
               href="/savings"
@@ -270,7 +274,7 @@ export default async function DashboardPage() {
               <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full min-w-0">
             {savingsGoalsList.slice(0, 2).map(goal => (
               <SavingsGoalCard key={goal.id} goal={goal} />
             ))}
@@ -292,13 +296,13 @@ export default async function DashboardPage() {
       />
 
       {/* ═══════════ Transaksi Terbaru ═══════════ */}
-      <section className="space-y-3">
+      <section className="space-y-2.5 sm:space-y-3 w-full min-w-0">
         <div className="flex items-center justify-between px-1">
           <div>
-            <h2 className="font-semibold text-base text-zinc-900">
+            <h2 className="font-semibold text-sm sm:text-base text-zinc-900">
               Transaksi Terbaru
             </h2>
-            <p className="text-xs text-zinc-500">5 riwayat transaksi terakhir bulan ini</p>
+            <p className="text-[11px] sm:text-xs text-zinc-500">5 riwayat transaksi terakhir bulan ini</p>
           </div>
           <Link
             href="/transactions"
@@ -312,7 +316,7 @@ export default async function DashboardPage() {
       </section>
 
       {/* ═══════════ Clean Minimal Footer ═══════════ */}
-      <footer className="pt-8 pb-4 border-t border-stone-200/60 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-400">
+      <footer className="pt-6 pb-4 border-t border-stone-200/60 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-400 text-center sm:text-left">
         <p>My Budget · Disiplin Finansial Siklus 25 ke 25</p>
         <p>Data tersimpan privat & aman</p>
       </footer>

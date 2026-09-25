@@ -97,7 +97,7 @@ export function ReportsClient({ transactions, savingsGoals }: { transactions: Tr
               key={f.days}
               onClick={() => setFilterDays(f.days)}
               className={cn(
-                'px-3.5 py-1.5 rounded-xl font-medium whitespace-nowrap transition-all border',
+                'px-3.5 py-1.5 rounded-xl font-medium whitespace-nowrap transition-all border touch-manipulation',
                 filterDays === f.days
                   ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm'
                   : 'bg-white text-zinc-600 hover:text-zinc-900 border-stone-200/80 hover:bg-stone-50'
@@ -158,8 +158,8 @@ export function ReportsClient({ transactions, savingsGoals }: { transactions: Tr
       {monthlyData.length > 0 && (
         <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] border border-stone-200/80 space-y-4">
           <h3 className="font-semibold text-sm text-zinc-900">Perbandingan Cashflow (Pemasukan vs Pengeluaran)</h3>
-          <div className="h-[230px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[230px] w-full min-w-0 overflow-hidden">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" vertical={false} />
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#71717A' }} axisLine={false} tickLine={false} />
@@ -181,8 +181,8 @@ export function ReportsClient({ transactions, savingsGoals }: { transactions: Tr
       {expenseByCategory.length > 0 && (
         <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] border border-stone-200/80 space-y-4">
           <h3 className="font-semibold text-sm text-zinc-900">Pengeluaran per Pos Belanja</h3>
-          <div className="h-[210px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[210px] w-full min-w-0 overflow-hidden">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <BarChart data={expenseByCategory} layout="vertical" margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 10, fill: '#71717A' }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} />

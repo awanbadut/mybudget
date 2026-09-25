@@ -175,10 +175,10 @@ export function AdminDashboardClient({ adminName, users }: AdminDashboardClientP
             placeholder="Cari user berdasarkan nama atau @username..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 text-xs bg-transparent outline-none placeholder:text-zinc-400 text-zinc-900"
+            className="flex-1 text-base sm:text-xs bg-transparent outline-none placeholder:text-zinc-400 text-zinc-900 touch-manipulation"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="text-zinc-400 hover:text-zinc-700">
+            <button onClick={() => setSearch('')} className="text-zinc-400 hover:text-zinc-700 touch-manipulation">
               <X className="w-4 h-4" />
             </button>
           )}

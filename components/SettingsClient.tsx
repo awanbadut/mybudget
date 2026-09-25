@@ -138,7 +138,7 @@ export function SettingsClient({
           <input
             value={name}
             onChange={e => setName(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
           />
         </Field>
       </Section>
@@ -150,7 +150,7 @@ export function SettingsClient({
             onChange={e => setSalary(e.target.value.replace(/[^0-9]/g, ''))}
             inputMode="numeric"
             placeholder="0"
-            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
+            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
           />
         </Field>
         <Field label="Tanggal Gajian Siklus (1 sampai 31)">
@@ -161,7 +161,7 @@ export function SettingsClient({
             placeholder="25"
             min="1"
             max="31"
-            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
+            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
           />
         </Field>
         <Field label="Tanggal Mulai Kerja">
@@ -169,7 +169,7 @@ export function SettingsClient({
             type="date"
             value={startWorkDate}
             onChange={e => setStartWorkDate(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
           />
         </Field>
         <div className="flex items-center justify-between pt-2 border-t border-stone-100">
@@ -182,7 +182,7 @@ export function SettingsClient({
         {prorateEnabled && (
           <Field label="Metode Prorata">
             <Select value={prorateMethod} onValueChange={setProrateMethod}>
-              <SelectTrigger className="w-full bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900">
+              <SelectTrigger className="w-full bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 touch-manipulation">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white border border-stone-200/80 rounded-xl">
@@ -197,19 +197,19 @@ export function SettingsClient({
       <Section title="Pagu Anggaran Baku (Default Budgets)" icon={Calendar}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <Field label="Budget Kos / Sewa (Rp)">
-            <input value={rentBudget} onChange={e => setRentBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums" />
+            <input value={rentBudget} onChange={e => setRentBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
           </Field>
           <Field label="Budget Makan (Rp)">
-            <input value={foodBudget} onChange={e => setFoodBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums" />
+            <input value={foodBudget} onChange={e => setFoodBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
           </Field>
           <Field label="Budget Hiburan (Rp)">
-            <input value={entertainmentBudget} onChange={e => setEntertainmentBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums" />
+            <input value={entertainmentBudget} onChange={e => setEntertainmentBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
           </Field>
           <Field label="Budget Toiletries (Rp)">
-            <input value={toiletries_budget} onChange={e => setToiletries_budget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums" />
+            <input value={toiletries_budget} onChange={e => setToiletries_budget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
           </Field>
           <Field label="Budget Transport (Rp)">
-            <input value={transportBudget} onChange={e => setTransportBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums" />
+            <input value={transportBudget} onChange={e => setTransportBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
           </Field>
         </div>
       </Section>
@@ -217,7 +217,7 @@ export function SettingsClient({
       <button
         onClick={handleSave}
         disabled={isPending}
-        className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-semibold text-xs shadow-sm active:scale-[0.99] transition-all"
+        className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-semibold text-xs shadow-sm active:scale-[0.99] transition-all touch-manipulation"
       >
         {isPending ? 'Menyimpan...' : 'Simpan Semua Pengaturan'}
       </button>

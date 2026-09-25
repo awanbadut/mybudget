@@ -214,7 +214,7 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
                 value={formCategory}
                 onChange={e => setFormCategory(e.target.value)}
                 disabled={!!editBudget}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 disabled:opacity-60"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 disabled:opacity-60 touch-manipulation"
               >
                 <option value="">Pilih Kategori</option>
                 {(editBudget ? categories : availableCategories).map(cat => (
@@ -230,7 +230,7 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
                 value={formAmount}
                 onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
                 inputMode="numeric"
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
+                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
               />
               <div className="flex gap-1.5 overflow-x-auto pt-1 pb-1">
                 {[100000, 250000, 500000, 1000000, 2000000].map(amt => (
@@ -241,7 +241,7 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
                       const cur = parseInt(formAmount || '0', 10);
                       setFormAmount(String(cur + amt));
                     }}
-                    className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-zinc-700 rounded-lg text-[11px] font-medium transition-colors flex-shrink-0"
+                    className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-zinc-700 rounded-lg text-[11px] font-medium transition-colors flex-shrink-0 touch-manipulation"
                   >
                     +{amt >= 1000000 ? `${amt / 1000000}jt` : `${amt / 1000}rb`}
                   </button>
@@ -252,14 +252,14 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => { setShowForm(false); resetForm(); }}
-              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs"
+              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs touch-manipulation"
             >
               Batal
             </button>
             <button
               onClick={handleSave}
               disabled={isPending || !formCategory || !formAmount}
-              className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
+              className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all disabled:opacity-50 touch-manipulation"
             >
               {isPending ? 'Menyimpan...' : 'Simpan'}
             </button>

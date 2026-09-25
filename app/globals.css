@@ -28,7 +28,8 @@
 
   * {
     @apply border-border;
-    box-sizing: border-box;
+    box-sizing: border-border;
+    -webkit-tap-highlight-color: transparent;
   }
 
   html {
@@ -37,6 +38,10 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   body {
@@ -45,7 +50,23 @@
     font-feature-settings: "kern", "liga", "tnum", "zero";
     position: relative;
     min-height: 100vh;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
+}
+
+/* CRITICAL MOBILE-FIRST RULE: Prevent iOS Safari auto-zoom on input focus */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Media constraint rules to prevent horizontal scroll blowouts */
+img, svg, canvas {
+  max-width: 100%;
+  height: auto;
 }
 
 /* Subtle, smooth transitions */
