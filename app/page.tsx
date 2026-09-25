@@ -4,7 +4,7 @@ import { db } from '@/db';
 import { transactions, budgets, categories, settings, users, savingsGoals, debts, debtInstallments } from '@/db/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 import { formatCurrency } from '@/lib/currency';
-import { formatMonth, getCurrentMonth, calculateProratedSalary } from '@/lib/dates';
+import { formatMonth, getCurrentMonth, calculateProratedSalary, getPayrollCycle } from '@/lib/dates';
 import { calculateSavingRate } from '@/lib/calculations';
 import { getDevUserId } from '@/lib/server-utils';
 import { DashboardSummary } from '@/components/DashboardSummary';
@@ -168,6 +168,9 @@ export default async function DashboardPage() {
     )
   );
 
+  const salaryDate = userSettings?.salaryDate || 25;
+  const payrollCycle = getPayrollCycle(salaryDate, new Date());
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -175,7 +178,13 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Keuangan Saya</h1>
           <p className="text-gray-500 text-sm mt-1">Pantau keuanganmu dengan lebih mudah.</p>
-          <p className="text-blue-600 text-sm font-medium mt-1">{formatMonth(currentMonth, currentYear)}</p>
+          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+            <span className="text-blue-600 text-sm font-semibold">{formatMonth(currentMonth, currentYear)}</span>
+            <span className="text-gray-300">•</span>
+            <span className="text-xs bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-medium">
+              Siklus: {payrollCycle.label} ({payrollCycle.daysRemaining} hari lagi)
+            </span>
+          </div>
         </div>
         <Link
           href="/transactions?action=new"
@@ -213,10 +222,9 @@ export default async function DashboardPage() {
 
       {/* Daily Food Budget */}
       <DailyBudget
-        month={currentMonth}
-        year={currentYear}
         foodBudgetTotal={foodBudgetTotal}
         foodSpent={foodSpent}
+        salaryDate={salaryDate}
       />
 
       {/* Charts Row */}

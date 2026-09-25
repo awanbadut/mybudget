@@ -31,6 +31,68 @@ export function getMonthDateRange(month: number, year: number): { startDate: str
   };
 }
 
+export interface PayrollCycle {
+  startDate: Date;
+  endDate: Date;
+  startDateStr: string;
+  endDateStr: string;
+  totalDays: number;
+  elapsedDays: number;
+  daysRemaining: number;
+  label: string;
+}
+
+export function getPayrollCycle(salaryDate: number = 25, refDate: Date = new Date()): PayrollCycle {
+  const currentDay = refDate.getDate();
+  const currentMonth = refDate.getMonth();
+  const currentYear = refDate.getFullYear();
+
+  let startDate: Date;
+  let endDate: Date;
+
+  if (salaryDate <= 1) {
+    // 1st of month to end of month
+    startDate = new Date(currentYear, currentMonth, 1);
+    endDate = new Date(currentYear, currentMonth + 1, 0);
+  } else if (currentDay >= salaryDate) {
+    // Current cycle started on salaryDate this month, ends on salaryDate of next month
+    startDate = new Date(currentYear, currentMonth, salaryDate);
+    endDate = new Date(currentYear, currentMonth + 1, salaryDate);
+  } else {
+    // Current cycle started on salaryDate of previous month, ends on salaryDate of this month
+    startDate = new Date(currentYear, currentMonth - 1, salaryDate);
+    endDate = new Date(currentYear, currentMonth, salaryDate);
+  }
+
+  const startMid = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  const endMid = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+  const refMid = new Date(refDate.getFullYear(), refDate.getMonth(), refDate.getDate());
+
+  const totalDays = Math.round((endMid.getTime() - startMid.getTime()) / (1000 * 60 * 60 * 24));
+  const elapsedDays = Math.max(1, Math.round((refMid.getTime() - startMid.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+  const daysRemaining = Math.max(0, Math.round((endMid.getTime() - refMid.getTime()) / (1000 * 60 * 60 * 24)));
+
+  const formatDateStr = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const label = `${formatDateShort(startDate)} – ${formatDateShort(endDate)}`;
+
+  return {
+    startDate,
+    endDate,
+    startDateStr: formatDateStr(startDate),
+    endDateStr: formatDateStr(endDate),
+    totalDays,
+    elapsedDays,
+    daysRemaining,
+    label,
+  };
+}
+
 export function toJakartaDate(dateString: string): Date {
   // Parse date string as local date (Jakarta timezone context)
   const [year, month, day] = dateString.split('-').map(Number);
