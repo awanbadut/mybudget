@@ -81,7 +81,7 @@ export default function RegisterPage() {
               <input
                 name="name"
                 type="text"
-                placeholder="Contoh: Zikry Kurniawan"
+                placeholder="Nama lengkap Anda"
                 required
                 className="w-full px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl text-base sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
               />
@@ -94,7 +94,7 @@ export default function RegisterPage() {
               <input
                 name="username"
                 type="text"
-                placeholder="Contoh: zikrykurniawan"
+                placeholder="Username unik (tanpa spasi)"
                 required
                 autoComplete="username"
                 className="w-full px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl text-base sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"

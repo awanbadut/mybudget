@@ -211,7 +211,7 @@ export default async function DashboardPage() {
           </div>
 
           <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 tracking-tight leading-tight">
-            Halo, {user?.name || 'Zikry'}
+            Halo, {user?.name || 'Pengguna'}
           </h1>
           <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">
             Berikut ringkasan dan status keuangan pribadimu.

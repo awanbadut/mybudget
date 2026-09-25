@@ -58,7 +58,7 @@ export default function LoginPage() {
               <input
                 name="username"
                 type="text"
-                placeholder="zikrykurniawan / admin"
+                placeholder="Masukkan username Anda"
                 required
                 autoComplete="username"
                 className="w-full px-3.5 py-2.5 bg-white border border-stone-200 rounded-xl text-base sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
@@ -104,16 +104,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Demo helper */}
-          <div className="pt-3 border-t border-stone-100 text-xs text-zinc-500 space-y-1.5">
-            <p className="font-semibold text-zinc-700">Akun Tersedia:</p>
-            <div className="bg-stone-50 rounded-xl p-3 space-y-1 border border-stone-100 font-mono text-[11px]">
-              <p>User: <strong className="text-zinc-800">zikrykurniawan</strong> · Pass: <strong className="text-zinc-800">@Azik12345</strong></p>
-              <p>Admin: <strong className="text-zinc-800">admin</strong> · Pass: <strong className="text-zinc-800">Admin@2026!</strong></p>
-            </div>
-          </div>
-
-          <div className="text-center pt-1 text-xs text-zinc-500">
+          <div className="text-center pt-2 text-xs text-zinc-500 border-t border-stone-100">
             Belum punya akun?{' '}
             <Link href="/register" className="font-semibold text-zinc-900 hover:underline">
               Daftar sekarang
