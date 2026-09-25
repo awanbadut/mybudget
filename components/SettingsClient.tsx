@@ -29,6 +29,35 @@ interface SettingsData {
   salaryProrateMethod: string;
 }
 
+function Section({
+  title,
+  icon: Icon,
+  children,
+}: {
+  title: string;
+  icon: React.ElementType;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="flex items-center gap-3 p-4 border-b border-gray-50">
+        <Icon className="w-5 h-5 text-gray-400" />
+        <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+      </div>
+      <div className="p-4 space-y-4">{children}</div>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1">
+      <Label className="text-sm text-gray-600">{label}</Label>
+      {children}
+    </div>
+  );
+}
+
 export function SettingsClient({
   user,
   settings,
@@ -91,23 +120,6 @@ export function SettingsClient({
       }
     });
   }
-
-  const Section = ({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="flex items-center gap-3 p-4 border-b border-gray-50">
-        <Icon className="w-5 h-5 text-gray-400" />
-        <h2 className="text-base font-semibold text-gray-900">{title}</h2>
-      </div>
-      <div className="p-4 space-y-4">{children}</div>
-    </div>
-  );
-
-  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div className="space-y-1">
-      <Label className="text-sm text-gray-600">{label}</Label>
-      {children}
-    </div>
-  );
 
   return (
     <div className="space-y-6">
