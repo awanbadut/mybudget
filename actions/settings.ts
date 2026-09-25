@@ -3,16 +3,14 @@
 import { db } from '@/db';
 import { settings, users } from '@/db/schema';
 import { SettingsSchema } from '@/lib/validation';
-import { safeRevalidate } from '@/lib/server-utils';
+import { safeRevalidate, getUserId } from '@/lib/server-utils';
 import { eq } from 'drizzle-orm';
 
-const DEV_USER_ID = process.env.DEV_USER_ID || '00000000-0000-0000-0000-000000000001';
-function getUserId(): string { return DEV_USER_ID; }
 
 export async function updateSettings(data: unknown) {
   try {
     const validated = SettingsSchema.parse(data);
-    const userId = getUserId();
+    const userId = await getUserId();
     const { name, ...settingsData } = validated;
     
     await db.update(users)
@@ -34,7 +32,7 @@ export async function updateSettings(data: unknown) {
 
 export async function getExportData() {
   try {
-    const userId = getUserId();
+    const userId = await getUserId();
     
     const [userSettings, userCategories, userTransactions, userBudgets, userDebts, userSavingsGoals] = await Promise.all([
       db.query.settings.findFirst({ where: (s, { eq: eqFn }) => eqFn(s.userId, userId) }),

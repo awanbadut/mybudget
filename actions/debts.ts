@@ -3,16 +3,14 @@
 import { db } from '@/db';
 import { debts, debtInstallments } from '@/db/schema';
 import { DebtSchema, InstallmentSchema } from '@/lib/validation';
-import { safeRevalidate } from '@/lib/server-utils';
+import { safeRevalidate, getUserId } from '@/lib/server-utils';
 import { eq, and } from 'drizzle-orm';
 
-const DEV_USER_ID = process.env.DEV_USER_ID || '00000000-0000-0000-0000-000000000001';
-function getUserId(): string { return DEV_USER_ID; }
 
 export async function createDebt(data: unknown) {
   try {
     const validated = DebtSchema.parse(data);
-    const userId = getUserId();
+    const userId = await getUserId();
     const [debt] = await db.insert(debts).values({ userId, ...validated }).returning();
     safeRevalidate('/debts');
     return { success: true, data: debt };
@@ -25,7 +23,7 @@ export async function createDebt(data: unknown) {
 export async function updateDebt(id: string, data: unknown) {
   try {
     const validated = DebtSchema.parse(data);
-    const userId = getUserId();
+    const userId = await getUserId();
     await db.update(debts)
       .set({ ...validated, updatedAt: new Date() })
       .where(and(eq(debts.id, id), eq(debts.userId, userId)));
@@ -39,7 +37,7 @@ export async function updateDebt(id: string, data: unknown) {
 
 export async function deleteDebt(id: string) {
   try {
-    const userId = getUserId();
+    const userId = await getUserId();
     await db.delete(debts)
       .where(and(eq(debts.id, id), eq(debts.userId, userId)));
     safeRevalidate('/debts');

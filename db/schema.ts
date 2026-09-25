@@ -16,7 +16,10 @@ import { relations } from 'drizzle-orm';
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 255 }).notNull(),
+  username: varchar('username', { length: 100 }),
   email: varchar('email', { length: 255 }),
+  passwordHash: varchar('password_hash', { length: 255 }),
+  role: varchar('role', { length: 20 }).notNull().default('user'), // 'user' | 'admin'
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

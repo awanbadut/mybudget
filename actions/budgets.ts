@@ -3,16 +3,13 @@
 import { db } from '@/db';
 import { budgets } from '@/db/schema';
 import { BudgetSchema } from '@/lib/validation';
-import { safeRevalidate } from '@/lib/server-utils';
+import { safeRevalidate, getUserId } from '@/lib/server-utils';
 import { eq, and } from 'drizzle-orm';
-
-const DEV_USER_ID = process.env.DEV_USER_ID || '00000000-0000-0000-0000-000000000001';
-function getUserId(): string { return DEV_USER_ID; }
 
 export async function createBudget(data: unknown) {
   try {
     const validated = BudgetSchema.parse(data);
-    const userId = getUserId();
+    const userId = await getUserId();
     await db.insert(budgets).values({ userId, ...validated });
     safeRevalidate('/budget');
     return { success: true };
@@ -25,7 +22,7 @@ export async function createBudget(data: unknown) {
 export async function updateBudget(id: string, data: unknown) {
   try {
     const validated = BudgetSchema.parse(data);
-    const userId = getUserId();
+    const userId = await getUserId();
     await db.update(budgets)
       .set({ amount: validated.amount, updatedAt: new Date() })
       .where(and(eq(budgets.id, id), eq(budgets.userId, userId)));
@@ -39,7 +36,7 @@ export async function updateBudget(id: string, data: unknown) {
 
 export async function deleteBudget(id: string) {
   try {
-    const userId = getUserId();
+    const userId = await getUserId();
     await db.delete(budgets)
       .where(and(eq(budgets.id, id), eq(budgets.userId, userId)));
     safeRevalidate('/budget');
@@ -53,8 +50,8 @@ export async function deleteBudget(id: string) {
 export async function upsertBudget(data: unknown) {
   try {
     const validated = BudgetSchema.parse(data);
-    const userId = getUserId();
-    
+    const userId = await getUserId();
+
     // Check if budget exists
     const existing = await db.query.budgets.findFirst({
       where: (b, { and: andFn, eq: eqFn }) => andFn(
@@ -64,7 +61,7 @@ export async function upsertBudget(data: unknown) {
         eqFn(b.year, validated.year)
       ),
     });
-    
+
     if (existing) {
       await db.update(budgets)
         .set({ amount: validated.amount, updatedAt: new Date() })

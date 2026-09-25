@@ -6,7 +6,7 @@ import { eq, and, gte, lte } from 'drizzle-orm';
 import { formatCurrency } from '@/lib/currency';
 import { formatMonth, getCurrentMonth, calculateProratedSalary, getPayrollCycle } from '@/lib/dates';
 import { calculateSavingRate } from '@/lib/calculations';
-import { getDevUserId } from '@/lib/server-utils';
+import { getUserId } from '@/lib/auth';
 import { DashboardSummary } from '@/components/DashboardSummary';
 import { BudgetProgress } from '@/components/BudgetProgress';
 import { ExpenseChart } from '@/components/ExpenseChart';
@@ -20,7 +20,7 @@ import Link from 'next/link';
 import { Plus, ChevronRight, AlertTriangle } from 'lucide-react';
 
 export default async function DashboardPage() {
-  const DEV_USER_ID = getDevUserId();
+  const DEV_USER_ID = await getUserId();
   const { month, year } = getCurrentMonth();
   // Use September 2026 as current month since that's the app context
   const currentMonth = 9;

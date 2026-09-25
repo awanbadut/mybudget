@@ -2,8 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { db } from '@/db';
 import { TransactionListClient } from '@/components/TransactionListClient';
-
-const DEV_USER_ID = process.env.DEV_USER_ID || '00000000-0000-0000-0000-000000000001';
+import { getUserId } from '@/lib/auth';
 
 export default async function TransactionsPage({
   searchParams,
@@ -11,12 +10,13 @@ export default async function TransactionsPage({
   searchParams: Promise<{ type?: string; action?: string }>;
 }) {
   const params = await searchParams;
+  const userId = await getUserId();
   const [allCategories, allTransactions] = await Promise.all([
     db.query.categories.findMany({
-      where: (c, { eq: eqFn }) => eqFn(c.userId, DEV_USER_ID),
+      where: (c, { eq: eqFn }) => eqFn(c.userId, userId),
     }),
     db.query.transactions.findMany({
-      where: (t, { eq: eqFn }) => eqFn(t.userId, DEV_USER_ID),
+      where: (t, { eq: eqFn }) => eqFn(t.userId, userId),
       with: { category: true },
       orderBy: (t, { desc }) => [desc(t.transactionDate), desc(t.createdAt)],
     }),

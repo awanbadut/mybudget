@@ -3,16 +3,14 @@
 import { db } from '@/db';
 import { savingsGoals, savingsTransactions } from '@/db/schema';
 import { SavingsGoalSchema, SavingsTransactionSchema } from '@/lib/validation';
-import { safeRevalidate } from '@/lib/server-utils';
+import { safeRevalidate, getUserId } from '@/lib/server-utils';
 import { eq, and } from 'drizzle-orm';
 
-const DEV_USER_ID = process.env.DEV_USER_ID || '00000000-0000-0000-0000-000000000001';
-function getUserId(): string { return DEV_USER_ID; }
 
 export async function createSavingsGoal(data: unknown) {
   try {
     const validated = SavingsGoalSchema.parse(data);
-    const userId = getUserId();
+    const userId = await getUserId();
     const [goal] = await db.insert(savingsGoals).values({ userId, ...validated }).returning();
     safeRevalidate('/savings');
     return { success: true, data: goal };
@@ -25,7 +23,7 @@ export async function createSavingsGoal(data: unknown) {
 export async function updateSavingsGoal(id: string, data: unknown) {
   try {
     const validated = SavingsGoalSchema.parse(data);
-    const userId = getUserId();
+    const userId = await getUserId();
     await db.update(savingsGoals)
       .set({ ...validated, updatedAt: new Date() })
       .where(and(eq(savingsGoals.id, id), eq(savingsGoals.userId, userId)));
@@ -39,7 +37,7 @@ export async function updateSavingsGoal(id: string, data: unknown) {
 
 export async function deleteSavingsGoal(id: string) {
   try {
-    const userId = getUserId();
+    const userId = await getUserId();
     await db.delete(savingsGoals)
       .where(and(eq(savingsGoals.id, id), eq(savingsGoals.userId, userId)));
     safeRevalidate('/savings');
@@ -53,7 +51,7 @@ export async function deleteSavingsGoal(id: string) {
 export async function addSavings(data: unknown) {
   try {
     const validated = SavingsTransactionSchema.parse(data);
-    const userId = getUserId();
+    const userId = await getUserId();
     
     // Verify the goal belongs to user
     const goal = await db.query.savingsGoals.findFirst({
