@@ -6,6 +6,7 @@ import { MobileNav } from '@/components/MobileNav';
 import { Toaster } from '@/components/ui/toaster';
 import { getSession } from '@/lib/auth';
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar';
+import { InstallPWA } from '@/components/InstallPWA';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -13,6 +14,15 @@ export const metadata: Metadata = {
   title: 'My Budget - Kelola Keuangan Pribadi',
   description: 'Aplikasi budgeting pribadi untuk mengelola keuangan Anda dengan mudah',
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/favicon.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -30,8 +40,6 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-const inter_font = Inter({ subsets: ['latin'] });
-
 export default async function RootLayout({
   children,
 }: {
@@ -41,17 +49,18 @@ export default async function RootLayout({
   try {
     session = await getSession();
   } catch {
-    // No session (e.g. on login page)
+    // No session
   }
 
   return (
     <html lang="id">
       <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className={`${inter_font.className} bg-gray-50 min-h-screen`}>
+      <body className={`${inter.className} bg-gray-50 min-h-screen text-gray-900 antialiased`}>
         <div className="flex min-h-screen">
           {/* Desktop Sidebar */}
           {session && (
@@ -69,6 +78,8 @@ export default async function RootLayout({
         {/* Mobile Bottom Navigation */}
         {session && <MobileNav />}
 
+        {/* PWA Components */}
+        <InstallPWA />
         <ServiceWorkerRegistrar />
         <Toaster />
       </body>

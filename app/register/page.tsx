@@ -24,7 +24,10 @@ export default function RegisterPage() {
         setError(result.error);
       } else if (result?.success) {
         setSuccess(true);
-        setTimeout(() => router.push('/login'), 2000);
+        setTimeout(() => {
+          router.push('/');
+          router.refresh();
+        }, 1200);
       }
     });
   }
@@ -32,12 +35,21 @@ export default function RegisterPage() {
   if (success) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-xl p-8 text-center max-w-md w-full">
-          <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <div className="bg-white rounded-3xl shadow-xl p-8 text-center max-w-md w-full space-y-4">
+          <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto">
             <span className="text-3xl">🎉</span>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Akun Berhasil Dibuat!</h2>
-          <p className="text-gray-500">Kamu akan diarahkan ke halaman login...</p>
+          <h2 className="text-2xl font-bold text-gray-900">Akun Berhasil Dibuat!</h2>
+          <p className="text-gray-500 text-sm">Selamat datang di My Budget. Membuka dashboard...</p>
+          <button
+            onClick={() => {
+              router.push('/');
+              router.refresh();
+            }}
+            className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+          >
+            Buka Dashboard Sekarang
+          </button>
         </div>
       </div>
     );

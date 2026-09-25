@@ -148,6 +148,23 @@ export async function registerAction(formData: FormData) {
       currentAmount: 0,
     });
 
+    // Auto-login upon registration
+    const token = await signToken({
+      userId: newUser.id,
+      username,
+      name,
+      role: 'user',
+    });
+
+    const cookieStore = await cookies();
+    cookieStore.set('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: '/',
+    });
+
     return { success: true };
   } catch (error) {
     console.error('registerAction error:', error);
