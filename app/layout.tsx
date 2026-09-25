@@ -68,8 +68,8 @@ export default async function RootLayout({
           )}
 
           {/* Main Content */}
-          <main className={`flex-1 ${session ? 'md:ml-64' : ''} pb-20 md:pb-0`}>
-            <div className="max-w-screen-xl mx-auto p-4 md:p-6">
+          <main className={`flex-1 ${session ? 'md:ml-64' : ''} pb-28 md:pb-8`}>
+            <div className="max-w-md sm:max-w-2xl md:max-w-screen-xl mx-auto px-3.5 sm:px-6 py-3 md:p-6">
               {children}
             </div>
           </main>

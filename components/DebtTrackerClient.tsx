@@ -225,9 +225,35 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
         <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle>Tambah Cicilan</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label>Nominal (Rp)</Label>
-              <Input placeholder="0" value={formAmount} onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" />
+              <Input
+                placeholder="0"
+                value={formAmount}
+                onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
+                inputMode="numeric"
+                className="text-base font-bold text-gray-900"
+              />
+              {formAmount && (
+                <p className="text-xs font-bold text-blue-600">
+                  {formatCurrency(parseInt(formAmount, 10) || 0)}
+                </p>
+              )}
+              <div className="flex gap-1.5 overflow-x-auto pt-1 pb-1 scrollbar-none">
+                {[100000, 500000, 800000, 1100000, 1500000].map(amt => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => {
+                      const cur = parseInt(formAmount || '0', 10);
+                      setFormAmount(String(cur + amt));
+                    }}
+                    className="px-2.5 py-1 rounded-xl bg-gray-100 hover:bg-blue-50 hover:text-blue-600 text-xs font-semibold text-gray-600 active:scale-95 transition-all flex-shrink-0"
+                  >
+                    +{amt >= 1000000 ? `${(amt / 1000000).toFixed(1).replace('.0', '')}jt` : `${amt / 1000}rb`}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="space-y-1">
               <Label>Tanggal Jatuh Tempo</Label>

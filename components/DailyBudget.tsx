@@ -1,5 +1,7 @@
+'use client';
+
 import { formatCurrency } from '@/lib/currency';
-import { AlertTriangle, CheckCircle, Calendar } from 'lucide-react';
+import { Utensils, Calendar, AlertCircle, CheckCircle2, Flame } from 'lucide-react';
 import { getPayrollCycle } from '@/lib/dates';
 
 interface DailyBudgetProps {
@@ -19,10 +21,15 @@ export function DailyBudget({
   const budgetRemaining = foodBudgetTotal - foodSpent;
   // Daily target is total food budget divided by cycle duration (e.g. Rp900,000 / 30 = Rp30,000/day)
   const dailyTarget = foodBudgetTotal > 0 ? Math.round(foodBudgetTotal / totalDays) : 0;
-  
+
   // Safe allowance per remaining day
   const dailyAllowance = daysRemaining > 0
     ? Math.max(0, Math.round(budgetRemaining / daysRemaining))
+    : 0;
+
+  // Percentage spent
+  const percentageSpent = foodBudgetTotal > 0
+    ? Math.min(100, Math.round((foodSpent / foodBudgetTotal) * 100))
     : 0;
 
   // Actual daily average spent so far
@@ -32,80 +39,93 @@ export function DailyBudget({
   if (foodBudgetTotal === 0) return null;
 
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 space-y-4">
+    <div className="bg-white rounded-[26px] p-5 shadow-sm border border-gray-100 space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-base font-semibold text-gray-900">Budget Makan Harian</h3>
-          <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5 text-blue-500" />
-            Periode Gajian: <span className="font-medium text-gray-700">{label}</span>
-          </p>
+        <div className="flex items-center gap-2.5">
+          <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+            <Utensils className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-gray-900 leading-tight">Budget Makan Harian</h3>
+            <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+              <Calendar className="w-3 h-3 text-blue-500" />
+              Siklus: <span className="font-semibold text-gray-700">{label}</span>
+            </p>
+          </div>
         </div>
-        <div className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+
+        <div className="bg-blue-50 border border-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold flex-shrink-0">
           Gajian Tgl {salaryDate}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-gray-50 rounded-xl p-3">
-          <p className="text-xs text-gray-400">Budget Total</p>
-          <p className="text-sm font-semibold text-gray-900">{formatCurrency(foodBudgetTotal)}</p>
-          <p className="text-[11px] text-gray-400 mt-0.5">{totalDays} hari siklus</p>
-        </div>
-        <div className="bg-gray-50 rounded-xl p-3">
-          <p className="text-xs text-gray-400">Terpakai</p>
-          <p className="text-sm font-semibold text-red-500">{formatCurrency(foodSpent)}</p>
-          <p className="text-[11px] text-gray-400 mt-0.5">{elapsedDays} hari berjalan</p>
-        </div>
-        <div className="bg-gray-50 rounded-xl p-3">
-          <p className="text-xs text-gray-400">Sisa Budget</p>
-          <p className={`text-sm font-semibold ${budgetRemaining >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-            {formatCurrency(Math.abs(budgetRemaining))}
+      {/* Main Daily Allowance Hero Banner */}
+      <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl p-4 shadow-sm relative overflow-hidden flex items-center justify-between">
+        <div className="space-y-0.5 relative z-10">
+          <p className="text-xs font-medium text-amber-100 flex items-center gap-1">
+            <Flame className="w-3.5 h-3.5 text-yellow-200" />
+            Jatah Makan Aman Hari Ini
           </p>
-          <p className="text-[11px] text-gray-400 mt-0.5">{budgetRemaining >= 0 ? 'Tersedia' : 'Overbudget'}</p>
+          <p className="text-2xl sm:text-3xl font-black tracking-tight">
+            {formatCurrency(dailyAllowance)}
+            <span className="text-xs font-medium text-amber-100 ml-1">/ hari</span>
+          </p>
+          <p className="text-[11px] text-amber-100/90">
+            Target ideal: {formatCurrency(dailyTarget)}/hari ({totalDays} hari siklus)
+          </p>
         </div>
-        <div className="bg-blue-50/60 rounded-xl p-3 border border-blue-100">
-          <p className="text-xs text-blue-600 font-medium">Hari Tersisa</p>
-          <p className="text-sm font-bold text-blue-900">{daysRemaining} hari lagi</p>
-          <p className="text-[11px] text-blue-500 mt-0.5">hingga gajian tgl {salaryDate}</p>
+
+        <div className="relative z-10 text-right">
+          <div className="inline-block bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20">
+            <p className="text-[10px] text-white/90">Sisa Waktu</p>
+            <p className="text-base font-extrabold">{daysRemaining} Hari</p>
+          </div>
         </div>
       </div>
 
-      {/* Target & Allowance Recommendation */}
-      <div className="bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl p-3 border border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
-        <div>
-          <span className="text-gray-500">Target Ideal: </span>
-          <span className="font-semibold text-gray-900">{formatCurrency(dailyTarget)}/hari</span>
-          <span className="text-gray-400"> ({formatCurrency(foodBudgetTotal)} / {totalDays} hari)</span>
+      {/* Progress Bar */}
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-xs">
+          <span className="text-gray-500 font-medium">Terpakai: <strong className="text-gray-800">{formatCurrency(foodSpent)}</strong></span>
+          <span className="text-gray-500 font-medium">Total: <strong className="text-gray-800">{formatCurrency(foodBudgetTotal)}</strong></span>
         </div>
-        {budgetRemaining > 0 && daysRemaining > 0 && (
-          <div>
-            <span className="text-blue-600">Jatah sisa hari: </span>
-            <span className="font-bold text-blue-700">{formatCurrency(dailyAllowance)}/hari</span>
-          </div>
-        )}
+        <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${
+              percentageSpent > 90 ? 'bg-rose-500' : percentageSpent > 70 ? 'bg-amber-500' : 'bg-emerald-500'
+            }`}
+            style={{ width: `${percentageSpent}%` }}
+          />
+        </div>
+        <div className="flex justify-between text-[11px] text-gray-400">
+          <span>{percentageSpent}% dari budget</span>
+          <span className={budgetRemaining >= 0 ? 'text-emerald-600 font-semibold' : 'text-rose-600 font-semibold'}>
+            Sisa: {formatCurrency(budgetRemaining)}
+          </span>
+        </div>
       </div>
 
       {/* Dynamic Status Alert */}
-      <div className={`flex items-start gap-2.5 p-3 rounded-xl text-sm ${
-        isOverBudget ? 'bg-orange-50 border border-orange-100' : 'bg-green-50 border border-green-100'
+      <div className={`flex items-start gap-2.5 p-3 rounded-2xl text-xs ${
+        isOverBudget ? 'bg-amber-50 border border-amber-100 text-amber-900' : 'bg-emerald-50 border border-emerald-100 text-emerald-900'
       }`}>
         {isOverBudget ? (
-          <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
         ) : (
-          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
         )}
         <div className="space-y-0.5">
-          <p className={`font-medium ${isOverBudget ? 'text-orange-800' : 'text-green-800'}`}>
+          <p className="font-bold">
             {isOverBudget
-              ? `Rata-rata makanmu ${formatCurrency(dailyActual)}/hari, sedikit di atas target ${formatCurrency(dailyTarget)}.`
-              : `Rata-rata makanmu masih aman dalam target ${formatCurrency(dailyTarget)}/hari.`
+              ? `Pengeluaran makan rata-rata ${formatCurrency(dailyActual)}/hari (melebihi target ${formatCurrency(dailyTarget)}).`
+              : `Pengeluaran makan rata-rata aman dalam target ${formatCurrency(dailyTarget)}/hari.`
             }
           </p>
-          <p className={`text-xs ${isOverBudget ? 'text-orange-600' : 'text-green-600'}`}>
+          <p className="text-gray-600">
             {daysRemaining > 0
-              ? `Masih ada ${daysRemaining} hari sampai gajian tanggal ${salaryDate} berikutnya. Jaga ritme pengeluaran makanmu!`
-              : `Hari ini adalah tanggal gajian! Siapkan budget makan untuk siklus bulan baru.`
+              ? `Tersisa ${daysRemaining} hari hingga gajian tanggal ${salaryDate}. Batasi jatah harian agar budget tetap cukup!`
+              : `Hari ini adalah tanggal gajian! Silakan setel budget baru untuk siklus berikutnya.`
             }
           </p>
         </div>

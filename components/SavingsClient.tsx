@@ -283,9 +283,35 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
         <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle>Tambah Tabungan</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label>Nominal (Rp)</Label>
-              <Input placeholder="0" value={savingsAmount} onChange={e => setSavingsAmount(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" />
+              <Input
+                placeholder="0"
+                value={savingsAmount}
+                onChange={e => setSavingsAmount(e.target.value.replace(/[^0-9]/g, ''))}
+                inputMode="numeric"
+                className="text-base font-bold text-gray-900"
+              />
+              {savingsAmount && (
+                <p className="text-xs font-bold text-blue-600">
+                  {formatCurrency(parseInt(savingsAmount, 10) || 0)}
+                </p>
+              )}
+              <div className="flex gap-1.5 overflow-x-auto pt-1 pb-1 scrollbar-none">
+                {[50000, 100000, 200000, 500000, 1000000].map(amt => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => {
+                      const cur = parseInt(savingsAmount || '0', 10);
+                      setSavingsAmount(String(cur + amt));
+                    }}
+                    className="px-2.5 py-1 rounded-xl bg-gray-100 hover:bg-blue-50 hover:text-blue-600 text-xs font-semibold text-gray-600 active:scale-95 transition-all flex-shrink-0"
+                  >
+                    +{amt >= 1000000 ? `${amt / 1000000}jt` : `${amt / 1000}rb`}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="space-y-1">
               <Label>Tanggal</Label>

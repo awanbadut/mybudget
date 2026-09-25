@@ -173,27 +173,28 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Keuangan Saya</h1>
-          <p className="text-gray-500 text-sm mt-1">Pantau keuanganmu dengan lebih mudah.</p>
-          <div className="flex flex-wrap items-center gap-2 mt-1.5">
-            <span className="text-blue-600 text-sm font-semibold">{formatMonth(currentMonth, currentYear)}</span>
-            <span className="text-gray-300">•</span>
-            <span className="text-xs bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-medium">
-              Siklus: {payrollCycle.label} ({payrollCycle.daysRemaining} hari lagi)
+      {/* Modern Mobile App Header */}
+      <div className="flex items-center justify-between pt-1 pb-1">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-extrabold text-base flex items-center justify-center shadow-md shadow-blue-500/20">
+            {(user?.name || 'Zikry').charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 font-medium">Selamat Datang 👋</p>
+            <h1 className="text-base sm:text-xl font-black text-gray-900 leading-tight">
+              {user?.name || 'Zikry Kurniawan'}
+            </h1>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="bg-blue-50/90 border border-blue-100/80 text-blue-700 px-3 py-1.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+            <span className="text-[11px] sm:text-xs">
+              Gajian {salaryDate} ({payrollCycle.daysRemaining}h lagi)
             </span>
           </div>
         </div>
-        <Link
-          href="/transactions?action=new"
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">Tambah Transaksi</span>
-          <span className="sm:hidden">Tambah</span>
-        </Link>
       </div>
 
       {/* Summary Cards */}

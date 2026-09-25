@@ -1,6 +1,7 @@
 'use client';
 import { useState, useTransition } from 'react';
 import { updateSettings, getExportData } from '@/actions/settings';
+import { logoutAction } from '@/actions/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/currency';
-import { Settings, Download, User, Wallet, Calendar } from 'lucide-react';
+import { Settings, Download, User, Wallet, Calendar, LogOut } from 'lucide-react';
 
 interface UserData {
   id: string;
@@ -202,10 +203,22 @@ export function SettingsClient({
       </Button>
 
       {/* Export */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <h2 className="text-base font-semibold text-gray-900 mb-3">Data</h2>
-        <Button variant="outline" onClick={handleExport} disabled={isPending} className="w-full gap-2">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+        <h2 className="text-base font-semibold text-gray-900 mb-3">Backup Data</h2>
+        <Button variant="outline" onClick={handleExport} disabled={isPending} className="w-full gap-2 rounded-xl">
           <Download className="w-4 h-4" /> Export Data (JSON)
+        </Button>
+      </div>
+
+      {/* Logout */}
+      <div className="bg-white rounded-2xl shadow-sm border border-rose-100 p-4">
+        <h2 className="text-base font-semibold text-gray-900 mb-2">Akun</h2>
+        <Button
+          variant="outline"
+          onClick={() => logoutAction()}
+          className="w-full text-rose-600 border-rose-200 hover:bg-rose-50 gap-2 rounded-xl"
+        >
+          <LogOut className="w-4 h-4" /> Keluar dari Akun
         </Button>
       </div>
     </div>
