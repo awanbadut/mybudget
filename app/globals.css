@@ -148,6 +148,13 @@ button, a, input, select, textarea {
   background: #D4D4D8;
 }
 
+html.dark ::-webkit-scrollbar-thumb {
+  background: #27272A;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3F3F46;
+}
+
 /* Safe area support for mobile floating nav */
 .safe-area-pb {
   padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));

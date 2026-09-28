@@ -119,10 +119,10 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
       </div>
 
       {debts.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-stone-200/80 p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2.5">
-          <CreditCard className="w-8 h-8 text-zinc-400 mx-auto" />
-          <p className="font-semibold text-sm text-zinc-900">Tidak Ada Fasilitas Utang Aktif</p>
-          <p className="text-xs text-zinc-500">Semua kewajiban telah terlunasi dengan baik.</p>
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2.5 transition-colors">
+          <CreditCard className="w-8 h-8 text-zinc-400 dark:text-zinc-500 mx-auto" />
+          <p className="font-semibold text-sm text-zinc-900 dark:text-white">Tidak Ada Fasilitas Utang Aktif</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">Semua kewajiban telah terlunasi dengan baik.</p>
         </div>
       ) : (
         debts.map(debt => {
@@ -131,27 +131,27 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
           const isAllPaid = stats.paidCount === stats.totalCount && stats.totalCount > 0;
 
           return (
-            <div key={debt.id} className="bg-white rounded-2xl border border-stone-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden space-y-4">
+            <div key={debt.id} className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden space-y-4 transition-colors">
               {/* Debt Header */}
-              <div className="p-5 sm:p-6 border-b border-stone-100 bg-stone-50/40">
+              <div className="p-5 sm:p-6 border-b border-stone-100 dark:border-zinc-800 bg-stone-50/40 dark:bg-zinc-800/30">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="font-bold text-lg text-zinc-900">{debt.name}</h2>
+                      <h2 className="font-bold text-lg text-zinc-900 dark:text-white">{debt.name}</h2>
                       {isAllPaid && (
-                        <span className="text-xs font-medium bg-emerald-50 border border-emerald-200 text-emerald-700 px-2 py-0.5 rounded-full">
+                        <span className="text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full">
                           Lunas
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-zinc-500 mt-0.5">
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                       {stats.paidCount} dari {stats.totalCount} angsuran diselesaikan
                     </p>
                   </div>
 
                   <button
                     onClick={() => { setShowAddInstallment(debt.id); setFormAmount(''); setFormDate(''); }}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-zinc-900 hover:bg-zinc-800 px-3.5 py-1.5 rounded-xl transition-all shadow-sm"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-white dark:text-zinc-900 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 px-3.5 py-1.5 rounded-xl transition-all shadow-sm"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Tambah Angsuran</span>
@@ -159,27 +159,27 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-stone-200/70 h-2.5 rounded-full overflow-hidden mb-1.5">
+                <div className="w-full bg-stone-200/70 dark:bg-zinc-700 h-2.5 rounded-full overflow-hidden mb-1.5">
                   <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
                 </div>
-                <div className="flex justify-between text-xs text-zinc-500 mb-3">
-                  <span className="font-semibold text-emerald-600">{progress}% Terbayar</span>
+                <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400 mb-3">
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">{progress}% Terbayar</span>
                   <span>Jatuh tempo setiap tgl 25</span>
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-stone-200/60">
-                  <div className="bg-white border border-stone-200/60 rounded-xl p-3 text-center">
-                    <p className="text-[11px] text-zinc-500 font-medium">Total Pagu</p>
-                    <p className="font-semibold text-sm sm:text-base text-zinc-900 tabular-nums mt-0.5">{formatCurrency(stats.total)}</p>
+                <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-stone-200/60 dark:border-zinc-800">
+                  <div className="bg-white dark:bg-zinc-800/80 border border-stone-200/60 dark:border-zinc-700 rounded-xl p-3 text-center">
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Total Pagu</p>
+                    <p className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white tabular-nums mt-0.5">{formatCurrency(stats.total)}</p>
                   </div>
-                  <div className="bg-white border border-stone-200/60 rounded-xl p-3 text-center">
-                    <p className="text-[11px] text-emerald-600 font-medium">Sudah Bayar</p>
-                    <p className="font-semibold text-sm sm:text-base text-emerald-600 tabular-nums mt-0.5">{formatCurrency(stats.paid)}</p>
+                  <div className="bg-white dark:bg-zinc-800/80 border border-stone-200/60 dark:border-zinc-700 rounded-xl p-3 text-center">
+                    <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Sudah Bayar</p>
+                    <p className="font-semibold text-sm sm:text-base text-emerald-600 dark:text-emerald-400 tabular-nums mt-0.5">{formatCurrency(stats.paid)}</p>
                   </div>
-                  <div className="bg-white border border-stone-200/60 rounded-xl p-3 text-center">
-                    <p className="text-[11px] text-rose-600 font-medium">Sisa Utang</p>
-                    <p className="font-semibold text-sm sm:text-base text-rose-600 tabular-nums mt-0.5">{formatCurrency(stats.remaining)}</p>
+                  <div className="bg-white dark:bg-zinc-800/80 border border-stone-200/60 dark:border-zinc-700 rounded-xl p-3 text-center">
+                    <p className="text-[11px] text-rose-600 dark:text-rose-400 font-medium">Sisa Utang</p>
+                    <p className="font-semibold text-sm sm:text-base text-rose-600 dark:text-rose-400 tabular-nums mt-0.5">{formatCurrency(stats.remaining)}</p>
                   </div>
                 </div>
               </div>
@@ -216,7 +216,7 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
                     <div className="flex items-center gap-2.5">
                       <span className={cn(
                         'font-sans text-xs sm:text-sm font-semibold tabular-nums',
-                        installment.status === 'paid' ? 'text-zinc-400 line-through' : 'text-zinc-900'
+                        installment.status === 'paid' ? 'text-zinc-400 dark:text-zinc-500 line-through' : 'text-zinc-900 dark:text-white'
                       )}>
                         {formatCurrency(installment.amount)}
                       </span>
@@ -224,14 +224,14 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => { setEditInstallment(installment); setFormAmount(String(installment.amount)); setFormDate(installment.dueDate); }}
-                            className="p-1 text-zinc-400 hover:text-zinc-900 hover:bg-stone-100 rounded-lg transition-colors"
+                            className="p-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-stone-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                             title="Edit"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => setDeleteInstallmentId(installment.id)}
-                            className="p-1 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                            className="p-1 text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
                             title="Hapus"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -249,44 +249,44 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
 
       {/* Add Installment Dialog */}
       <Dialog open={!!showAddInstallment} onOpenChange={(open) => { if (!open) setShowAddInstallment(null); }}>
-        <DialogContent className="max-w-sm bg-white border border-stone-200/80 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-sm bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6">
           <DialogHeader>
-            <DialogTitle className="font-bold text-base text-zinc-900">
+            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white">
               Tambah Jadwal Angsuran
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3.5 text-xs pt-2">
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Nominal Angsuran (Rp)</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nominal Angsuran (Rp)</label>
               <input
                 placeholder="0"
                 value={formAmount}
                 onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
                 inputMode="numeric"
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
               />
             </div>
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Tanggal Jatuh Tempo</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Jatuh Tempo</label>
               <input
                 type="date"
                 value={formDate}
                 onChange={e => setFormDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
               />
             </div>
           </div>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => setShowAddInstallment(null)}
-              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs touch-manipulation"
+              className="px-3.5 py-1.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs touch-manipulation"
             >
               Batal
             </button>
             <button
               onClick={() => showAddInstallment && handleAddInstallment(showAddInstallment)}
               disabled={isPending}
-              className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
+              className="px-4 py-1.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
             >
               {isPending ? 'Menyimpan...' : 'Simpan Angsuran'}
             </button>
@@ -296,43 +296,43 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
 
       {/* Edit Installment Dialog */}
       <Dialog open={!!editInstallment} onOpenChange={(open) => { if (!open) setEditInstallment(null); }}>
-        <DialogContent className="max-w-sm bg-white border border-stone-200/80 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-sm bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6">
           <DialogHeader>
-            <DialogTitle className="font-bold text-base text-zinc-900">
+            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white">
               Ubah Jadwal Angsuran
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3.5 text-xs pt-2">
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Nominal Angsuran (Rp)</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nominal Angsuran (Rp)</label>
               <input
                 value={formAmount}
                 onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
                 inputMode="numeric"
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
               />
             </div>
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Tanggal Jatuh Tempo</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Jatuh Tempo</label>
               <input
                 type="date"
                 value={formDate}
                 onChange={e => setFormDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
               />
             </div>
           </div>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => setEditInstallment(null)}
-              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs touch-manipulation"
+              className="px-3.5 py-1.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs touch-manipulation"
             >
               Batal
             </button>
             <button
               onClick={handleUpdateInstallment}
               disabled={isPending}
-              className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
+              className="px-4 py-1.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
             >
               {isPending ? 'Menyimpan...' : 'Simpan'}
             </button>
@@ -342,17 +342,17 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteInstallmentId} onOpenChange={(open) => { if (!open) setDeleteInstallmentId(null); }}>
-        <DialogContent className="max-w-sm bg-white border border-stone-200/80 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-sm bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6">
           <DialogHeader>
-            <DialogTitle className="font-bold text-base text-zinc-900">
+            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white">
               Hapus Angsuran
             </DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-zinc-500">Apakah kamu yakin ingin menghapus jadwal angsuran ini?</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">Apakah kamu yakin ingin menghapus jadwal angsuran ini?</p>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => setDeleteInstallmentId(null)}
-              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs"
+              className="px-3.5 py-1.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs"
             >
               Batal
             </button>

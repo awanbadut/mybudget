@@ -85,18 +85,18 @@ export default async function DashboardPage() {
 
   if (fetchError) {
     return (
-      <div className="bg-white rounded-2xl border border-rose-200 p-6 sm:p-8 max-w-lg mx-auto text-center space-y-4 my-8 shadow-sm w-full">
-        <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto border border-rose-100">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-rose-200 dark:border-rose-900/50 p-6 sm:p-8 max-w-lg mx-auto text-center space-y-4 my-8 shadow-sm w-full transition-colors">
+        <div className="w-12 h-12 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto border border-rose-100 dark:border-rose-900/30">
           <AlertTriangle className="w-6 h-6" />
         </div>
-        <h2 className="font-bold text-xl text-zinc-900">Koneksi Database Gagal</h2>
-        <p className="text-xs text-zinc-500">
+        <h2 className="font-bold text-xl text-zinc-900 dark:text-white">Koneksi Database Gagal</h2>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
           Server tidak dapat menghubungi database PostgreSQL:
         </p>
-        <div className="bg-stone-50 border border-stone-200 text-zinc-700 p-3 rounded-xl text-xs font-mono text-left break-all">
+        <div className="bg-stone-50 dark:bg-zinc-800/80 border border-stone-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 p-3 rounded-xl text-xs font-mono text-left break-all">
           {fetchError}
         </div>
-        <p className="text-xs text-zinc-400">
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">
           Pastikan DATABASE_URL sudah diatur di environment Vercel Anda.
         </p>
       </div>
@@ -298,24 +298,24 @@ export default async function DashboardPage() {
         <section className="space-y-2.5 sm:space-y-3 w-full min-w-0">
           <div className="flex items-center justify-between px-1">
             <div>
-              <h2 className="font-semibold text-sm sm:text-base text-zinc-900">Cicilan Bulan Ini</h2>
-              <p className="text-[11px] sm:text-xs text-zinc-500">Tagihan yang jatuh tempo bulan ini</p>
+              <h2 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white">Cicilan Bulan Ini</h2>
+              <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">Tagihan yang jatuh tempo bulan ini</p>
             </div>
-            <Link href="/debts" className="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center gap-1 transition-colors">
+            <Link href="/debts" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center gap-1 transition-colors">
               <span>Kelola</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-          <div className="bg-white rounded-2xl border border-amber-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-amber-200/70 dark:border-amber-900/60 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden transition-colors">
             {pendingInstallments.map((inst: any, i: number) => (
-              <div key={inst.id} className={`flex items-center justify-between px-4 py-3 ${i > 0 ? 'border-t border-stone-100' : ''}`}>
+              <div key={inst.id} className={`flex items-center justify-between px-4 py-3 ${i > 0 ? 'border-t border-stone-100 dark:border-zinc-800' : ''}`}>
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
                     <Calendar className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-zinc-900">Cicilan ke-{inst.installmentNumber}</p>
-                    <p className="text-[10px] text-zinc-500">Jatuh tempo: {inst.dueDate}</p>
+                    <p className="text-xs font-semibold text-zinc-900 dark:text-white">Cicilan ke-{inst.installmentNumber}</p>
+                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400">Jatuh tempo: {inst.dueDate}</p>
                   </div>
                 </div>
                 <span className="font-sans font-bold text-xs tabular-nums text-amber-700">{formatCurrency(inst.amount)}</span>

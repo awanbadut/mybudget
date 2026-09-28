@@ -87,30 +87,30 @@ export function InstallPWA() {
       {/* iOS Guide Modal */}
       {showIOSGuide && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white text-zinc-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-stone-200 space-y-4 font-sans">
+          <div className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-stone-200 dark:border-zinc-800 space-y-4 font-sans transition-colors">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-base text-zinc-900">Pasang di iPhone / iPad</h3>
+              <h3 className="font-bold text-base text-zinc-900 dark:text-white">Pasang di iPhone / iPad</h3>
               <button
                 onClick={() => setShowIOSGuide(false)}
-                className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 touch-manipulation"
+                className="p-1 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 touch-manipulation"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Ikuti 2 langkah mudah berikut untuk menambahkan aplikasi ke Layar Utama:
             </p>
-            <div className="space-y-2.5 text-xs text-zinc-700">
-              <div className="flex items-start gap-3 bg-stone-50 p-3 rounded-xl border border-stone-100">
-                <span className="w-5 h-5 rounded-full bg-zinc-900 text-white font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5">
+            <div className="space-y-2.5 text-xs text-zinc-700 dark:text-zinc-300">
+              <div className="flex items-start gap-3 bg-stone-50 dark:bg-zinc-800/60 p-3 rounded-xl border border-stone-100 dark:border-zinc-700/60">
+                <span className="w-5 h-5 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5">
                   1
                 </span>
                 <p>
-                  Tekan ikon <strong>Bagikan (Share)</strong> <Share className="w-3.5 h-3.5 inline text-zinc-900 mx-1" /> di bilah bawah browser Safari.
+                  Tekan ikon <strong>Bagikan (Share)</strong> <Share className="w-3.5 h-3.5 inline text-zinc-900 dark:text-white mx-1" /> di bilah bawah browser Safari.
                 </p>
               </div>
-              <div className="flex items-start gap-3 bg-stone-50 p-3 rounded-xl border border-stone-100">
-                <span className="w-5 h-5 rounded-full bg-zinc-900 text-white font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="flex items-start gap-3 bg-stone-50 dark:bg-zinc-800/60 p-3 rounded-xl border border-stone-100 dark:border-zinc-700/60">
+                <span className="w-5 h-5 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5">
                   2
                 </span>
                 <p>
@@ -120,7 +120,7 @@ export function InstallPWA() {
             </div>
             <button
               onClick={() => setShowIOSGuide(false)}
-              className="w-full bg-zinc-900 hover:bg-zinc-800 text-white py-2.5 rounded-xl font-semibold text-xs transition-all touch-manipulation shadow-sm"
+              className="w-full bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 py-2.5 rounded-xl font-semibold text-xs transition-all touch-manipulation shadow-sm"
             >
               Mengerti
             </button>

@@ -49,19 +49,19 @@ interface BudgetProgressProps {
 export function BudgetProgress({ budgets }: BudgetProgressProps) {
   if (budgets.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-stone-200/80 p-8 text-center space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-        <div className="w-10 h-10 rounded-xl bg-stone-100 text-zinc-500 flex items-center justify-center mx-auto">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-8 text-center space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-colors">
+        <div className="w-10 h-10 rounded-xl bg-stone-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 flex items-center justify-center mx-auto">
           <PieChart className="w-5 h-5" />
         </div>
-        <p className="font-semibold text-sm text-zinc-900">
+        <p className="font-semibold text-sm text-zinc-900 dark:text-white">
           Belum Ada Alokasi Anggaran Bulanan
         </p>
-        <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
           Tetapkan batas belanja operasional untuk mencegah pengeluaran berlebih.
         </p>
         <Link
           href="/budget"
-          className="inline-flex items-center justify-center font-medium text-xs text-white bg-zinc-900 hover:bg-zinc-800 px-4 py-2 rounded-xl transition-colors shadow-sm"
+          className="inline-flex items-center justify-center font-medium text-xs text-white dark:text-zinc-900 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 px-4 py-2 rounded-xl transition-colors shadow-sm"
         >
           Buat Anggaran Sekarang
         </Link>
@@ -70,7 +70,7 @@ export function BudgetProgress({ budgets }: BudgetProgressProps) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-stone-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] divide-y divide-stone-100 overflow-hidden">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] divide-y divide-stone-100 dark:divide-zinc-800 overflow-hidden transition-colors">
       {budgets.map((budget) => {
         const pct = Math.min(budget.percentage, 100);
         const iconName = budget.category?.icon || 'MoreHorizontal';
@@ -79,29 +79,29 @@ export function BudgetProgress({ budgets }: BudgetProgressProps) {
         const isWarning = budget.percentage >= 70 && budget.percentage <= 90;
 
         return (
-          <div key={budget.id} className="p-4 sm:p-5 hover:bg-stone-50/50 transition-colors space-y-2.5">
+          <div key={budget.id} className="p-4 sm:p-5 hover:bg-stone-50/50 dark:hover:bg-zinc-800/40 transition-colors space-y-2.5">
             <div className="flex justify-between items-center gap-2">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-stone-100 text-zinc-700 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center flex-shrink-0">
                   <Icon className="w-4 h-4" />
                 </div>
-                <span className="font-semibold text-sm text-zinc-900 truncate">
+                <span className="font-semibold text-sm text-zinc-900 dark:text-white truncate">
                   {budget.category?.name || 'Kategori'}
                 </span>
               </div>
 
               <div className="text-right flex-shrink-0">
-                <span className="font-semibold text-sm text-zinc-900 tabular-nums">
+                <span className="font-semibold text-sm text-zinc-900 dark:text-white tabular-nums">
                   {formatCurrency(budget.spent)}
                 </span>
-                <span className="text-xs text-zinc-400 tabular-nums">
+                <span className="text-xs text-zinc-400 dark:text-zinc-500 tabular-nums">
                   {' '}/ {formatCurrency(budget.amount)}
                 </span>
               </div>
             </div>
 
             {/* Modern hairline progress bar */}
-            <div className="w-full bg-stone-100 h-2 rounded-full overflow-hidden">
+            <div className="w-full bg-stone-100 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${
                   isOver ? 'bg-rose-500' : isWarning ? 'bg-amber-500' : 'bg-emerald-500'
@@ -111,10 +111,10 @@ export function BudgetProgress({ budgets }: BudgetProgressProps) {
             </div>
 
             <div className="flex justify-between items-center text-xs">
-              <span className={`font-medium ${isOver ? 'text-rose-600' : isWarning ? 'text-amber-600' : 'text-emerald-600'}`}>
+              <span className={`font-medium ${isOver ? 'text-rose-600 dark:text-rose-400' : isWarning ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                 {budget.percentage}% terpakai
               </span>
-              <span className={budget.remaining >= 0 ? 'text-zinc-500' : 'text-rose-600 font-medium'}>
+              <span className={budget.remaining >= 0 ? 'text-zinc-500 dark:text-zinc-400' : 'text-rose-600 dark:text-rose-400 font-medium'}>
                 {budget.remaining >= 0
                   ? `Sisa: ${formatCurrency(budget.remaining)}`
                   : `Lebih: ${formatCurrency(Math.abs(budget.remaining))}`}

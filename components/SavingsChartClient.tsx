@@ -9,12 +9,12 @@ interface SavingsChartClientProps {
 
 export function SavingsChartClient({ data }: SavingsChartClientProps) {
   return (
-    <div className="bg-white rounded-2xl border border-stone-200/80 p-4 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-4 w-full min-w-0 overflow-hidden">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-4 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-4 w-full min-w-0 overflow-hidden transition-colors">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="font-semibold text-xs sm:text-sm text-zinc-900 truncate">
+        <h3 className="font-semibold text-xs sm:text-sm text-zinc-900 dark:text-white truncate">
           Perkembangan Tabungan
         </h3>
-        <span className="text-[11px] sm:text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-100/80 px-2.5 py-0.5 rounded-full flex-shrink-0">
+        <span className="text-[11px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100/80 dark:border-emerald-800/60 px-2.5 py-0.5 rounded-full flex-shrink-0">
           6 Bulan Terakhir
         </span>
       </div>
@@ -22,7 +22,7 @@ export function SavingsChartClient({ data }: SavingsChartClientProps) {
       <div className="h-[200px] sm:h-[210px] w-full min-w-0 overflow-hidden">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={data} margin={{ top: 10, right: 5, left: -25, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#F4F4F5" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-stone-100 dark:text-zinc-800/60" vertical={false} />
             <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#71717A' }} axisLine={false} tickLine={false} />
             <YAxis
               tick={{ fontSize: 10, fill: '#71717A' }}
@@ -35,8 +35,8 @@ export function SavingsChartClient({ data }: SavingsChartClientProps) {
                 if (active && payload && payload.length) {
                   const item = payload[0];
                   return (
-                    <div className="bg-zinc-900 text-white p-2.5 text-xs rounded-xl shadow-lg border border-zinc-800">
-                      <p className="font-medium text-stone-300">{item.payload.label}</p>
+                    <div className="bg-zinc-900 dark:bg-zinc-800 text-white p-2.5 text-xs rounded-xl shadow-lg border border-zinc-800 dark:border-zinc-700">
+                      <p className="font-medium text-stone-300 dark:text-zinc-300">{item.payload.label}</p>
                       <p className="font-semibold text-emerald-400 mt-0.5">{formatCurrency(Number(item.value))}</p>
                     </div>
                   );

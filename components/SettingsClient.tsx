@@ -52,12 +52,12 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-stone-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] p-5 sm:p-6 space-y-4">
-      <div className="flex items-center gap-2.5 pb-3 border-b border-stone-100">
-        <div className="w-8 h-8 rounded-xl bg-stone-100 text-zinc-700 flex items-center justify-center">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] p-5 sm:p-6 space-y-4 transition-colors">
+      <div className="flex items-center gap-2.5 pb-3 border-b border-stone-100 dark:border-zinc-800">
+        <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center">
           <Icon className="w-4 h-4" />
         </div>
-        <h2 className="font-semibold text-base text-zinc-900">{title}</h2>
+        <h2 className="font-semibold text-base text-zinc-900 dark:text-white">{title}</h2>
       </div>
       <div className="space-y-4 text-xs">{children}</div>
     </div>
@@ -67,7 +67,7 @@ function Section({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="block font-semibold text-zinc-700 text-xs">{label}</label>
+      <label className="block font-semibold text-zinc-700 dark:text-zinc-300 text-xs">{label}</label>
       {children}
     </div>
   );
@@ -197,20 +197,20 @@ export function SettingsClient({
       {/* Info Akun */}
       <Section title="Info Akun" icon={User}>
         <div className="flex items-center justify-between py-1">
-          <span className="text-zinc-500 font-medium">Username</span>
-          <span className="font-semibold text-zinc-900">{user?.username || '-'}</span>
+          <span className="text-zinc-500 dark:text-zinc-400 font-medium">Username</span>
+          <span className="font-semibold text-zinc-900 dark:text-white">{user?.username || '-'}</span>
         </div>
         {user?.email && (
           <div className="flex items-center justify-between py-1">
-            <span className="text-zinc-500 font-medium">Email</span>
-            <span className="font-semibold text-zinc-900 truncate max-w-[180px]">{user.email}</span>
+            <span className="text-zinc-500 dark:text-zinc-400 font-medium">Email</span>
+            <span className="font-semibold text-zinc-900 dark:text-white truncate max-w-[180px]">{user.email}</span>
           </div>
         )}
         <Field label="Nama Lengkap">
           <input
             value={name}
             onChange={e => setName(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
+            className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
           />
         </Field>
       </Section>
@@ -222,7 +222,7 @@ export function SettingsClient({
             onChange={e => setSalary(e.target.value.replace(/[^0-9]/g, ''))}
             inputMode="numeric"
             placeholder="0"
-            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
+            className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation"
           />
         </Field>
         <Field label="Tanggal Gajian Siklus (1 sampai 31)">
@@ -233,7 +233,7 @@ export function SettingsClient({
             placeholder="25"
             min="1"
             max="31"
-            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
+            className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation"
           />
         </Field>
         <Field label="Tanggal Mulai Kerja">
@@ -241,23 +241,23 @@ export function SettingsClient({
             type="date"
             value={startWorkDate}
             onChange={e => setStartWorkDate(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
+            className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
           />
         </Field>
-        <div className="flex items-center justify-between pt-2 border-t border-stone-100">
+        <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-zinc-800">
           <div>
-            <p className="font-semibold text-zinc-900 text-xs">Prorata Gaji</p>
-            <p className="text-[11px] text-zinc-400">Hitung gaji bulan pertama secara prorata</p>
+            <p className="font-semibold text-zinc-900 dark:text-white text-xs">Prorata Gaji</p>
+            <p className="text-[11px] text-zinc-400 dark:text-zinc-500">Hitung gaji bulan pertama secara prorata</p>
           </div>
           <Switch checked={prorateEnabled} onCheckedChange={setProrateEnabled} />
         </div>
         {prorateEnabled && (
           <Field label="Metode Prorata">
             <Select value={prorateMethod} onValueChange={setProrateMethod}>
-              <SelectTrigger className="w-full bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 touch-manipulation">
+              <SelectTrigger className="w-full bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white touch-manipulation">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-white border border-stone-200/80 rounded-xl">
+              <SelectContent className="bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white">
                 <SelectItem value="calendar_days">Prorata Hari Kalender (30 hari)</SelectItem>
                 <SelectItem value="working_days">Prorata Hari Kerja (Senin - Jumat)</SelectItem>
               </SelectContent>
@@ -269,19 +269,19 @@ export function SettingsClient({
       <Section title="Pagu Anggaran Baku" icon={Calendar}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <Field label="Budget Kos / Sewa (Rp)">
-            <input value={rentBudget} onChange={e => setRentBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
+            <input value={rentBudget} onChange={e => setRentBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation" />
           </Field>
           <Field label="Budget Makan (Rp)">
-            <input value={foodBudget} onChange={e => setFoodBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
+            <input value={foodBudget} onChange={e => setFoodBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation" />
           </Field>
           <Field label="Budget Hiburan (Rp)">
-            <input value={entertainmentBudget} onChange={e => setEntertainmentBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
+            <input value={entertainmentBudget} onChange={e => setEntertainmentBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation" />
           </Field>
           <Field label="Budget Toiletries (Rp)">
-            <input value={toiletries_budget} onChange={e => setToiletries_budget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
+            <input value={toiletries_budget} onChange={e => setToiletries_budget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation" />
           </Field>
           <Field label="Budget Transport (Rp)">
-            <input value={transportBudget} onChange={e => setTransportBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
+            <input value={transportBudget} onChange={e => setTransportBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation" />
           </Field>
         </div>
       </Section>
@@ -289,7 +289,7 @@ export function SettingsClient({
       <button
         onClick={handleSave}
         disabled={isPending}
-        className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-sm font-semibold shadow-sm transition-all active:scale-[0.99] touch-manipulation"
+        className="w-full py-3.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm font-semibold shadow-sm transition-all active:scale-[0.99] touch-manipulation"
       >
         {isPending ? 'Menyimpan...' : 'Simpan Semua Pengaturan'}
       </button>
@@ -304,7 +304,7 @@ export function SettingsClient({
             type="password"
             value={currentPassword}
             onChange={e => setCurrentPassword(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
+            className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
           />
         </Field>
         <Field label="Password Baru">
@@ -312,7 +312,7 @@ export function SettingsClient({
             type="password"
             value={newPassword}
             onChange={e => setNewPassword(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
+            className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
           />
         </Field>
         <Field label="Konfirmasi Password Baru">
@@ -320,14 +320,14 @@ export function SettingsClient({
             type="password"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
+            className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
           />
         </Field>
-        {passwordError && <p className="text-xs font-semibold text-rose-600">{passwordError}</p>}
+        {passwordError && <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">{passwordError}</p>}
         <button
           onClick={handleChangePassword}
           disabled={isPending}
-          className="mt-2 w-full py-2 bg-stone-100 hover:bg-stone-200 text-zinc-900 rounded-xl text-xs font-semibold transition-colors"
+          className="mt-2 w-full py-2 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white rounded-xl text-xs font-semibold transition-colors"
         >
           {isPending ? 'Menyimpan...' : 'Perbarui Password'}
         </button>
@@ -335,20 +335,20 @@ export function SettingsClient({
 
       {/* Ekspor & Impor Data */}
       <Section title="Manajemen Data" icon={Download}>
-        <p className="text-xs text-zinc-500 leading-relaxed pb-2 border-b border-stone-100">
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed pb-2 border-b border-stone-100 dark:border-zinc-800">
           Ekspor semua datamu (transaksi, tabungan, utang) ke dalam file JSON untuk cadangan, atau impor dari file cadangan yang sudah ada.
         </p>
         <div className="flex flex-col sm:flex-row gap-2 pt-1">
           <button
             onClick={handleExport}
             disabled={isPending}
-            className="flex-1 py-2.5 bg-stone-100 hover:bg-stone-200 text-zinc-900 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2"
           >
             <Download className="w-4 h-4" />
             <span>Ekspor Data (JSON)</span>
           </button>
           
-          <label className="flex-1 py-2.5 bg-stone-100 hover:bg-stone-200 text-zinc-900 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer">
+          <label className="flex-1 py-2.5 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer">
             <Upload className="w-4 h-4" />
             <span>Impor Data</span>
             <input type="file" accept=".json" className="hidden" onChange={handleImport} disabled={isPending} />
@@ -359,7 +359,7 @@ export function SettingsClient({
       <div className="pt-2">
         <button
           onClick={() => setShowLogoutConfirm(true)}
-          className="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 touch-manipulation"
+          className="w-full py-2.5 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-400 border border-rose-200/70 dark:border-rose-800/60 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 touch-manipulation"
         >
           <LogOut className="w-4 h-4" />
           <span>Keluar dari Akun</span>
@@ -367,15 +367,15 @@ export function SettingsClient({
       </div>
 
       <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
-        <DialogContent className="max-w-sm bg-white border border-stone-200/80 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-sm bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6">
           <DialogHeader>
-            <DialogTitle className="font-bold text-base text-zinc-900">Keluar dari Akun</DialogTitle>
+            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white">Keluar dari Akun</DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-zinc-500">Apakah kamu yakin ingin keluar? Sesi aktif akan dihapus.</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">Apakah kamu yakin ingin keluar? Sesi aktif akan dihapus.</p>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => setShowLogoutConfirm(false)}
-              className="flex-1 sm:flex-initial px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs"
+              className="flex-1 sm:flex-initial px-3.5 py-1.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs"
             >
               Batal
             </button>

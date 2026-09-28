@@ -45,9 +45,9 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {/* Mobile drag handle */}
-      <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto -mt-1 mb-1 sm:hidden flex-shrink-0" />
+      <div className="w-12 h-1.5 bg-stone-200 dark:bg-zinc-700 rounded-full mx-auto -mt-1 mb-1 sm:hidden flex-shrink-0" />
       {children}
-      <DialogClose className="absolute right-4 top-4 rounded-full p-1.5 opacity-70 hover:opacity-100 hover:bg-gray-100 transition-all focus:outline-none">
+      <DialogClose className="absolute right-4 top-4 rounded-full p-1.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 opacity-70 hover:opacity-100 hover:bg-stone-100 dark:hover:bg-zinc-800 transition-all focus:outline-none">
         <X className="h-4 w-4" />
         <span className="sr-only">Tutup</span>
       </DialogClose>

@@ -7,12 +7,12 @@ const ExpenseChart = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="bg-white rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] border border-stone-200/80 h-[320px] flex flex-col justify-between animate-pulse">
-        <div className="h-4 w-40 bg-stone-200 rounded" />
-        <div className="w-32 h-32 mx-auto rounded-full border-4 border-stone-100" />
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] border border-stone-200/80 dark:border-zinc-800 h-[320px] flex flex-col justify-between animate-pulse transition-colors">
+        <div className="h-4 w-40 bg-stone-200 dark:bg-zinc-700 rounded" />
+        <div className="w-32 h-32 mx-auto rounded-full border-4 border-stone-100 dark:border-zinc-800" />
         <div className="space-y-1.5">
-          <div className="h-2.5 w-full bg-stone-100 rounded" />
-          <div className="h-2.5 w-3/4 bg-stone-100 rounded" />
+          <div className="h-2.5 w-full bg-stone-100 dark:bg-zinc-800 rounded" />
+          <div className="h-2.5 w-3/4 bg-stone-100 dark:bg-zinc-800 rounded" />
         </div>
       </div>
     ),
@@ -24,10 +24,10 @@ const SavingsChartClient = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="bg-white rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] border border-stone-200/80 h-[320px] flex flex-col justify-between animate-pulse">
-        <div className="h-4 w-40 bg-stone-200 rounded" />
-        <div className="h-36 w-full bg-stone-100 rounded-xl" />
-        <div className="h-2.5 w-28 bg-stone-100 rounded" />
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] border border-stone-200/80 dark:border-zinc-800 h-[320px] flex flex-col justify-between animate-pulse transition-colors">
+        <div className="h-4 w-40 bg-stone-200 dark:bg-zinc-700 rounded" />
+        <div className="h-36 w-full bg-stone-100 dark:bg-zinc-800 rounded-xl" />
+        <div className="h-2.5 w-28 bg-stone-100 dark:bg-zinc-800 rounded" />
       </div>
     ),
   }

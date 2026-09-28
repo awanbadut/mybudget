@@ -149,7 +149,7 @@ export function FinancialHealthScore({
       ],
       tips,
     };
-  }, [savingRate, totalIncome, totalExpense, monthlyDebtAmount, budgets, balance, daysRemaining]);
+  }, [savingRate, totalIncome, monthlyDebtAmount, budgets, balance, daysRemaining]);
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] p-4 sm:p-5 transition-colors">

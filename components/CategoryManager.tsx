@@ -95,17 +95,17 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-stone-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] p-5 sm:p-6 space-y-4">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] p-5 sm:p-6 space-y-4 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-stone-100 text-zinc-700 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center">
             <Tag className="w-4 h-4" />
           </div>
-          <h2 className="font-semibold text-base text-zinc-900">Manajemen Kategori</h2>
+          <h2 className="font-semibold text-base text-zinc-900 dark:text-white">Manajemen Kategori</h2>
         </div>
         <button
           onClick={openAdd}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-xl transition-all"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-semibold rounded-xl transition-all"
         >
           <Plus className="w-3.5 h-3.5" />
           Tambah
@@ -113,14 +113,14 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-stone-100 rounded-xl">
+      <div className="flex gap-1 p-1 bg-stone-100 dark:bg-zinc-800 rounded-xl">
         {(['expense', 'income'] as const).map(t => (
           <button
             key={t}
             onClick={() => setActiveTab(t)}
             className={cn(
               'flex-1 py-1.5 rounded-lg font-semibold text-xs transition-all',
-              activeTab === t ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'
+              activeTab === t ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 dark:text-zinc-400'
             )}
           >
             {t === 'expense' ? 'Pengeluaran' : 'Pemasukan'}
@@ -131,26 +131,26 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
       {/* Category List */}
       <div className="space-y-1.5">
         {filtered.length === 0 ? (
-          <p className="text-xs text-zinc-400 text-center py-4">Belum ada kategori {activeTab === 'expense' ? 'pengeluaran' : 'pemasukan'}.</p>
+          <p className="text-xs text-zinc-400 dark:text-zinc-500 text-center py-4">Belum ada kategori {activeTab === 'expense' ? 'pengeluaran' : 'pemasukan'}.</p>
         ) : (
           filtered.map(cat => (
-            <div key={cat.id} className="flex items-center justify-between px-3 py-2.5 rounded-xl border border-stone-100 hover:bg-stone-50 transition-colors">
+            <div key={cat.id} className="flex items-center justify-between px-3 py-2.5 rounded-xl border border-stone-100 dark:border-zinc-800 hover:bg-stone-50 dark:hover:bg-zinc-800/50 transition-colors">
               <div className="flex items-center gap-2.5">
                 <div className="w-6 h-6 rounded-lg flex-shrink-0" style={{ backgroundColor: cat.color + '22', border: `1.5px solid ${cat.color}44` }}>
                   <div className="w-full h-full rounded-lg" style={{ backgroundColor: cat.color || '#94a3b8' }} />
                 </div>
-                <span className="text-xs font-medium text-zinc-800">{cat.name}</span>
+                <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200">{cat.name}</span>
               </div>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => openEdit(cat)}
-                  className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-stone-100 rounded-lg transition-colors"
+                  className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setDeleteCatId(cat.id)}
-                  className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                  className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -162,17 +162,17 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
 
       {/* Add/Edit Dialog */}
       <Dialog open={showForm} onOpenChange={open => { if (!open) setShowForm(false); }}>
-        <DialogContent className="max-w-sm bg-white border border-stone-200/80 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-sm bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6">
           <DialogHeader>
-            <DialogTitle className="font-bold text-base text-zinc-900">
+            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white">
               {editCat ? 'Edit Kategori' : 'Kategori Baru'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-xs pt-2">
             {!editCat && (
               <div className="space-y-1">
-                <label className="font-semibold text-zinc-700">Tipe</label>
-                <div className="flex gap-2 p-1 bg-stone-100 rounded-xl">
+                <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tipe</label>
+                <div className="flex gap-2 p-1 bg-stone-100 dark:bg-zinc-800 rounded-xl">
                   {(['expense', 'income'] as const).map(t => (
                     <button
                       key={t}
@@ -180,7 +180,7 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
                       onClick={() => setFormType(t)}
                       className={cn(
                         'flex-1 py-1.5 rounded-lg font-semibold text-xs transition-all',
-                        formType === t ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'
+                        formType === t ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 dark:text-zinc-400'
                       )}
                     >
                       {t === 'expense' ? 'Pengeluaran' : 'Pemasukan'}
@@ -190,41 +190,41 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
               </div>
             )}
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Nama Kategori</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nama Kategori</label>
               <input
                 placeholder="Contoh: Parkir, Investasi, dll"
                 value={formName}
                 onChange={e => setFormName(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
               />
             </div>
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Warna</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Warna</label>
               <div className="flex flex-wrap gap-2">
                 {COLOR_OPTIONS.map(c => (
                   <button
                     key={c}
                     type="button"
                     onClick={() => setFormColor(c)}
-                    className={cn('w-7 h-7 rounded-lg border-2 transition-transform hover:scale-110', formColor === c ? 'border-zinc-900 scale-110' : 'border-transparent')}
+                    className={cn('w-7 h-7 rounded-lg border-2 transition-transform hover:scale-110', formColor === c ? 'border-zinc-900 dark:border-white scale-110' : 'border-transparent')}
                     style={{ backgroundColor: c }}
                   />
                 ))}
               </div>
             </div>
-            {formError && <p className="text-xs font-semibold text-rose-600">{formError}</p>}
+            {formError && <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">{formError}</p>}
           </div>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => setShowForm(false)}
-              className="flex-1 sm:flex-initial px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs"
+              className="flex-1 sm:flex-initial px-3.5 py-1.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs"
             >
               Batal
             </button>
             <button
               onClick={handleSave}
               disabled={isPending}
-              className="flex-1 sm:flex-initial px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm"
+              className="flex-1 sm:flex-initial px-4 py-1.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold shadow-sm"
             >
               {isPending ? 'Menyimpan...' : 'Simpan'}
             </button>
@@ -234,15 +234,15 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteCatId} onOpenChange={open => { if (!open) setDeleteCatId(null); }}>
-        <DialogContent className="max-w-sm bg-white border border-stone-200/80 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-sm bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6">
           <DialogHeader>
-            <DialogTitle className="font-bold text-base text-zinc-900">Hapus Kategori</DialogTitle>
+            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white">Hapus Kategori</DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-zinc-500">Kategori yang masih digunakan transaksi tidak dapat dihapus.</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">Kategori yang masih digunakan transaksi tidak dapat dihapus.</p>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => setDeleteCatId(null)}
-              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs"
+              className="px-3.5 py-1.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs"
             >
               Batal
             </button>

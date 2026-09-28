@@ -119,17 +119,17 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 tracking-tight">
+          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 dark:text-white tracking-tight">
             Target Tabungan
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
             Akumulasi simpanan dan rencana dana masa depan
           </p>
         </div>
 
         <button
           onClick={() => { resetGoalForm(); setShowAddGoal(true); }}
-          className="inline-flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
+          className="inline-flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
         >
           <Plus className="w-4 h-4" />
           <span>Buat Target Baru</span>
@@ -137,12 +137,12 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
       </div>
 
       {goals.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-stone-200/80 p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2.5">
-          <PiggyBank className="w-8 h-8 text-zinc-400 mx-auto" />
-          <p className="font-semibold text-sm text-zinc-900">Belum Ada Target Tabungan</p>
-          <p className="text-xs text-zinc-500">Rencanakan target tabungan untuk mencapai tujuan finansialmu.</p>
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2.5 transition-colors">
+          <PiggyBank className="w-8 h-8 text-zinc-400 dark:text-zinc-500 mx-auto" />
+          <p className="font-semibold text-sm text-zinc-900 dark:text-white">Belum Ada Target Tabungan</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">Rencanakan target tabungan untuk mencapai tujuan finansialmu.</p>
           <button
-            className="mt-2 text-xs font-semibold text-white bg-zinc-900 hover:bg-zinc-800 px-4 py-2 rounded-xl transition-all shadow-sm"
+            className="mt-2 text-xs font-semibold text-white dark:text-zinc-900 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 px-4 py-2 rounded-xl transition-all shadow-sm"
             onClick={() => { resetGoalForm(); setShowAddGoal(true); }}
           >
             + Buat Target Sekarang
@@ -156,18 +156,18 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
             const isExpanded = expandedGoal === goal.id;
 
             return (
-              <div key={goal.id} className="bg-white rounded-2xl border border-stone-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] p-5 sm:p-6 flex flex-col justify-between space-y-4">
+              <div key={goal.id} className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] p-5 sm:p-6 flex flex-col justify-between space-y-4 transition-colors">
                 {/* Header */}
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100/70">
+                      <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100/70 dark:border-indigo-800/60">
                         <Target className="w-4 h-4" />
                       </div>
                       <div>
-                        <h2 className="font-bold text-base text-zinc-900 leading-tight">{goal.name}</h2>
+                        <h2 className="font-bold text-base text-zinc-900 dark:text-white leading-tight">{goal.name}</h2>
                         {goal.deadline && (
-                          <p className="text-xs text-zinc-400 mt-0.5">Tenggat: {formatDateShort(goal.deadline)}</p>
+                          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Tenggat: {formatDateShort(goal.deadline)}</p>
                         )}
                       </div>
                     </div>
@@ -175,14 +175,14 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => openEditGoal(goal)}
-                        className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-stone-100 rounded-lg transition-colors"
+                        className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                         title="Edit"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => setDeleteGoalId(goal.id)}
-                        className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
                         title="Hapus"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -192,27 +192,27 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
 
                   {/* Amounts */}
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-zinc-900 font-bold tabular-nums">{formatCurrency(goal.currentAmount)}</span>
-                    <span className="text-zinc-400 tabular-nums">Pagu: {formatCurrency(goal.targetAmount)}</span>
+                    <span className="text-zinc-900 dark:text-white font-bold tabular-nums">{formatCurrency(goal.currentAmount)}</span>
+                    <span className="text-zinc-400 dark:text-zinc-500 tabular-nums">Pagu: {formatCurrency(goal.targetAmount)}</span>
                   </div>
 
                   {/* Progress Bar */}
-                  <div className="w-full bg-stone-100 h-2 rounded-full overflow-hidden mb-1.5">
-                    <div className="h-full bg-indigo-600 rounded-full transition-all" style={{ width: `${progress}%` }} />
+                  <div className="w-full bg-stone-100 dark:bg-zinc-800 h-2 rounded-full overflow-hidden mb-1.5">
+                    <div className="h-full bg-indigo-600 dark:bg-indigo-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
                   </div>
 
-                  <div className="flex justify-between text-xs text-zinc-500">
-                    <span className="font-semibold text-indigo-600">{progress}% Tercapai</span>
+                  <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
+                    <span className="font-semibold text-indigo-600 dark:text-indigo-400">{progress}% Tercapai</span>
                     <span className="tabular-nums">Sisa: {formatCurrency(remaining)}</span>
                   </div>
                 </div>
 
                 {/* Actions & History */}
-                <div className="pt-3 border-t border-stone-100 space-y-2.5">
+                <div className="pt-3 border-t border-stone-100 dark:border-zinc-800 space-y-2.5">
                   <div className="flex gap-2 text-xs">
                     <button
                       onClick={() => { setAddSavingsGoalId(goal.id); setSavingsAmount(''); setSavingsNote(''); }}
-                      className="flex-1 py-2 bg-stone-100 hover:bg-stone-200 text-zinc-900 rounded-xl font-semibold transition-colors flex items-center justify-center gap-1.5"
+                      className="flex-1 py-2 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-1.5"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Setor Tabungan</span>
@@ -220,7 +220,7 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
                     {goal.transactions.length > 0 && (
                       <button
                         onClick={() => setExpandedGoal(isExpanded ? null : goal.id)}
-                        className="px-3 py-2 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 transition-colors flex items-center justify-center"
+                        className="px-3 py-2 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center"
                         title="Riwayat Setoran"
                       >
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -230,11 +230,11 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
 
                   {/* Expanded history */}
                   {isExpanded && goal.transactions.length > 0 && (
-                    <div className="rounded-xl border border-stone-200/80 bg-stone-50/50 divide-y divide-stone-100 p-2 text-xs">
+                    <div className="rounded-xl border border-stone-200/80 dark:border-zinc-800 bg-stone-50/50 dark:bg-zinc-800/50 divide-y divide-stone-100 dark:divide-zinc-800 p-2 text-xs">
                       {goal.transactions.slice(0, 5).map(tx => (
                         <div key={tx.id} className="flex justify-between items-center py-1.5 px-2">
-                          <span className="text-zinc-500">{formatDateShort(tx.transactionDate)}</span>
-                          <span className="font-semibold text-emerald-600 tabular-nums">+{formatCurrency(tx.amount)}</span>
+                          <span className="text-zinc-500 dark:text-zinc-400">{formatDateShort(tx.transactionDate)}</span>
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">+{formatCurrency(tx.amount)}</span>
                         </div>
                       ))}
                     </div>
@@ -248,53 +248,53 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
 
       {/* Add Savings Deposit Dialog */}
       <Dialog open={!!addSavingsGoalId} onOpenChange={(open) => { if (!open) setAddSavingsGoalId(null); }}>
-        <DialogContent className="max-w-sm bg-white border border-stone-200/80 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-sm bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6">
           <DialogHeader>
-            <DialogTitle className="font-bold text-base text-zinc-900">
+            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white">
               Setor Dana Tabungan
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3.5 text-xs pt-2">
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Nominal Setoran (Rp)</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nominal Setoran (Rp)</label>
               <input
                 placeholder="0"
                 value={savingsAmount}
                 onChange={e => setSavingsAmount(e.target.value.replace(/[^0-9]/g, ''))}
                 inputMode="numeric"
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation"
               />
             </div>
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Tanggal Setor</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Setor</label>
               <input
                 type="date"
                 value={savingsDate}
                 onChange={e => setSavingsDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
               />
             </div>
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Catatan (opsional)</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Catatan (opsional)</label>
               <input
                 placeholder="Contoh: Tabungan sisa gaji bulan ini"
                 value={savingsNote}
                 onChange={e => setSavingsNote(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
               />
             </div>
           </div>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => setAddSavingsGoalId(null)}
-              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs touch-manipulation"
+              className="px-3.5 py-1.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs touch-manipulation"
             >
               Batal
             </button>
             <button
               onClick={handleAddSavings}
               disabled={isPending}
-              className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
+              className="px-4 py-1.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
             >
               {isPending ? 'Menyimpan...' : 'Simpan Setoran'}
             </button>
@@ -304,53 +304,53 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
 
       {/* Add / Edit Goal Dialog */}
       <Dialog open={showAddGoal || !!editGoal} onOpenChange={(open) => { if (!open) { setShowAddGoal(false); setEditGoal(null); resetGoalForm(); } }}>
-        <DialogContent className="max-w-sm bg-white border border-stone-200/80 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-sm bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6">
           <DialogHeader>
-            <DialogTitle className="font-bold text-base text-zinc-900">
+            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white">
               {editGoal ? 'Ubah Target Tabungan' : 'Target Tabungan Baru'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3.5 text-xs pt-2">
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Nama Target</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nama Target</label>
               <input
                 placeholder="Contoh: Dana Darurat / Laptop Baru"
                 value={goalName}
                 onChange={e => setGoalName(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
               />
             </div>
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Target Nominal (Rp)</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Target Nominal (Rp)</label>
               <input
                 placeholder="0"
                 value={goalTarget}
                 onChange={e => setGoalTarget(e.target.value.replace(/[^0-9]/g, ''))}
                 inputMode="numeric"
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation"
               />
             </div>
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Tenggat Waktu (opsional)</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tenggat Waktu (opsional)</label>
               <input
                 type="date"
                 value={goalDeadline}
                 onChange={e => setGoalDeadline(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
               />
             </div>
           </div>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => { setShowAddGoal(false); setEditGoal(null); resetGoalForm(); }}
-              className="px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs touch-manipulation"
+              className="px-3.5 py-1.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs touch-manipulation"
             >
               Batal
             </button>
             <button
               onClick={editGoal ? handleUpdateGoal : handleCreateGoal}
               disabled={isPending}
-              className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
+              className="px-4 py-1.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
             >
               {isPending ? 'Menyimpan...' : 'Simpan Target'}
             </button>
@@ -360,17 +360,17 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteGoalId} onOpenChange={(open) => { if (!open) setDeleteGoalId(null); }}>
-        <DialogContent className="max-w-sm bg-white border border-stone-200/80 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-sm bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6">
           <DialogHeader>
-            <DialogTitle className="font-bold text-base text-zinc-900">
+            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white">
               Hapus Target
             </DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-zinc-500">Apakah kamu yakin ingin menghapus target tabungan ini?</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">Apakah kamu yakin ingin menghapus target tabungan ini?</p>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => setDeleteGoalId(null)}
-              className="px-3 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs"
+              className="px-3 py-1.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs"
             >
               Batal
             </button>

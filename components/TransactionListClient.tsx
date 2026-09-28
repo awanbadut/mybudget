@@ -283,12 +283,12 @@ export function TransactionListClient({
       {/* Filters */}
       <div className="space-y-2.5 w-full min-w-0">
         <div className="relative w-full min-w-0">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-zinc-500" />
           <input
             placeholder="Cari transaksi berdasarkan nama, pos belanja, atau catatan..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-colors"
           />
         </div>
 
@@ -300,8 +300,8 @@ export function TransactionListClient({
               className={cn(
                 'px-3 sm:px-3.5 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap border flex-shrink-0',
                 filterType === type
-                  ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm'
-                  : 'bg-white text-zinc-600 hover:text-zinc-900 border-stone-200/80 hover:bg-stone-50'
+                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-sm'
+                  : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border-stone-200/80 dark:border-zinc-800 hover:bg-stone-50 dark:hover:bg-zinc-800/60'
               )}
             >
               {type === 'all' ? 'Semua' : type === 'expense' ? 'Pengeluaran' : 'Pemasukan'}
@@ -311,7 +311,7 @@ export function TransactionListClient({
           <select
             value={filterMonth}
             onChange={e => setFilterMonth(e.target.value)}
-            className="px-3 py-1.5 rounded-xl text-base sm:text-xs font-medium bg-white text-zinc-700 border border-stone-200/80 outline-none focus:ring-1 focus:ring-zinc-900 flex-shrink-0"
+            className="px-3 py-1.5 rounded-xl text-base sm:text-xs font-medium bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-stone-200/80 dark:border-zinc-800 outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white flex-shrink-0 transition-colors"
           >
             <option value="all">Semua Bulan</option>
             {months.map(m => {
@@ -324,48 +324,50 @@ export function TransactionListClient({
 
       {/* Transaction List */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-stone-200/80 p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2.5">
-          <p className="font-semibold text-sm text-zinc-900">Belum Ada Transaksi</p>
-          <p className="text-xs text-zinc-500">Mulai catat transaksi untuk melihat riwayat arus kas.</p>
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2.5 transition-colors">
+          <p className="font-semibold text-sm text-zinc-900 dark:text-white">Belum Ada Transaksi</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">Mulai catat transaksi untuk melihat riwayat arus kas.</p>
           <button
-            className="mt-2 text-xs font-semibold text-white bg-zinc-900 hover:bg-zinc-800 px-4 py-2 rounded-xl transition-all shadow-sm"
+            className="mt-2 text-xs font-semibold text-white dark:text-zinc-900 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 px-4 py-2 rounded-xl transition-all shadow-sm"
             onClick={() => { resetForm(); setShowForm(true); }}
           >
             + Tambah Transaksi
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-stone-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] divide-y divide-stone-100 overflow-hidden w-full min-w-0">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] divide-y divide-stone-100 dark:divide-zinc-800 overflow-hidden w-full min-w-0 transition-colors">
           {filtered.map(tx => {
             const isIncome = tx.type === 'income';
             const iconName = tx.category?.icon || 'MoreHorizontal';
             const Icon = ICON_MAP[iconName] || MoreHorizontal;
 
             return (
-              <div key={tx.id} className="flex items-center justify-between gap-2.5 sm:gap-3 p-3.5 sm:p-4 hover:bg-stone-50/60 transition-colors min-w-0">
+              <div key={tx.id} className="flex items-center justify-between gap-2.5 sm:gap-3 p-3.5 sm:p-4 hover:bg-stone-50/60 dark:hover:bg-zinc-800/40 transition-colors min-w-0">
                 <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                   <div
                     className={cn(
                       'w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0',
-                      isIncome ? 'bg-emerald-50 text-emerald-600' : 'bg-stone-100 text-zinc-700'
+                      isIncome
+                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
+                        : 'bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300'
                     )}
                   >
                     <Icon className="w-4 h-4" />
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-xs sm:text-sm text-zinc-900 truncate">
+                    <p className="font-semibold text-xs sm:text-sm text-zinc-900 dark:text-white truncate">
                       {tx.name}
                     </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[11px] sm:text-xs text-zinc-500 truncate">
+                      <span className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 truncate">
                         {tx.category?.name || 'Umum'}
                       </span>
-                      <span className="text-zinc-300 text-xs">·</span>
-                      <span className="text-[10px] sm:text-xs text-zinc-400 flex-shrink-0">
+                      <span className="text-zinc-300 dark:text-zinc-600 text-xs">·</span>
+                      <span className="text-[10px] sm:text-xs text-zinc-400 dark:text-zinc-500 flex-shrink-0">
                         {formatDateShort(tx.transactionDate)}
                       </span>
-                      {tx.note && <span className="text-[10px] sm:text-xs text-zinc-400 italic truncate max-w-[100px] hidden sm:inline">· {tx.note}</span>}
+                      {tx.note && <span className="text-[10px] sm:text-xs text-zinc-400 dark:text-zinc-500 italic truncate max-w-[100px] hidden sm:inline">· {tx.note}</span>}
                     </div>
                   </div>
                 </div>
@@ -374,7 +376,7 @@ export function TransactionListClient({
                   <div className="text-right flex-shrink-0">
                     <p className={cn(
                       'font-sans font-semibold text-xs sm:text-sm md:text-base tabular-nums',
-                      isIncome ? 'text-emerald-600' : 'text-zinc-900'
+                      isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-900 dark:text-white'
                     )}>
                       {isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
                     </p>
@@ -383,14 +385,14 @@ export function TransactionListClient({
                   <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
                     <button
                       onClick={() => openEdit(tx)}
-                      className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-stone-100 rounded-lg transition-colors touch-manipulation"
+                      className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-800 rounded-lg transition-colors touch-manipulation"
                       title="Edit"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setDeleteId(tx.id)}
-                      className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors touch-manipulation"
+                      className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors touch-manipulation"
                       title="Hapus"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -416,7 +418,7 @@ export function TransactionListClient({
 
           <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4 text-xs pt-1 sm:pt-2">
             {/* Type toggle */}
-            <div className="flex gap-2 p-1 bg-stone-100 rounded-xl">
+            <div className="flex gap-2 p-1 bg-stone-100 dark:bg-zinc-800 rounded-xl">
               {(['expense', 'income'] as const).map(type => (
                 <button
                   key={type}
@@ -425,8 +427,8 @@ export function TransactionListClient({
                   className={cn(
                     'flex-1 py-1.5 rounded-lg font-semibold text-xs transition-all touch-manipulation',
                     formType === type
-                      ? (type === 'expense' ? 'bg-white text-rose-600 shadow-sm' : 'bg-white text-emerald-600 shadow-sm')
-                      : 'text-zinc-500 hover:text-zinc-900'
+                      ? (type === 'expense' ? 'bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 shadow-sm' : 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm')
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
                   )}
                 >
                   {type === 'expense' ? 'Pengeluaran' : 'Pemasukan'}
@@ -435,21 +437,21 @@ export function TransactionListClient({
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Nama Transaksi</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nama Transaksi</label>
               <input
                 placeholder="Contoh: Makan Siang / Gaji Bulanan"
                 value={formName}
                 onChange={e => setFormName(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Kategori</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Kategori</label>
               <select
                 value={formCategory}
                 onChange={e => setFormCategory(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
               >
                 <option value="">Pilih Kategori</option>
                 {filteredCategories.map(cat => (
@@ -459,15 +461,15 @@ export function TransactionListClient({
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Nominal (Rp)</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nominal (Rp)</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-zinc-500 pointer-events-none">Rp</span>
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-zinc-500 dark:text-zinc-400 pointer-events-none">Rp</span>
                 <input
                   placeholder="0"
                   value={formAmount ? Number(formAmount.replace(/[^0-9]/g, '')).toLocaleString('id-ID') : ''}
                   onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
                   inputMode="numeric"
-                  className="w-full pl-9 pr-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-lg text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
+                  className="w-full pl-9 pr-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-lg text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums"
                 />
               </div>
               {/* Quick Nominal Chips */}
@@ -480,7 +482,7 @@ export function TransactionListClient({
                       const cur = parseInt(formAmount || '0', 10);
                       setFormAmount(String(cur + amt));
                     }}
-                    className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-zinc-700 rounded-lg text-[11px] font-medium transition-colors flex-shrink-0 touch-manipulation"
+                    className="px-2.5 py-1 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg text-[11px] font-medium transition-colors flex-shrink-0 touch-manipulation"
                   >
                     +{amt >= 1000000 ? `${amt / 1000000}jt` : `${amt / 1000}rb`}
                   </button>
@@ -489,40 +491,40 @@ export function TransactionListClient({
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Tanggal</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal</label>
               <input
                 type="date"
                 value={formDate}
                 onChange={e => setFormDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700">Catatan (opsional)</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Catatan (opsional)</label>
               <textarea
                 placeholder="Catatan tambahan..."
                 value={formNote}
                 onChange={e => setFormNote(e.target.value)}
                 rows={2}
-                className="w-full px-3.5 py-2 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
               />
             </div>
 
-            {formError && <p className="text-xs font-semibold text-rose-600">{formError}</p>}
+            {formError && <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">{formError}</p>}
 
             <DialogFooter className="pt-2 flex flex-row gap-2 justify-end">
               <button
                 type="button"
                 onClick={() => { setShowForm(false); resetForm(); }}
-                className="flex-1 sm:flex-initial px-4 py-2 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 touch-manipulation"
+                className="flex-1 sm:flex-initial px-4 py-2 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 touch-manipulation"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={isPending}
-                className="flex-1 sm:flex-initial px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-medium shadow-sm touch-manipulation"
+                className="flex-1 sm:flex-initial px-4 py-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl font-medium shadow-sm touch-manipulation"
               >
                 {isPending ? 'Menyimpan...' : 'Simpan Transaksi'}
               </button>
@@ -533,19 +535,19 @@ export function TransactionListClient({
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteId} onOpenChange={(open) => { if (!open) setDeleteId(null); }}>
-        <DialogContent className="max-w-sm bg-white border border-stone-200/80 rounded-2xl shadow-xl p-5 sm:p-6 w-full">
+        <DialogContent className="max-w-sm bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-5 sm:p-6 w-full">
           <DialogHeader>
-            <DialogTitle className="font-bold text-base text-zinc-900">
+            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white">
               Hapus Transaksi
             </DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
             Apakah kamu yakin ingin menghapus catatan transaksi ini?
           </p>
           <DialogFooter className="pt-3 flex flex-row gap-2 justify-end">
             <button
               onClick={() => setDeleteId(null)}
-              className="flex-1 sm:flex-initial px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50"
+              className="flex-1 sm:flex-initial px-3.5 py-1.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800"
             >
               Batal
             </button>
