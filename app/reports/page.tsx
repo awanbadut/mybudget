@@ -6,8 +6,8 @@ import { getUserId } from '@/lib/auth';
 
 export default async function ReportsPage() {
   const userId = await getUserId();
-  // Get last 12 months of data
-  const [allTransactions, savingsGoals] = await Promise.all([
+  // Get last 12 months of data, savings, and debts
+  const [allTransactions, savingsGoals, debtsList] = await Promise.all([
     db.query.transactions.findMany({
       where: (t, { eq: eqFn }) => eqFn(t.userId, userId),
       with: { category: true },
@@ -17,7 +17,17 @@ export default async function ReportsPage() {
       where: (g, { eq: eqFn }) => eqFn(g.userId, userId),
       with: { transactions: true },
     }),
+    db.query.debts.findMany({
+      where: (d, { and: a, eq: e }) => a(e(d.userId, userId), e(d.status, 'active')),
+      with: { installments: true },
+    }),
   ]);
 
-  return <ReportsClient transactions={allTransactions} savingsGoals={savingsGoals} />;
+  return (
+    <ReportsClient
+      transactions={allTransactions}
+      savingsGoals={savingsGoals}
+      debts={debtsList}
+    />
+  );
 }

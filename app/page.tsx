@@ -15,12 +15,15 @@ import { InsightCard } from '@/components/InsightCard';
 import { DailyBudget } from '@/components/DailyBudget';
 import { SavingsGoalCard } from '@/components/SavingsGoalCard';
 import { DashboardCharts } from '@/components/DashboardCharts';
+import { OnboardingModal } from '@/components/OnboardingModal';
+import { FinancialHealthScore } from '@/components/FinancialHealthScore';
+import { NetWorthCard } from '@/components/NetWorthCard';
+import { ForecastCard } from '@/components/ForecastCard';
 import Link from 'next/link';
 import { Plus, ChevronRight, AlertTriangle, Calendar } from 'lucide-react';
 
 export default async function DashboardPage() {
   const DEV_USER_ID = await getUserId();
-  const { month, year } = getCurrentMonth();
   const { month: currentMonth, year: currentYear } = getCurrentMonth();
 
   const startDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
@@ -172,6 +175,12 @@ export default async function DashboardPage() {
   const salaryDate = userSettings?.salaryDate || 25;
   const payrollCycle = getPayrollCycle(salaryDate, new Date());
 
+  const monthlyDebtAmount = pendingInstallments.reduce((sum: number, i: any) => sum + (i.amount || 0), 0);
+  const totalPendingDebtAmount = activeDebts
+    .flatMap((d: any) => d.installments || [])
+    .filter((i: any) => i.status === 'pending')
+    .reduce((sum: number, i: any) => sum + (i.amount || 0), 0);
+
   // Pre-calculate last 6 months savings chart data directly (0ms extra DB latency)
   const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   const months: { month: number; year: number; label: string }[] = [];
@@ -201,28 +210,34 @@ export default async function DashboardPage() {
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 min-w-0">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1 min-w-0">
-            <span className="text-xs font-medium text-zinc-500">
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
               {formatMonth(currentMonth, currentYear)}
             </span>
-            <span className="text-zinc-300">·</span>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-stone-100 text-zinc-700 max-w-full truncate">
+            <span className="text-zinc-300 dark:text-zinc-600">·</span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 max-w-full truncate">
               <Calendar className="w-3 h-3 text-zinc-400 flex-shrink-0" />
               <span className="truncate">Gajian tgl {salaryDate} ({payrollCycle.daysRemaining} hari lagi)</span>
             </div>
           </div>
 
-          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 tracking-tight leading-tight">
+          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 dark:text-white tracking-tight leading-tight">
             Halo, {user?.name || 'Pengguna'}
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">
-            Berikut ringkasan dan status keuangan pribadimu.
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+            Berikut ringkasan dan status kesehatan finansial pribadimu.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <OnboardingModal
+            initialSalary={userSettings?.salary || 0}
+            initialSalaryDate={salaryDate}
+            initialName={user?.name || ''}
+            hasTransactions={monthTransactions.length > 0}
+          />
           <Link
             href="/transactions?action=new"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
           >
             <Plus className="w-4 h-4 flex-shrink-0" />
             <span>Catat Transaksi</span>
@@ -240,12 +255,40 @@ export default async function DashboardPage() {
         effectiveIncome={effectiveIncome}
       />
 
-      {/* ═══════════ Pacing Makan Harian ═══════════ */}
-      <DailyBudget
-        foodBudgetTotal={foodBudgetTotal}
-        foodSpent={foodSpent}
-        salaryDate={salaryDate}
-      />
+      {/* ═══════════ Pacing Makan & Prediksi Arus Kas ═══════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4 w-full min-w-0">
+        <DailyBudget
+          foodBudgetTotal={foodBudgetTotal}
+          foodSpent={foodSpent}
+          salaryDate={salaryDate}
+        />
+        <ForecastCard
+          balance={balance}
+          totalExpense={totalExpense}
+          effectiveIncome={effectiveIncome}
+          elapsedDays={payrollCycle.elapsedDays}
+          daysRemaining={payrollCycle.daysRemaining}
+          salaryDate={salaryDate}
+        />
+      </div>
+
+      {/* ═══════════ Analisis Kekayaan & Skor Kesehatan ═══════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4 w-full min-w-0">
+        <NetWorthCard
+          totalSavings={totalSavings}
+          currentBalance={balance}
+          totalPendingDebt={totalPendingDebtAmount}
+        />
+        <FinancialHealthScore
+          savingRate={savingRate}
+          totalIncome={totalIncome}
+          totalExpense={totalExpense}
+          monthlyDebtAmount={monthlyDebtAmount}
+          budgets={budgetWithSpending}
+          balance={balance}
+          daysRemaining={payrollCycle.daysRemaining}
+        />
+      </div>
 
       {/* ═══════════ Aksi Cepat ═══════════ */}
       <QuickActions />

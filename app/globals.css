@@ -26,9 +26,31 @@
     --radius: 0.875rem;              /* 14px modern soft corners */
   }
 
+  .dark {
+    --background: 240 10% 3.9%;      /* #09090B deep obsidian canvas */
+    --foreground: 0 0% 98%;          /* #FAFAFA pure light text */
+    --card: 240 10% 5.9%;            /* #131316 dark elevation */
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 5.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;             /* inverted button on dark */
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;     /* #27272A */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%; /* #A1A1AA */
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 18%;          /* #2E2E33 dark hairline */
+    --input: 240 3.7% 18%;
+    --ring: 240 4.9% 83.9%;
+  }
+
   * {
     @apply border-border;
-    box-sizing: border-border;
+    box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -44,6 +66,12 @@
     overflow-x: hidden;
   }
 
+  html.dark {
+    background-color: #09090B;
+    color: #FAFAFA;
+    color-scheme: dark;
+  }
+
   body {
     background-color: #FAFAF9;
     color: #18181B;
@@ -53,6 +81,34 @@
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
+  }
+
+  html.dark body {
+    background-color: #09090B;
+    color: #FAFAFA;
+  }
+}
+
+/* Print Friendly Financial Statement Formatting */
+@media print {
+  aside, nav, button, .no-print, [role="dialog"], [data-radix-portal] {
+    display: none !important;
+  }
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+  body, html {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  * {
+    box-shadow: none !important;
+    border-color: #D4D4D8 !important;
   }
 }
 

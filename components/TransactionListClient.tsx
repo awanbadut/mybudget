@@ -6,8 +6,9 @@ import { formatDateShort, toDateString } from '@/lib/dates';
 import { createTransaction, updateTransaction, deleteTransaction } from '@/actions/transactions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { RecurringManager, RecurringItem } from '@/components/RecurringManager';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car,
@@ -39,20 +40,38 @@ interface Transaction {
 interface Props {
   transactions: Transaction[];
   categories: Category[];
+  recurringList?: RecurringItem[];
+  currentMonth?: number;
+  currentYear?: number;
   initialType?: 'income' | 'expense';
   openForm?: boolean;
 }
 
-export function TransactionListClient({ transactions, categories, initialType, openForm }: Props) {
+export function TransactionListClient({
+  transactions,
+  categories,
+  recurringList = [],
+  currentMonth = new Date().getMonth() + 1,
+  currentYear = new Date().getFullYear(),
+  initialType,
+  openForm,
+}: Props) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [showForm, setShowForm] = useState(openForm || false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [subTab, setSubTab] = useState<'ledger' | 'recurring'>('ledger');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>(initialType || 'all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterMonth, setFilterMonth] = useState<string>('all');
+
+  const dueRecurringCount = useMemo(() => {
+    return recurringList.filter(
+      r => r.isActive && (r.lastPostedMonth !== currentMonth || r.lastPostedYear !== currentYear)
+    ).length;
+  }, [recurringList, currentMonth, currentYear]);
 
   // Form states
   const [formType, setFormType] = useState<'income' | 'expense'>(initialType || 'expense');
@@ -167,49 +186,99 @@ export function TransactionListClient({ transactions, categories, initialType, o
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
         <div>
-          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 tracking-tight leading-tight">
+          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 dark:text-white tracking-tight leading-tight">
             Buku Transaksi
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">
-            Daftar lengkap arus kas masuk dan keluar
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+            Daftar lengkap arus kas masuk, keluar, dan tagihan berkala
           </p>
         </div>
 
+        {subTab === 'ledger' && (
+          <button
+            onClick={() => { resetForm(); setShowForm(true); }}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
+          >
+            <Plus className="w-4 h-4 flex-shrink-0" />
+            <span>Catat Transaksi</span>
+          </button>
+        )}
+      </div>
+
+      {/* Subtab Switcher */}
+      <div className="flex gap-1.5 p-1 bg-stone-100 dark:bg-zinc-800/80 rounded-xl w-full sm:w-fit transition-colors">
         <button
-          onClick={() => { resetForm(); setShowForm(true); }}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
+          type="button"
+          onClick={() => setSubTab('ledger')}
+          className={cn(
+            'flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all touch-manipulation',
+            subTab === 'ledger'
+              ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs'
+              : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+          )}
         >
-          <Plus className="w-4 h-4 flex-shrink-0" />
-          <span>Catat Transaksi</span>
+          Buku Kas Harian ({transactions.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setSubTab('recurring')}
+          className={cn(
+            'flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all touch-manipulation',
+            subTab === 'recurring'
+              ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs'
+              : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+          )}
+        >
+          <Repeat className="w-3.5 h-3.5" />
+          <span>Tagihan & Berulang ({recurringList.length})</span>
+          {dueRecurringCount > 0 && (
+            <span
+              className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"
+              title={`${dueRecurringCount} transaksi jatuh tempo bulan ini`}
+            />
+          )}
         </button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full min-w-0">
-        <div className="bg-white rounded-2xl border border-stone-200/80 p-3.5 sm:p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)] min-w-0">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] sm:text-xs font-medium text-zinc-500 truncate">Total Pemasukan</span>
-            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
-              <ArrowDownLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
-            </div>
-          </div>
-          <p className="font-sans text-sm sm:text-lg lg:text-xl font-bold text-emerald-600 tabular-nums truncate">
-            {formatCurrency(totalIncome)}
-          </p>
-        </div>
+      {/* View: Recurring Manager */}
+      {subTab === 'recurring' && (
+        <RecurringManager
+          recurringList={recurringList}
+          categories={categories}
+          currentMonth={currentMonth}
+          currentYear={currentYear}
+        />
+      )}
 
-        <div className="bg-white rounded-2xl border border-stone-200/80 p-3.5 sm:p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)] min-w-0">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] sm:text-xs font-medium text-zinc-500 truncate">Total Pengeluaran</span>
-            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
-              <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
+      {/* View: Ledger */}
+      {subTab === 'ledger' && (
+        <>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full min-w-0">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-3.5 sm:p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)] min-w-0 transition-colors">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] sm:text-xs font-medium text-zinc-500 dark:text-zinc-400 truncate">Total Pemasukan</span>
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                  <ArrowDownLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
+                </div>
+              </div>
+              <p className="font-sans text-sm sm:text-lg lg:text-xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums truncate">
+                {formatCurrency(totalIncome)}
+              </p>
+            </div>
+
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-3.5 sm:p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)] min-w-0 transition-colors">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] sm:text-xs font-medium text-zinc-500 dark:text-zinc-400 truncate">Total Pengeluaran</span>
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
+                  <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
+                </div>
+              </div>
+              <p className="font-sans text-sm sm:text-lg lg:text-xl font-bold text-zinc-900 dark:text-white tabular-nums truncate">
+                {formatCurrency(totalExpense)}
+              </p>
             </div>
           </div>
-          <p className="font-sans text-sm sm:text-lg lg:text-xl font-bold text-zinc-900 tabular-nums truncate">
-            {formatCurrency(totalExpense)}
-          </p>
-        </div>
-      </div>
 
       {/* Filters */}
       <div className="space-y-2.5 w-full min-w-0">
@@ -333,12 +402,14 @@ export function TransactionListClient({ transactions, categories, initialType, o
           })}
         </div>
       )}
+        </>
+      )}
 
       {/* Add/Edit Form Dialog */}
       <Dialog open={showForm} onOpenChange={(open) => { if (!open) { setShowForm(false); resetForm(); } }}>
-        <DialogContent className="max-w-md bg-white border border-stone-200/80 rounded-2xl shadow-xl p-5 sm:p-6 w-full">
+        <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-5 sm:p-6 w-full">
           <DialogHeader>
-            <DialogTitle className="font-bold text-base sm:text-lg text-zinc-900">
+            <DialogTitle className="font-bold text-base sm:text-lg text-zinc-900 dark:text-white">
               {editingTx ? 'Ubah Catatan Transaksi' : 'Catat Transaksi Baru'}
             </DialogTitle>
           </DialogHeader>

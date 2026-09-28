@@ -133,6 +133,24 @@ export const savingsTransactions = pgTable('savings_transactions', {
   goalIdIdx: index('savings_transactions_goal_id_idx').on(table.savingsGoalId),
 }));
 
+export const recurringTransactions = pgTable('recurring_transactions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  categoryId: uuid('category_id').notNull().references(() => categories.id, { onDelete: 'restrict' }),
+  type: varchar('type', { length: 20 }).notNull().default('expense'), // 'expense' | 'income'
+  name: varchar('name', { length: 255 }).notNull(),
+  amount: bigint('amount', { mode: 'number' }).notNull(),
+  dueDay: integer('due_day').notNull().default(1), // 1-31
+  isActive: boolean('is_active').notNull().default(true),
+  note: text('note'),
+  lastPostedMonth: integer('last_posted_month'),
+  lastPostedYear: integer('last_posted_year'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userActiveIdx: index('recurring_transactions_user_active_idx').on(table.userId, table.isActive),
+}));
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   settings: one(settings),
@@ -141,6 +159,12 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   budgets: many(budgets),
   debts: many(debts),
   savingsGoals: many(savingsGoals),
+  recurringTransactions: many(recurringTransactions),
+}));
+
+export const recurringTransactionsRelations = relations(recurringTransactions, ({ one }) => ({
+  user: one(users, { fields: [recurringTransactions.userId], references: [users.id] }),
+  category: one(categories, { fields: [recurringTransactions.categoryId], references: [categories.id] }),
 }));
 
 export const settingsRelations = relations(settings, ({ one }) => ({

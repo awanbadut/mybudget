@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { CategoryManager } from '@/components/CategoryManager';
-import { Settings, Download, Upload, User, Wallet, Calendar, LogOut, KeyRound, Tag } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { Settings, Download, Upload, User, Wallet, Calendar, LogOut, KeyRound, Tag, Palette } from 'lucide-react';
 
 interface UserData {
   id: string;
@@ -181,13 +182,16 @@ export function SettingsClient({
   return (
     <div className="space-y-6 font-sans">
       {/* Header */}
-      <div>
-        <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 tracking-tight">
-          Pengaturan Akun
-        </h1>
-        <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">
-          Atur profil, siklus penggajian, dan preferensi aplikasi
-        </p>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 dark:text-white tracking-tight">
+            Pengaturan Akun
+          </h1>
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+            Atur profil, siklus penggajian, dan preferensi aplikasi
+          </p>
+        </div>
+        <ThemeToggle showLabel className="px-3 py-2 text-xs" />
       </div>
 
       {/* Info Akun */}

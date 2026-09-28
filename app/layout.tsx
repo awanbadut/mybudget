@@ -67,15 +67,30 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="id" className="w-full max-w-full overflow-x-hidden">
+    <html lang="id" className="w-full max-w-full overflow-x-hidden" suppressHydrationWarning>
       <head>
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="mobile-web-app-capable" content="yes" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (theme === 'dark' || (!theme && prefersDark)) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
       </head>
-      <body className={`${fontSans.variable} ${fontMono.variable} font-sans bg-[#FAFAF9] text-zinc-900 min-h-screen antialiased selection:bg-zinc-900 selection:text-white w-full max-w-full overflow-x-hidden`}>
+      <body className={`${fontSans.variable} ${fontMono.variable} font-sans bg-[#FAFAF9] dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 min-h-screen antialiased selection:bg-zinc-900 selection:text-white dark:selection:bg-zinc-100 dark:selection:text-zinc-900 w-full max-w-full overflow-x-hidden transition-colors duration-150`}>
         <div className="flex min-h-screen w-full max-w-full overflow-x-hidden">
           {/* Desktop Sidebar */}
           {session && (
