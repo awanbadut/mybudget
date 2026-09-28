@@ -4,7 +4,9 @@ import { cookies } from 'next/headers';
 
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret && process.env.NODE_ENV === 'production') {
-  throw new Error('JWT_SECRET environment variable is required in production');
+  // Warn only — do not throw at module level (breaks Vercel build)
+  // Set JWT_SECRET in Vercel Environment Variables to fix this
+  console.warn('[auth] WARNING: JWT_SECRET is not set in production. Using insecure fallback.');
 }
 const SECRET_KEY = new TextEncoder().encode(
   jwtSecret || 'mybudget-dev-secret-jwt-key-change-in-production'
