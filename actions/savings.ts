@@ -4,6 +4,7 @@ import { db } from '@/db';
 import { savingsGoals, savingsTransactions } from '@/db/schema';
 import { SavingsGoalSchema, SavingsTransactionSchema } from '@/lib/validation';
 import { safeRevalidate, getUserId } from '@/lib/server-utils';
+import { revalidatePath } from 'next/cache';
 import { eq, and } from 'drizzle-orm';
 
 
@@ -80,6 +81,40 @@ export async function addSavings(data: unknown) {
     return { success: true };
   } catch (error) {
     console.error('addSavings error:', error);
+    return { success: false, error: 'Terjadi kesalahan. Silakan coba lagi.' };
+  }
+}
+
+export async function deleteSavingsTransaction(id: string, goalId: string) {
+  try {
+    const userId = await getUserId();
+    
+    // Verify goal belongs to user
+    const goal = await db.query.savingsGoals.findFirst({
+      where: (g, { and: a, eq: e }) => a(e(g.id, goalId), e(g.userId, userId)),
+    });
+    if (!goal) return { success: false, error: 'Target tabungan tidak ditemukan.' };
+
+    // Get the transaction amount before deleting
+    const tx = await db.query.savingsTransactions.findFirst({
+      where: (t, { eq: e }) => e(t.id, id),
+    });
+    if (!tx) return { success: false, error: 'Setoran tidak ditemukan.' };
+
+    // Delete transaction
+    await db.delete(savingsTransactions).where(eq(savingsTransactions.id, id));
+
+    // Update currentAmount
+    const newAmount = Math.max(0, goal.currentAmount - tx.amount);
+    await db.update(savingsGoals)
+      .set({ currentAmount: newAmount, updatedAt: new Date() })
+      .where(eq(savingsGoals.id, goalId));
+
+    revalidatePath('/savings');
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    console.error('deleteSavingsTransaction error:', error);
     return { success: false, error: 'Terjadi kesalahan. Silakan coba lagi.' };
   }
 }

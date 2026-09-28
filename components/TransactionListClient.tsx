@@ -389,13 +389,16 @@ export function TransactionListClient({ transactions, categories, initialType, o
 
             <div className="space-y-1">
               <label className="font-semibold text-zinc-700">Nominal (Rp)</label>
-              <input
-                placeholder="0"
-                value={formAmount}
-                onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
-                inputMode="numeric"
-                className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-lg text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
-              />
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-zinc-500 pointer-events-none">Rp</span>
+                <input
+                  placeholder="0"
+                  value={formAmount ? Number(formAmount.replace(/[^0-9]/g, '')).toLocaleString('id-ID') : ''}
+                  onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
+                  inputMode="numeric"
+                  className="w-full pl-9 pr-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-lg text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
+                />
+              </div>
               {/* Quick Nominal Chips */}
               <div className="flex gap-1.5 overflow-x-auto pt-1 pb-1 w-full max-w-full">
                 {[10000, 25000, 50000, 100000, 500000].map(amt => (

@@ -26,7 +26,7 @@ export const users = pgTable('users', {
 
 export const settings = pgTable('settings', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   salary: bigint('salary', { mode: 'number' }).notNull().default(0),
   salaryDate: integer('salary_date').notNull().default(25),
   rentBudget: bigint('rent_budget', { mode: 'number' }).notNull().default(0),
@@ -43,7 +43,7 @@ export const settings = pgTable('settings', {
 
 export const categories = pgTable('categories', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 255 }).notNull(),
   type: varchar('type', { length: 20 }).notNull(), // 'income' | 'expense'
   color: varchar('color', { length: 50 }),
@@ -53,8 +53,8 @@ export const categories = pgTable('categories', {
 
 export const transactions = pgTable('transactions', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id),
-  categoryId: uuid('category_id').notNull().references(() => categories.id),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  categoryId: uuid('category_id').notNull().references(() => categories.id, { onDelete: 'restrict' }),
   type: varchar('type', { length: 20 }).notNull(), // 'income' | 'expense'
   name: varchar('name', { length: 255 }).notNull(),
   amount: bigint('amount', { mode: 'number' }).notNull(),
@@ -71,7 +71,7 @@ export const transactions = pgTable('transactions', {
 
 export const budgets = pgTable('budgets', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   categoryId: uuid('category_id').notNull().references(() => categories.id),
   month: integer('month').notNull(),
   year: integer('year').notNull(),
@@ -85,7 +85,7 @@ export const budgets = pgTable('budgets', {
 
 export const debts = pgTable('debts', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 255 }).notNull(),
   totalAmount: bigint('total_amount', { mode: 'number' }),
   status: varchar('status', { length: 20 }).notNull().default('active'), // 'active' | 'paid'
@@ -97,7 +97,7 @@ export const debts = pgTable('debts', {
 
 export const debtInstallments = pgTable('debt_installments', {
   id: uuid('id').primaryKey().defaultRandom(),
-  debtId: uuid('debt_id').notNull().references(() => debts.id),
+  debtId: uuid('debt_id').notNull().references(() => debts.id, { onDelete: 'cascade' }),
   installmentNumber: integer('installment_number').notNull(),
   dueDate: date('due_date').notNull(),
   amount: bigint('amount', { mode: 'number' }).notNull(),
@@ -111,7 +111,7 @@ export const debtInstallments = pgTable('debt_installments', {
 
 export const savingsGoals = pgTable('savings_goals', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 255 }).notNull(),
   targetAmount: bigint('target_amount', { mode: 'number' }).notNull(),
   currentAmount: bigint('current_amount', { mode: 'number' }).notNull().default(0),
@@ -124,7 +124,7 @@ export const savingsGoals = pgTable('savings_goals', {
 
 export const savingsTransactions = pgTable('savings_transactions', {
   id: uuid('id').primaryKey().defaultRandom(),
-  savingsGoalId: uuid('savings_goal_id').notNull().references(() => savingsGoals.id),
+  savingsGoalId: uuid('savings_goal_id').notNull().references(() => savingsGoals.id, { onDelete: 'cascade' }),
   amount: bigint('amount', { mode: 'number' }).notNull(),
   transactionDate: date('transaction_date').notNull(),
   note: text('note'),

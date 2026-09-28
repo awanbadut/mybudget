@@ -62,6 +62,7 @@ export async function logoutAction() {
 export async function registerAction(formData: FormData) {
   const name = (formData.get('name') as string)?.trim();
   const username = (formData.get('username') as string)?.trim();
+  const email = (formData.get('email') as string)?.trim() || null;
   const password = formData.get('password') as string;
   const confirmPassword = formData.get('confirmPassword') as string;
 
@@ -94,15 +95,18 @@ export async function registerAction(formData: FormData) {
     const [newUser] = await db.insert(users).values({
       name,
       username,
+      email,
       passwordHash,
       role: 'user',
     }).returning({ id: users.id });
 
     // Create default settings for new user
+    const salary = parseInt(formData.get('salary') as string || '0', 10) || 0;
+    const salaryDate = parseInt(formData.get('salaryDate') as string || '25', 10) || 25;
     await db.insert(settings).values({
       userId: newUser.id,
-      salary: 0,
-      salaryDate: 25,
+      salary,
+      salaryDate,
       rentBudget: 0,
       foodBudget: 0,
       entertainmentBudget: 0,

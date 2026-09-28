@@ -17,9 +17,12 @@ export async function createTransaction(data: unknown) {
     safeRevalidate('/');
     safeRevalidate('/transactions');
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error('createTransaction error:', error);
-    return { success: false, error: 'Terjadi kesalahan. Silakan coba lagi.' };
+    if (error?.name === 'ZodError') {
+      return { success: false, error: error.errors?.[0]?.message || 'Data tidak valid.' };
+    }
+    return { success: false, error: 'Gagal menyimpan transaksi. Coba lagi.' };
   }
 }
 
@@ -33,9 +36,12 @@ export async function updateTransaction(id: string, data: unknown) {
     safeRevalidate('/');
     safeRevalidate('/transactions');
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error('updateTransaction error:', error);
-    return { success: false, error: 'Terjadi kesalahan. Silakan coba lagi.' };
+    if (error?.name === 'ZodError') {
+      return { success: false, error: error.errors?.[0]?.message || 'Data tidak valid.' };
+    }
+    return { success: false, error: 'Gagal memperbarui transaksi. Coba lagi.' };
   }
 }
 
@@ -47,8 +53,8 @@ export async function deleteTransaction(id: string) {
     safeRevalidate('/');
     safeRevalidate('/transactions');
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error('deleteTransaction error:', error);
-    return { success: false, error: 'Terjadi kesalahan. Silakan coba lagi.' };
+    return { success: false, error: 'Gagal menghapus transaksi. Coba lagi.' };
   }
 }

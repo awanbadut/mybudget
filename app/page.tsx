@@ -21,19 +21,20 @@ import { Plus, ChevronRight, AlertTriangle, Calendar } from 'lucide-react';
 export default async function DashboardPage() {
   const DEV_USER_ID = await getUserId();
   const { month, year } = getCurrentMonth();
-  // Use September 2026 as current month since that's the app context
-  const currentMonth = 9;
-  const currentYear = 2026;
+  const { month: currentMonth, year: currentYear } = getCurrentMonth();
 
   const startDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
   const endDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-30`;
 
-  let userSettings: any = null;
-  let user: any = null;
-  let monthTransactions: any[] = [];
-  let monthBudgets: any[] = [];
-  let savingsGoalsList: any[] = [];
-  let activeDebts: any[] = [];
+  type UserSettingsType = typeof import('@/db/schema').settings.$inferSelect;
+  type UserType = typeof import('@/db/schema').users.$inferSelect;
+
+  let userSettings: UserSettingsType | null | undefined = null;
+  let user: UserType | null | undefined = null;
+  let monthTransactions: Array<any> = [];
+  let monthBudgets: Array<any> = [];
+  let savingsGoalsList: Array<any> = [];
+  let activeDebts: Array<any> = [];
   let fetchError: string | null = null;
 
   try {
@@ -248,6 +249,38 @@ export default async function DashboardPage() {
 
       {/* ═══════════ Aksi Cepat ═══════════ */}
       <QuickActions />
+
+      {/* ═══════════ Cicilan Jatuh Tempo ═══════════ */}
+      {pendingInstallments.length > 0 && (
+        <section className="space-y-2.5 sm:space-y-3 w-full min-w-0">
+          <div className="flex items-center justify-between px-1">
+            <div>
+              <h2 className="font-semibold text-sm sm:text-base text-zinc-900">Cicilan Bulan Ini</h2>
+              <p className="text-[11px] sm:text-xs text-zinc-500">Tagihan yang jatuh tempo bulan ini</p>
+            </div>
+            <Link href="/debts" className="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center gap-1 transition-colors">
+              <span>Kelola</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+          <div className="bg-white rounded-2xl border border-amber-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden">
+            {pendingInstallments.map((inst: any, i: number) => (
+              <div key={inst.id} className={`flex items-center justify-between px-4 py-3 ${i > 0 ? 'border-t border-stone-100' : ''}`}>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+                    <Calendar className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-zinc-900">Cicilan ke-{inst.installmentNumber}</p>
+                    <p className="text-[10px] text-zinc-500">Jatuh tempo: {inst.dueDate}</p>
+                  </div>
+                </div>
+                <span className="font-sans font-bold text-xs tabular-nums text-amber-700">{formatCurrency(inst.amount)}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ═══════════ Pagu Anggaran Kategori ═══════════ */}
       <section className="space-y-2.5 sm:space-y-3 w-full min-w-0">

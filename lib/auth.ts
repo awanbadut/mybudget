@@ -2,8 +2,12 @@ import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET environment variable is required in production');
+}
 const SECRET_KEY = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'mybudget-super-secret-jwt-key-2026'
+  jwtSecret || 'mybudget-dev-secret-jwt-key-change-in-production'
 );
 
 export interface SessionPayload {

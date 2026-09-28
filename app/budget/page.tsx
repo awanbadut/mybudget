@@ -2,14 +2,13 @@ export const dynamic = 'force-dynamic';
 
 import { db } from '@/db';
 import { BudgetClient } from '@/components/BudgetClient';
-import { getMonthDateRange } from '@/lib/dates';
+import { getMonthDateRange, getCurrentMonth } from '@/lib/dates';
 
 import { getUserId } from '@/lib/auth';
 
 export default async function BudgetPage() {
   const DEV_USER_ID = await getUserId();
-  const currentMonth = 9;
-  const currentYear = 2026;
+  const { month: currentMonth, year: currentYear } = getCurrentMonth();
 
   const { startDate, endDate } = getMonthDateRange(currentMonth, currentYear);
 

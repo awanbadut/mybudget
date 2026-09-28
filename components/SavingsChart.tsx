@@ -1,7 +1,7 @@
 import { db } from '@/db';
 import { savingsTransactions, savingsGoals } from '@/db/schema';
 import { SavingsChartClient } from './SavingsChartClient';
-import { getMonthDateRange } from '@/lib/dates';
+import { getMonthDateRange, getCurrentMonth } from '@/lib/dates';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
@@ -11,8 +11,7 @@ interface SavingsChartProps {
 
 export async function SavingsChart({ userId }: SavingsChartProps) {
   // Build last 6 months
-  const currentYear = 2026;
-  const currentMonth = 9; // September
+  const { month: currentMonth, year: currentYear } = getCurrentMonth();
   
   const months: { month: number; year: number; label: string }[] = [];
   for (let i = 5; i >= 0; i--) {

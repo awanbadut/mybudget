@@ -2,16 +2,22 @@
 
 import { useState, useTransition } from 'react';
 import { updateSettings, getExportData } from '@/actions/settings';
+import { changePassword } from '@/actions/user';
+import { importData } from '@/actions/import';
 import { logoutAction } from '@/actions/auth';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Download, User, Wallet, Calendar, LogOut } from 'lucide-react';
+import { CategoryManager } from '@/components/CategoryManager';
+import { Settings, Download, Upload, User, Wallet, Calendar, LogOut, KeyRound, Tag } from 'lucide-react';
 
 interface UserData {
   id: string;
   name: string;
+  username: string | null;
   email: string | null;
+  createdAt?: Date;
 }
 
 interface SettingsData {
@@ -25,6 +31,14 @@ interface SettingsData {
   startWorkDate: string | null;
   salaryProrateEnabled: boolean;
   salaryProrateMethod: string;
+}
+
+interface CategoryType {
+  id: string;
+  name: string;
+  type: string;
+  color: string | null;
+  icon: string | null;
 }
 
 function Section({
@@ -61,13 +75,17 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 export function SettingsClient({
   user,
   settings,
+  categories,
 }: {
   user?: UserData | null;
   settings?: SettingsData | null;
+  categories?: CategoryType[];
 }) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
+  // Settings form
   const [name, setName] = useState(user?.name || '');
   const [salary, setSalary] = useState(String(settings?.salary || 0));
   const [salaryDate, setSalaryDate] = useState(String(settings?.salaryDate || 25));
@@ -79,6 +97,12 @@ export function SettingsClient({
   const [startWorkDate, setStartWorkDate] = useState(settings?.startWorkDate || '');
   const [prorateEnabled, setProrateEnabled] = useState(settings?.salaryProrateEnabled || false);
   const [prorateMethod, setProrateMethod] = useState(settings?.salaryProrateMethod || 'calendar_days');
+
+  // Password form
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   async function handleSave() {
     startTransition(async () => {
@@ -96,9 +120,22 @@ export function SettingsClient({
         salaryProrateMethod: prorateMethod as 'calendar_days' | 'working_days',
       });
       if (result.success) {
-        toast({ title: 'Pengaturan berhasil disimpan ✓' });
+        toast({ title: 'Pengaturan berhasil disimpan' });
       } else {
         toast({ title: result.error || 'Terjadi kesalahan', variant: 'destructive' });
+      }
+    });
+  }
+
+  async function handleChangePassword() {
+    setPasswordError('');
+    startTransition(async () => {
+      const result = await changePassword({ currentPassword, newPassword, confirmPassword });
+      if (result.success) {
+        toast({ title: 'Password berhasil diganti' });
+        setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
+      } else {
+        setPasswordError(result.error || 'Terjadi kesalahan');
       }
     });
   }
@@ -114,11 +151,31 @@ export function SettingsClient({
         a.download = `mybudget-export-${new Date().toISOString().split('T')[0]}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        toast({ title: 'Data berhasil diekspor ✓' });
+        toast({ title: 'Data berhasil diekspor' });
       } else {
         toast({ title: 'Ekspor gagal', variant: 'destructive' });
       }
     });
+  }
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+      startTransition(async () => {
+        const result = await importData(json);
+        if (result.success) {
+          toast({ title: `Import berhasil: ${result.imported} transaksi diimpor` });
+        } else {
+          toast({ title: result.error || 'Import gagal', variant: 'destructive' });
+        }
+      });
+    } catch {
+      toast({ title: 'File tidak valid. Pastikan format JSON benar.', variant: 'destructive' });
+    }
+    e.target.value = '';
   }
 
   return (
@@ -129,11 +186,22 @@ export function SettingsClient({
           Pengaturan Akun
         </h1>
         <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">
-          Atur profil, siklus penggajian tanggal 25, dan pagu baku operasional
+          Atur profil, siklus penggajian, dan preferensi aplikasi
         </p>
       </div>
 
-      <Section title="Profil Pengguna" icon={User}>
+      {/* Info Akun */}
+      <Section title="Info Akun" icon={User}>
+        <div className="flex items-center justify-between py-1">
+          <span className="text-zinc-500 font-medium">Username</span>
+          <span className="font-semibold text-zinc-900">{user?.username || '-'}</span>
+        </div>
+        {user?.email && (
+          <div className="flex items-center justify-between py-1">
+            <span className="text-zinc-500 font-medium">Email</span>
+            <span className="font-semibold text-zinc-900 truncate max-w-[180px]">{user.email}</span>
+          </div>
+        )}
         <Field label="Nama Lengkap">
           <input
             value={name}
@@ -175,7 +243,7 @@ export function SettingsClient({
         <div className="flex items-center justify-between pt-2 border-t border-stone-100">
           <div>
             <p className="font-semibold text-zinc-900 text-xs">Prorata Gaji</p>
-            <p className="text-[11px] text-zinc-400">Hitung gaji bulan pertama secara prorata hari kerja/kalender</p>
+            <p className="text-[11px] text-zinc-400">Hitung gaji bulan pertama secara prorata</p>
           </div>
           <Switch checked={prorateEnabled} onCheckedChange={setProrateEnabled} />
         </div>
@@ -194,22 +262,22 @@ export function SettingsClient({
         )}
       </Section>
 
-      <Section title="Pagu Anggaran Baku (Default Budgets)" icon={Calendar}>
+      <Section title="Pagu Anggaran Baku" icon={Calendar}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <Field label="Budget Kos / Sewa (Rp)">
-            <input value={rentBudget} onChange={e => setRentBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
+            <input value={rentBudget} onChange={e => setRentBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
           </Field>
           <Field label="Budget Makan (Rp)">
-            <input value={foodBudget} onChange={e => setFoodBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
+            <input value={foodBudget} onChange={e => setFoodBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
           </Field>
           <Field label="Budget Hiburan (Rp)">
-            <input value={entertainmentBudget} onChange={e => setEntertainmentBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
+            <input value={entertainmentBudget} onChange={e => setEntertainmentBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
           </Field>
           <Field label="Budget Toiletries (Rp)">
-            <input value={toiletries_budget} onChange={e => setToiletries_budget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
+            <input value={toiletries_budget} onChange={e => setToiletries_budget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
           </Field>
           <Field label="Budget Transport (Rp)">
-            <input value={transportBudget} onChange={e => setTransportBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-bold text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
+            <input value={transportBudget} onChange={e => setTransportBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation" />
           </Field>
         </div>
       </Section>
@@ -217,36 +285,105 @@ export function SettingsClient({
       <button
         onClick={handleSave}
         disabled={isPending}
-        className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-semibold text-xs shadow-sm active:scale-[0.99] transition-all touch-manipulation"
+        className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-sm font-semibold shadow-sm transition-all active:scale-[0.99] touch-manipulation"
       >
         {isPending ? 'Menyimpan...' : 'Simpan Semua Pengaturan'}
       </button>
 
-      {/* Backup Data */}
-      <div className="bg-white rounded-2xl border border-stone-200/80 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2.5">
-        <h2 className="font-semibold text-sm text-zinc-900">Cadangan Data (Backup)</h2>
-        <p className="text-xs text-zinc-500">Unduh seluruh catatan transaksi, anggaran, dan cicilan dalam berkas JSON.</p>
-        <button
-          onClick={handleExport}
-          disabled={isPending}
-          className="w-full py-2.5 bg-stone-100 hover:bg-stone-200 text-zinc-800 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2"
-        >
-          <Download className="w-4 h-4" />
-          <span>Unduh Berkas JSON</span>
-        </button>
-      </div>
+      {/* Kategori */}
+      {categories && <CategoryManager categories={categories} />}
 
-      {/* Logout */}
-      <div className="bg-white rounded-2xl border border-rose-100 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2.5">
-        <h2 className="font-semibold text-sm text-rose-600">Sesi Pengguna</h2>
+      {/* Ganti Password */}
+      <Section title="Ganti Password" icon={KeyRound}>
+        <Field label="Password Saat Ini">
+          <input
+            type="password"
+            value={currentPassword}
+            onChange={e => setCurrentPassword(e.target.value)}
+            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
+          />
+        </Field>
+        <Field label="Password Baru">
+          <input
+            type="password"
+            value={newPassword}
+            onChange={e => setNewPassword(e.target.value)}
+            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
+          />
+        </Field>
+        <Field label="Konfirmasi Password Baru">
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+            className="w-full px-3.5 py-2.5 bg-white border border-stone-200/80 rounded-xl text-base sm:text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 touch-manipulation"
+          />
+        </Field>
+        {passwordError && <p className="text-xs font-semibold text-rose-600">{passwordError}</p>}
         <button
-          onClick={() => logoutAction()}
-          className="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2"
+          onClick={handleChangePassword}
+          disabled={isPending}
+          className="mt-2 w-full py-2 bg-stone-100 hover:bg-stone-200 text-zinc-900 rounded-xl text-xs font-semibold transition-colors"
+        >
+          {isPending ? 'Menyimpan...' : 'Perbarui Password'}
+        </button>
+      </Section>
+
+      {/* Ekspor & Impor Data */}
+      <Section title="Manajemen Data" icon={Download}>
+        <p className="text-xs text-zinc-500 leading-relaxed pb-2 border-b border-stone-100">
+          Ekspor semua datamu (transaksi, tabungan, utang) ke dalam file JSON untuk cadangan, atau impor dari file cadangan yang sudah ada.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-2 pt-1">
+          <button
+            onClick={handleExport}
+            disabled={isPending}
+            className="flex-1 py-2.5 bg-stone-100 hover:bg-stone-200 text-zinc-900 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            <span>Ekspor Data (JSON)</span>
+          </button>
+          
+          <label className="flex-1 py-2.5 bg-stone-100 hover:bg-stone-200 text-zinc-900 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer">
+            <Upload className="w-4 h-4" />
+            <span>Impor Data</span>
+            <input type="file" accept=".json" className="hidden" onChange={handleImport} disabled={isPending} />
+          </label>
+        </div>
+      </Section>
+
+      <div className="pt-2">
+        <button
+          onClick={() => setShowLogoutConfirm(true)}
+          className="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 touch-manipulation"
         >
           <LogOut className="w-4 h-4" />
           <span>Keluar dari Akun</span>
         </button>
       </div>
+
+      <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <DialogContent className="max-w-sm bg-white border border-stone-200/80 rounded-2xl shadow-xl p-6">
+          <DialogHeader>
+            <DialogTitle className="font-bold text-base text-zinc-900">Keluar dari Akun</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-zinc-500">Apakah kamu yakin ingin keluar? Sesi aktif akan dihapus.</p>
+          <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
+            <button
+              onClick={() => setShowLogoutConfirm(false)}
+              className="flex-1 sm:flex-initial px-3.5 py-1.5 border border-stone-200 text-zinc-600 rounded-xl font-medium hover:bg-stone-50 text-xs"
+            >
+              Batal
+            </button>
+            <button
+              onClick={() => logoutAction()}
+              className="flex-1 sm:flex-initial px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-sm"
+            >
+              Ya, Keluar
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
