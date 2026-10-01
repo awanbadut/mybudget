@@ -16,6 +16,8 @@ export async function createTransaction(data: unknown) {
     });
     safeRevalidate('/');
     safeRevalidate('/transactions');
+    safeRevalidate('/budget');
+    safeRevalidate('/reports');
     return { success: true };
   } catch (error: any) {
     console.error('createTransaction error:', error);
@@ -35,6 +37,8 @@ export async function updateTransaction(id: string, data: unknown) {
       .where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
     safeRevalidate('/');
     safeRevalidate('/transactions');
+    safeRevalidate('/budget');
+    safeRevalidate('/reports');
     return { success: true };
   } catch (error: any) {
     console.error('updateTransaction error:', error);
@@ -52,6 +56,8 @@ export async function deleteTransaction(id: string) {
       .where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
     safeRevalidate('/');
     safeRevalidate('/transactions');
+    safeRevalidate('/budget');
+    safeRevalidate('/reports');
     return { success: true };
   } catch (error: any) {
     console.error('deleteTransaction error:', error);

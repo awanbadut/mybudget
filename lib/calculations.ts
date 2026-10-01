@@ -1,6 +1,6 @@
 export function calculateSavingRate(income: number, savings: number): number {
-  if (income === 0) return 0;
-  return Math.round((savings / income) * 100);
+  if (income <= 0 || savings <= 0) return 0;
+  return Math.min(100, Math.round((savings / income) * 100));
 }
 
 export function calculateBalance(income: number, expense: number): number {

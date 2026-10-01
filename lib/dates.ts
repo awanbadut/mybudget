@@ -31,11 +31,22 @@ export function getMonthDateRange(month: number, year: number): { startDate: str
   };
 }
 
+function createClampedDate(year: number, monthIndex: number, desiredDay: number): Date {
+  const norm = new Date(year, monthIndex, 1);
+  const y = norm.getFullYear();
+  const m = norm.getMonth();
+  const maxDays = new Date(y, m + 1, 0).getDate();
+  const d = Math.min(Math.max(1, desiredDay), maxDays);
+  return new Date(y, m, d);
+}
+
 export interface PayrollCycle {
   startDate: Date;
   endDate: Date;
+  nextPayDate: Date;
   startDateStr: string;
   endDateStr: string;
+  nextPayDateStr: string;
   totalDays: number;
   elapsedDays: number;
   daysRemaining: number;
@@ -43,49 +54,57 @@ export interface PayrollCycle {
 }
 
 export function getPayrollCycle(salaryDate: number = 25, refDate: Date = new Date()): PayrollCycle {
+  const safeSalaryDate = Math.min(Math.max(1, salaryDate), 31);
   const currentDay = refDate.getDate();
   const currentMonth = refDate.getMonth();
   const currentYear = refDate.getFullYear();
 
-  let startDate: Date;
-  let endDate: Date;
+  let startYear = currentYear;
+  let startMonth = currentMonth;
+  let nextYear = currentYear;
+  let nextMonth = currentMonth + 1;
 
-  if (salaryDate <= 1) {
-    // 1st of month to end of month
-    startDate = new Date(currentYear, currentMonth, 1);
-    endDate = new Date(currentYear, currentMonth + 1, 0);
-  } else if (currentDay >= salaryDate) {
-    // Current cycle started on salaryDate this month, ends on salaryDate of next month
-    startDate = new Date(currentYear, currentMonth, salaryDate);
-    endDate = new Date(currentYear, currentMonth + 1, salaryDate);
+  if (safeSalaryDate <= 1) {
+    // 1st of month: cycle starts on 1st of current month, next salary is 1st of next month
+    startYear = currentYear;
+    startMonth = currentMonth;
+    nextYear = currentYear;
+    nextMonth = currentMonth + 1;
+  } else if (currentDay >= safeSalaryDate) {
+    // Current cycle started on salaryDate this month, ends on day before next month's salaryDate
+    startYear = currentYear;
+    startMonth = currentMonth;
+    nextYear = currentYear;
+    nextMonth = currentMonth + 1;
   } else {
-    // Current cycle started on salaryDate of previous month, ends on salaryDate of this month
-    startDate = new Date(currentYear, currentMonth - 1, salaryDate);
-    endDate = new Date(currentYear, currentMonth, salaryDate);
+    // Current cycle started on salaryDate of previous month, ends on day before this month's salaryDate
+    startYear = currentYear;
+    startMonth = currentMonth - 1;
+    nextYear = currentYear;
+    nextMonth = currentMonth;
   }
 
+  const startDate = createClampedDate(startYear, startMonth, safeSalaryDate);
+  const nextPayDate = createClampedDate(nextYear, nextMonth, safeSalaryDate);
+  const endDate = new Date(nextPayDate.getFullYear(), nextPayDate.getMonth(), nextPayDate.getDate() - 1);
+
   const startMid = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-  const endMid = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+  const nextMid = new Date(nextPayDate.getFullYear(), nextPayDate.getMonth(), nextPayDate.getDate());
   const refMid = new Date(refDate.getFullYear(), refDate.getMonth(), refDate.getDate());
 
-  const totalDays = Math.round((endMid.getTime() - startMid.getTime()) / (1000 * 60 * 60 * 24));
-  const elapsedDays = Math.max(1, Math.round((refMid.getTime() - startMid.getTime()) / (1000 * 60 * 60 * 24)) + 1);
-  const daysRemaining = Math.max(0, Math.round((endMid.getTime() - refMid.getTime()) / (1000 * 60 * 60 * 24)));
-
-  const formatDateStr = (d: Date) => {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  };
+  const totalDays = Math.max(1, Math.round((nextMid.getTime() - startMid.getTime()) / (1000 * 60 * 60 * 24)));
+  const elapsedDays = Math.max(1, Math.min(totalDays, Math.round((refMid.getTime() - startMid.getTime()) / (1000 * 60 * 60 * 24)) + 1));
+  const daysRemaining = Math.max(0, Math.round((nextMid.getTime() - refMid.getTime()) / (1000 * 60 * 60 * 24)));
 
   const label = `${formatDateShort(startDate)} - ${formatDateShort(endDate)}`;
 
   return {
     startDate,
     endDate,
-    startDateStr: formatDateStr(startDate),
-    endDateStr: formatDateStr(endDate),
+    nextPayDate,
+    startDateStr: toDateString(startDate),
+    endDateStr: toDateString(endDate),
+    nextPayDateStr: toDateString(nextPayDate),
     totalDays,
     elapsedDays,
     daysRemaining,

@@ -29,25 +29,27 @@ export function ForecastCard({
     // Current daily burn rate
     const dailyBurnRate = Math.round(totalExpense / safeElapsed);
 
-    // Projected total spending by end of cycle
+    // Projected total spending across the cycle
     const projectedFinalExpense = totalExpense + (dailyBurnRate * safeRemaining);
 
-    // Projected ending balance
-    const incomeBase = effectiveIncome > 0 ? effectiveIncome : totalExpense + balance;
-    const projectedEndingBalance = incomeBase - projectedFinalExpense;
+    // Projected ending cash balance on payday:
+    // Derived directly from current real available balance minus projected burn for remaining days
+    const projectedEndingBalance = balance - (dailyBurnRate * safeRemaining);
 
-    // Safe daily spending ceiling for the rest of the cycle
+    // Safe daily spending ceiling from available cash for the rest of the cycle
     const safeDailyCeiling = Math.max(0, Math.round(balance / safeRemaining));
 
     let status: 'surplus' | 'warning' | 'deficit' = 'surplus';
     let statusLabel = 'Pacing Aman';
     let statusBadgeColor = 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
 
-    if (projectedEndingBalance < 0) {
+    const baseline = effectiveIncome > 0 ? effectiveIncome : Math.max(balance + totalExpense, 1);
+
+    if (projectedEndingBalance < 0 || balance <= 0) {
       status = 'deficit';
       statusLabel = 'Terancam Defisit';
       statusBadgeColor = 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800';
-    } else if (projectedEndingBalance < 0.1 * incomeBase) {
+    } else if (projectedEndingBalance < 0.1 * baseline) {
       status = 'warning';
       statusLabel = 'Ketahanan Tipis';
       statusBadgeColor = 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800';

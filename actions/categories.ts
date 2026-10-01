@@ -1,10 +1,9 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { db } from '@/db';
-import { categories } from '@/db/schema';
+import { categories, budgets, recurringTransactions } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { getUserId } from '@/lib/server-utils';
+import { getUserId, safeRevalidate } from '@/lib/server-utils';
 import { z } from 'zod';
 
 const CategorySchema = z.object({
@@ -19,9 +18,10 @@ export async function createCategory(data: unknown) {
     const validated = CategorySchema.parse(data);
     const userId = await getUserId();
     const [cat] = await db.insert(categories).values({ userId, ...validated }).returning();
-    revalidatePath('/settings');
-    revalidatePath('/transactions');
-    revalidatePath('/budget');
+    safeRevalidate('/settings');
+    safeRevalidate('/transactions');
+    safeRevalidate('/budget');
+    safeRevalidate('/');
     return { success: true, data: cat };
   } catch (error: any) {
     console.error('createCategory error:', error);
@@ -39,9 +39,11 @@ export async function updateCategory(id: string, data: unknown) {
     await db.update(categories)
       .set(validated)
       .where(and(eq(categories.id, id), eq(categories.userId, userId)));
-    revalidatePath('/settings');
-    revalidatePath('/transactions');
-    revalidatePath('/budget');
+    safeRevalidate('/settings');
+    safeRevalidate('/transactions');
+    safeRevalidate('/budget');
+    safeRevalidate('/');
+    safeRevalidate('/reports');
     return { success: true };
   } catch (error: any) {
     console.error('updateCategory error:', error);
@@ -55,7 +57,7 @@ export async function updateCategory(id: string, data: unknown) {
 export async function deleteCategory(id: string) {
   try {
     const userId = await getUserId();
-    // Check if category is in use
+    // Check if category exists
     const existing = await db.query.categories.findFirst({
       where: (c, { and: a, eq: e }) => a(e(c.id, id), e(c.userId, userId)),
       with: { transactions: { limit: 1 } },
@@ -66,10 +68,26 @@ export async function deleteCategory(id: string) {
     if (existing.transactions && existing.transactions.length > 0) {
       return { success: false, error: 'Kategori tidak dapat dihapus karena masih digunakan oleh transaksi.' };
     }
+
+    // Check if category is used by recurring transactions
+    const existingRecurring = await db.query.recurringTransactions.findFirst({
+      where: (rt, { and: a, eq: e }) => a(e(rt.categoryId, id), e(rt.userId, userId)),
+    });
+    if (existingRecurring) {
+      return { success: false, error: 'Kategori tidak dapat dihapus karena masih digunakan oleh transaksi berulang.' };
+    }
+
+    // Clean up any budgets rows referencing this category to avoid foreign key violation
+    await db.delete(budgets).where(and(eq(budgets.categoryId, id), eq(budgets.userId, userId)));
+
+    // Delete category
     await db.delete(categories).where(and(eq(categories.id, id), eq(categories.userId, userId)));
-    revalidatePath('/settings');
-    revalidatePath('/transactions');
-    revalidatePath('/budget');
+
+    safeRevalidate('/settings');
+    safeRevalidate('/transactions');
+    safeRevalidate('/budget');
+    safeRevalidate('/');
+    safeRevalidate('/reports');
     return { success: true };
   } catch (error) {
     console.error('deleteCategory error:', error);

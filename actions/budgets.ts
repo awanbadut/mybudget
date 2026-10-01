@@ -12,6 +12,7 @@ export async function createBudget(data: unknown) {
     const userId = await getUserId();
     await db.insert(budgets).values({ userId, ...validated });
     safeRevalidate('/budget');
+    safeRevalidate('/');
     return { success: true };
   } catch (error) {
     console.error('createBudget error:', error);
@@ -27,6 +28,7 @@ export async function updateBudget(id: string, data: unknown) {
       .set({ amount: validated.amount, updatedAt: new Date() })
       .where(and(eq(budgets.id, id), eq(budgets.userId, userId)));
     safeRevalidate('/budget');
+    safeRevalidate('/');
     return { success: true };
   } catch (error) {
     console.error('updateBudget error:', error);
@@ -40,6 +42,7 @@ export async function deleteBudget(id: string) {
     await db.delete(budgets)
       .where(and(eq(budgets.id, id), eq(budgets.userId, userId)));
     safeRevalidate('/budget');
+    safeRevalidate('/');
     return { success: true };
   } catch (error) {
     console.error('deleteBudget error:', error);

@@ -23,6 +23,8 @@ export async function updateSettings(data: unknown) {
     
     safeRevalidate('/');
     safeRevalidate('/settings');
+    safeRevalidate('/budget');
+    safeRevalidate('/reports');
     return { success: true };
   } catch (error) {
     console.error('updateSettings error:', error);

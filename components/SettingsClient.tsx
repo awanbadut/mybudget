@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useToast } from '@/hooks/use-toast';
 import { CategoryManager } from '@/components/CategoryManager';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { toDateString } from '@/lib/dates';
 import { Settings, Download, Upload, User, Wallet, Calendar, LogOut, KeyRound, Tag, Palette } from 'lucide-react';
 
 interface UserData {
@@ -149,7 +150,7 @@ export function SettingsClient({
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `mybudget-export-${new Date().toISOString().split('T')[0]}.json`;
+        a.download = `mybudget-export-${toDateString(new Date())}.json`;
         a.click();
         URL.revokeObjectURL(url);
         toast({ title: 'Data berhasil diekspor' });

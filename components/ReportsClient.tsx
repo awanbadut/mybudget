@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { formatCurrency } from '@/lib/currency';
 import { calculateSavingRate } from '@/lib/calculations';
+import { toDateString } from '@/lib/dates';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { cn } from '@/lib/utils';
 import {
@@ -77,7 +78,7 @@ export function ReportsClient({ transactions, savingsGoals, debts = [] }: Props)
   const cutoffDate = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() - filterDays);
-    return d.toISOString().split('T')[0];
+    return toDateString(d);
   }, [filterDays]);
 
   const filtered = useMemo(() =>
@@ -89,6 +90,11 @@ export function ReportsClient({ transactions, savingsGoals, debts = [] }: Props)
   const totalExpense = filtered.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
   const savings = totalIncome - totalExpense;
   const savingRate = calculateSavingRate(totalIncome, savings);
+
+  // Lifetime liquid balance (all-time total income minus all-time total expense)
+  const lifetimeCashBalance = useMemo(() => {
+    return transactions.reduce((sum, t) => t.type === 'income' ? sum + t.amount : sum - t.amount, 0);
+  }, [transactions]);
 
   // Total savings across all goals
   const totalSavingsAmount = useMemo(() => {
@@ -141,8 +147,8 @@ export function ReportsClient({ transactions, savingsGoals, debts = [] }: Props)
     const d60 = new Date(now);
     d60.setDate(d60.getDate() - 60);
 
-    const d30Str = d30.toISOString().split('T')[0];
-    const d60Str = d60.toISOString().split('T')[0];
+    const d30Str = toDateString(d30);
+    const d60Str = toDateString(d60);
 
     const currentMap: Record<string, number> = {};
     const previousMap: Record<string, number> = {};
@@ -202,7 +208,7 @@ export function ReportsClient({ transactions, savingsGoals, debts = [] }: Props)
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `Laporan-Keuangan-MyBudget-${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `Laporan-Keuangan-MyBudget-${toDateString(new Date())}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -335,7 +341,7 @@ export function ReportsClient({ transactions, savingsGoals, debts = [] }: Props)
       {/* Net Worth Card in Reports */}
       <NetWorthCard
         totalSavings={totalSavingsAmount}
-        currentBalance={savings}
+        currentBalance={lifetimeCashBalance}
         totalPendingDebt={totalPendingDebtAmount}
       />
 
