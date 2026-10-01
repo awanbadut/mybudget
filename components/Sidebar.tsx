@@ -43,15 +43,15 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
     <aside className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white dark:bg-zinc-900 border-r border-stone-200/80 dark:border-zinc-800 flex-col z-50 transition-colors">
       {/* Brand Header */}
       <div className="p-5 border-b border-stone-100 dark:border-zinc-800 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-white border border-stone-200/80 dark:border-zinc-700/80 shadow-sm flex items-center justify-center flex-shrink-0 overflow-hidden p-0.5">
-            <Image src="/logo.png" alt="My Budget" width={36} height={36} className="w-full h-full object-contain rounded-lg" unoptimized priority />
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-white border border-stone-200/90 dark:border-zinc-700/80 shadow-sm flex items-center justify-center flex-shrink-0 overflow-hidden p-0.5">
+            <Image src="/logo.png" alt="My Budget" width={48} height={48} className="w-full h-full object-contain" unoptimized priority />
           </div>
           <div>
-            <h1 className="font-bold text-sm text-zinc-900 dark:text-white leading-none">
+            <h1 className="font-bold text-base text-zinc-900 dark:text-white leading-tight">
               My Budget
             </h1>
-            <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1">
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
               Personal Finance
             </p>
           </div>

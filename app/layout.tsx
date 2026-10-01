@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { getSession } from '@/lib/auth';
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar';
 import { InstallPWA } from '@/components/InstallPWA';
+import { MobileTopHeader } from '@/components/MobileTopHeader';
 
 const fontMono = Spline_Sans_Mono({
   subsets: ['latin'],
@@ -104,6 +105,7 @@ export default async function RootLayout({
 
           {/* Main Content */}
           <main className={`flex-1 ${session ? 'md:ml-64' : ''} pb-24 md:pb-10 min-w-0 w-full max-w-full overflow-x-hidden`}>
+            {session && <MobileTopHeader />}
             <div className="w-full max-w-md sm:max-w-xl md:max-w-4xl lg:max-w-5xl mx-auto px-3.5 sm:px-6 py-3.5 md:py-8 min-w-0">
               {children}
             </div>

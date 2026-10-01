@@ -61,8 +61,8 @@ export default function RegisterPage() {
       <div className="w-full max-w-md space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-3">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white border border-stone-200/80 dark:border-zinc-700/80 rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto shadow-md overflow-hidden p-1.5 sm:p-2">
-            <Image src="/logo.png" alt="My Budget Logo" width={80} height={80} className="w-full h-full object-contain rounded-xl" unoptimized priority />
+          <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white border border-stone-200/90 dark:border-zinc-700/80 rounded-3xl flex items-center justify-center mx-auto shadow-md overflow-hidden p-1 sm:p-1.5">
+            <Image src="/logo.png" alt="My Budget Logo" width={112} height={112} className="w-full h-full object-contain" unoptimized priority />
           </div>
           <div className="space-y-1">
             <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 dark:text-white tracking-tight">
