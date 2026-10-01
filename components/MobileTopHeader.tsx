@@ -18,7 +18,7 @@ export function MobileTopHeader() {
       <Link href="/" className="flex items-center gap-2.5 active:scale-95 transition-transform">
         <div className="w-[32px] h-[38px] flex items-center justify-center flex-shrink-0">
           <Image
-            src="/logo.png"
+            src="/logo-light.png"
             alt="My Budget"
             width={776}
             height={935}

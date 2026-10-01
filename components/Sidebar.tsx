@@ -46,7 +46,7 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-[46px] h-[56px] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
             <Image
-              src="/logo.png"
+              src="/logo-light.png"
               alt="My Budget"
               width={776}
               height={935}
