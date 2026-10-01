@@ -2,25 +2,23 @@ export const dynamic = 'force-dynamic';
 
 import { db } from '@/db';
 import { BudgetClient } from '@/components/BudgetClient';
-import { getMonthDateRange, getCurrentMonth } from '@/lib/dates';
-
+import { getCurrentMonth, getPayrollCycle } from '@/lib/dates';
+import { getOrInitializeBudgets } from '@/lib/budget-utils';
 import { getUserId } from '@/lib/auth';
 
 export default async function BudgetPage() {
   const DEV_USER_ID = await getUserId();
   const { month: currentMonth, year: currentYear } = getCurrentMonth();
 
-  const { startDate, endDate } = getMonthDateRange(currentMonth, currentYear);
+  const userSettings = await db.query.settings.findFirst({
+    where: (s, { eq }) => eq(s.userId, DEV_USER_ID),
+  });
 
-  const [budgets, categories, transactions] = await Promise.all([
-    db.query.budgets.findMany({
-      where: (b, { and: andFn, eq: eqFn }) => andFn(
-        eqFn(b.userId, DEV_USER_ID),
-        eqFn(b.month, currentMonth),
-        eqFn(b.year, currentYear)
-      ),
-      with: { category: true },
-    }),
+  const salaryDate = userSettings?.salaryDate || 25;
+  const cycle = getPayrollCycle(salaryDate, new Date());
+
+  const [budgets, categories, cycleTransactions] = await Promise.all([
+    getOrInitializeBudgets(DEV_USER_ID, currentMonth, currentYear),
     db.query.categories.findMany({
       where: (c, { and: andFn, eq: eqFn }) => andFn(
         eqFn(c.userId, DEV_USER_ID),
@@ -31,14 +29,14 @@ export default async function BudgetPage() {
       where: (t, { and: andFn, eq: eqFn, gte: gteFn, lte: lteFn }) => andFn(
         eqFn(t.userId, DEV_USER_ID),
         eqFn(t.type, 'expense'),
-        gteFn(t.transactionDate, startDate),
-        lteFn(t.transactionDate, endDate)
+        gteFn(t.transactionDate, cycle.startDateStr),
+        lteFn(t.transactionDate, cycle.endDateStr)
       ),
     }),
   ]);
 
   const budgetsWithSpending = budgets.map(budget => {
-    const spent = transactions
+    const spent = cycleTransactions
       .filter(t => t.categoryId === budget.categoryId)
       .reduce((sum, t) => sum + t.amount, 0);
     return {

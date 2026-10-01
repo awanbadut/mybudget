@@ -11,6 +11,7 @@ interface DashboardSummaryProps {
   totalSavings: number;
   savingRate: number;
   effectiveIncome: number;
+  cycleLabel?: string;
 }
 
 export function DashboardSummary({
@@ -20,6 +21,7 @@ export function DashboardSummary({
   totalSavings,
   savingRate,
   effectiveIncome,
+  cycleLabel,
 }: DashboardSummaryProps) {
   const [showAmount, setShowAmount] = useState(true);
 
@@ -73,8 +75,8 @@ export function DashboardSummary({
         </div>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
           {isPositive
-            ? 'Kondisi kas terkendali. Surplus operasional siap dialokasikan ke tabungan.'
-            : 'Perhatian: Total pengeluaran melebihi pemasukan tercatat.'}
+            ? 'Akumulasi total uang riil yang tersedia saat ini (saldo kas bersih).'
+            : 'Perhatian: Total pengeluaran kumulatif melebihi total pemasukan tercatat.'}
         </p>
       </div>
 
@@ -94,7 +96,7 @@ export function DashboardSummary({
           <p className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
             {effectiveIncome > 0 && effectiveIncome !== totalIncome
               ? `Est. Gaji: ${display(effectiveIncome)}`
-              : 'Bulan ini'}
+              : cycleLabel ? cycleLabel : 'Bulan ini'}
           </p>
         </div>
 
@@ -110,7 +112,7 @@ export function DashboardSummary({
             {display(totalExpense)}
           </p>
           <p className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
-            Bulan ini
+            {cycleLabel ? cycleLabel : 'Bulan ini'}
           </p>
         </div>
 

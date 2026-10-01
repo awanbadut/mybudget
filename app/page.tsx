@@ -1,12 +1,11 @@
 export const dynamic = 'force-dynamic';
 
 import { db } from '@/db';
-import { transactions, budgets, categories, settings, users, savingsGoals, debts, debtInstallments } from '@/db/schema';
-import { eq, and, gte, lte } from 'drizzle-orm';
-import { formatCurrency } from '@/lib/currency';
-import { formatMonth, getCurrentMonth, calculateProratedSalary, getPayrollCycle } from '@/lib/dates';
+import { getPayrollCycle, formatMonth, getCurrentMonth, calculateProratedSalary } from '@/lib/dates';
 import { calculateSavingRate } from '@/lib/calculations';
 import { getUserId } from '@/lib/auth';
+import { getOrInitializeBudgets } from '@/lib/budget-utils';
+import { formatCurrency } from '@/lib/currency';
 import { DashboardSummary } from '@/components/DashboardSummary';
 import { BudgetProgress } from '@/components/BudgetProgress';
 import { RecentTransactions } from '@/components/RecentTransactions';
@@ -26,15 +25,12 @@ export default async function DashboardPage() {
   const DEV_USER_ID = await getUserId();
   const { month: currentMonth, year: currentYear } = getCurrentMonth();
 
-  const startDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
-  const endDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-30`;
-
   type UserSettingsType = typeof import('@/db/schema').settings.$inferSelect;
   type UserType = typeof import('@/db/schema').users.$inferSelect;
 
   let userSettings: UserSettingsType | null | undefined = null;
   let user: UserType | null | undefined = null;
-  let monthTransactions: Array<any> = [];
+  let allTransactions: Array<any> = [];
   let monthBudgets: Array<any> = [];
   let savingsGoalsList: Array<any> = [];
   let activeDebts: Array<any> = [];
@@ -49,24 +45,11 @@ export default async function DashboardPage() {
         where: (u, { eq: eqFn }) => eqFn(u.id, DEV_USER_ID),
       }),
       db.query.transactions.findMany({
-        where: (t, { and: andFn, eq: eqFn, gte: gteFn, lte: lteFn }) =>
-          andFn(
-            eqFn(t.userId, DEV_USER_ID),
-            gteFn(t.transactionDate, startDate),
-            lteFn(t.transactionDate, endDate)
-          ),
+        where: (t, { eq: eqFn }) => eqFn(t.userId, DEV_USER_ID),
         with: { category: true },
-        orderBy: (t, { desc }) => desc(t.transactionDate),
+        orderBy: (t, { desc }) => [desc(t.transactionDate), desc(t.createdAt)],
       }),
-      db.query.budgets.findMany({
-        where: (b, { and: andFn, eq: eqFn }) =>
-          andFn(
-            eqFn(b.userId, DEV_USER_ID),
-            eqFn(b.month, currentMonth),
-            eqFn(b.year, currentYear)
-          ),
-        with: { category: true },
-      }),
+      getOrInitializeBudgets(DEV_USER_ID, currentMonth, currentYear),
       db.query.savingsGoals.findMany({
         where: (g, { eq: eqFn }) => eqFn(g.userId, DEV_USER_ID),
         with: { transactions: true },
@@ -77,7 +60,7 @@ export default async function DashboardPage() {
         with: { installments: true },
       }),
     ]);
-    [userSettings, user, monthTransactions, monthBudgets, savingsGoalsList, activeDebts] = data;
+    [userSettings, user, allTransactions, monthBudgets, savingsGoalsList, activeDebts] = data;
   } catch (err: any) {
     console.error('Error fetching dashboard data:', err);
     fetchError = err?.message || String(err);
@@ -103,22 +86,41 @@ export default async function DashboardPage() {
     );
   }
 
-  // Calculate totals
-  const totalIncome = monthTransactions
+  // 1. User cycle configuration (Disiplin siklus gaji)
+  const salaryDate = userSettings?.salaryDate || 25;
+  const payrollCycle = getPayrollCycle(salaryDate, new Date());
+
+  // 2. Real Lifetime Cash Balance (Saldo Kas Bersih Riil Sepanjang Masa)
+  const totalLifetimeIncome = allTransactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalExpense = monthTransactions
+  const totalLifetimeExpense = allTransactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const balance = totalIncome - totalExpense;
-  const savingRate = calculateSavingRate(totalIncome, balance);
+  const realAvailableBalance = totalLifetimeIncome - totalLifetimeExpense;
 
-  // Calculate total savings
+  // 3. Transactions inside active payroll cycle (25 Sep - 25 Okt)
+  const cycleTransactions = allTransactions.filter(
+    t => t.transactionDate >= payrollCycle.startDateStr && t.transactionDate <= payrollCycle.endDateStr
+  );
+
+  const cycleIncome = cycleTransactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const cycleExpense = cycleTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const cycleNetFlow = cycleIncome - cycleExpense;
+  const savingRate = calculateSavingRate(cycleIncome, cycleNetFlow);
+
+  // 4. Total savings across all goals
   const totalSavings = savingsGoalsList.reduce((sum, g) => sum + (g.currentAmount || 0), 0);
 
-  // Calculate effective income (with prorate if applicable)
+  // 5. Effective income calculation (with prorate if applicable)
   let effectiveIncome = userSettings?.salary || 0;
   if (userSettings?.salaryProrateEnabled && userSettings.startWorkDate) {
     const sDate = userSettings.startWorkDate;
@@ -132,8 +134,8 @@ export default async function DashboardPage() {
     }
   }
 
-  // Expense by category for chart
-  const expenseByCategory = monthTransactions
+  // 6. Expense by category for chart (active cycle distribution)
+  const expenseByCategory = cycleTransactions
     .filter(t => t.type === 'expense')
     .reduce((acc, t) => {
       const catName = t.category?.name || 'Lainnya';
@@ -141,9 +143,9 @@ export default async function DashboardPage() {
       return acc;
     }, {} as Record<string, number>);
 
-  // Budget with spending
+  // 7. Budget with spending (spent during active cycle)
   const budgetWithSpending = monthBudgets.map(budget => {
-    const spent = monthTransactions
+    const spent = cycleTransactions
       .filter(t => t.categoryId === budget.categoryId && t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
     return {
@@ -154,26 +156,23 @@ export default async function DashboardPage() {
     };
   });
 
-  // Recent transactions (last 5)
-  const recentTransactions = monthTransactions.slice(0, 5);
+  // 8. Recent transactions (always top 6 latest across all transactions)
+  const recentTransactions = allTransactions.slice(0, 6);
 
-  // Food budget for daily widget
+  // 9. Food budget for daily widget (spent in active cycle)
   const foodBudgetTotal = userSettings?.foodBudget || 0;
-  const foodSpent = monthTransactions
+  const foodSpent = cycleTransactions
     .filter(t => t.type === 'expense' && t.category?.name === 'Makan')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  // Pending installments this month
+  // 10. Pending installments in active cycle
   const pendingInstallments = activeDebts.flatMap(d =>
     (d.installments || []).filter((i: any) =>
       i.status === 'pending' &&
-      i.dueDate >= startDate &&
-      i.dueDate <= endDate
+      i.dueDate >= payrollCycle.startDateStr &&
+      i.dueDate <= payrollCycle.endDateStr
     )
   );
-
-  const salaryDate = userSettings?.salaryDate || 25;
-  const payrollCycle = getPayrollCycle(salaryDate, new Date());
 
   const monthlyDebtAmount = pendingInstallments.reduce((sum: number, i: any) => sum + (i.amount || 0), 0);
   const totalPendingDebtAmount = activeDebts
@@ -181,7 +180,7 @@ export default async function DashboardPage() {
     .filter((i: any) => i.status === 'pending')
     .reduce((sum: number, i: any) => sum + (i.amount || 0), 0);
 
-  // Pre-calculate last 6 months savings chart data directly (0ms extra DB latency)
+  // Pre-calculate last 6 months savings chart data
   const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   const months: { month: number; year: number; label: string }[] = [];
   for (let i = 5; i >= 0; i--) {
@@ -216,7 +215,7 @@ export default async function DashboardPage() {
             <span className="text-zinc-300 dark:text-zinc-600">·</span>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 max-w-full truncate">
               <Calendar className="w-3 h-3 text-zinc-400 flex-shrink-0" />
-              <span className="truncate">Gajian tgl {salaryDate} ({payrollCycle.daysRemaining} hari lagi)</span>
+              <span className="truncate">Siklus Gajian tgl {salaryDate} ({payrollCycle.daysRemaining} hari lagi)</span>
             </div>
           </div>
 
@@ -233,7 +232,7 @@ export default async function DashboardPage() {
             initialSalary={userSettings?.salary || 0}
             initialSalaryDate={salaryDate}
             initialName={user?.name || ''}
-            hasTransactions={monthTransactions.length > 0}
+            hasTransactions={allTransactions.length > 0}
           />
           <Link
             href="/transactions?action=new"
@@ -247,12 +246,13 @@ export default async function DashboardPage() {
 
       {/* ═══════════ Saldo Utama (Dashboard Summary) ═══════════ */}
       <DashboardSummary
-        balance={balance}
-        totalIncome={totalIncome}
-        totalExpense={totalExpense}
+        balance={realAvailableBalance}
+        totalIncome={cycleIncome}
+        totalExpense={cycleExpense}
         totalSavings={totalSavings}
         savingRate={savingRate}
         effectiveIncome={effectiveIncome}
+        cycleLabel={payrollCycle.label}
       />
 
       {/* ═══════════ Pacing Makan & Prediksi Arus Kas ═══════════ */}
@@ -263,8 +263,8 @@ export default async function DashboardPage() {
           salaryDate={salaryDate}
         />
         <ForecastCard
-          balance={balance}
-          totalExpense={totalExpense}
+          balance={realAvailableBalance}
+          totalExpense={cycleExpense}
           effectiveIncome={effectiveIncome}
           elapsedDays={payrollCycle.elapsedDays}
           daysRemaining={payrollCycle.daysRemaining}
@@ -276,16 +276,16 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4 w-full min-w-0">
         <NetWorthCard
           totalSavings={totalSavings}
-          currentBalance={balance}
+          currentBalance={realAvailableBalance}
           totalPendingDebt={totalPendingDebtAmount}
         />
         <FinancialHealthScore
           savingRate={savingRate}
-          totalIncome={totalIncome}
-          totalExpense={totalExpense}
+          totalIncome={cycleIncome}
+          totalExpense={cycleExpense}
           monthlyDebtAmount={monthlyDebtAmount}
           budgets={budgetWithSpending}
-          balance={balance}
+          balance={realAvailableBalance}
           daysRemaining={payrollCycle.daysRemaining}
         />
       </div>
@@ -299,7 +299,7 @@ export default async function DashboardPage() {
           <div className="flex items-center justify-between px-1">
             <div>
               <h2 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white">Cicilan Bulan Ini</h2>
-              <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">Tagihan yang jatuh tempo bulan ini</p>
+              <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">Tagihan yang jatuh tempo siklus ini</p>
             </div>
             <Link href="/debts" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center gap-1 transition-colors">
               <span>Kelola</span>
@@ -318,7 +318,7 @@ export default async function DashboardPage() {
                     <p className="text-[10px] text-zinc-500 dark:text-zinc-400">Jatuh tempo: {inst.dueDate}</p>
                   </div>
                 </div>
-                <span className="font-sans font-bold text-xs tabular-nums text-amber-700">{formatCurrency(inst.amount)}</span>
+                <span className="font-sans font-bold text-xs tabular-nums text-amber-700 dark:text-amber-400">{formatCurrency(inst.amount)}</span>
               </div>
             ))}
           </div>
@@ -329,14 +329,14 @@ export default async function DashboardPage() {
       <section className="space-y-2.5 sm:space-y-3 w-full min-w-0">
         <div className="flex items-center justify-between px-1">
           <div>
-            <h2 className="font-semibold text-sm sm:text-base text-zinc-900">
+            <h2 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white">
               Pagu Anggaran Kategori
             </h2>
-            <p className="text-[11px] sm:text-xs text-zinc-500">Batas pengeluaran per pos belanja</p>
+            <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">Batas pengeluaran per pos belanja siklus ini</p>
           </div>
           <Link
             href="/budget"
-            className="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center gap-1 transition-colors"
+            className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center gap-1 transition-colors"
           >
             <span>Kelola</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -348,7 +348,7 @@ export default async function DashboardPage() {
       {/* ═══════════ Visualisations (Charts) ═══════════ */}
       <DashboardCharts
         expenseByCategory={expenseByCategory}
-        totalExpense={totalExpense}
+        totalExpense={cycleExpense}
         savingsChartData={savingsChartData}
       />
 
@@ -357,14 +357,14 @@ export default async function DashboardPage() {
         <section className="space-y-2.5 sm:space-y-3 w-full min-w-0">
           <div className="flex items-center justify-between px-1">
             <div>
-              <h2 className="font-semibold text-sm sm:text-base text-zinc-900">
+              <h2 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white">
                 Target Tabungan
               </h2>
-              <p className="text-[11px] sm:text-xs text-zinc-500">Progres pencapaian simpanan dana</p>
+              <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">Progres pencapaian simpanan dana</p>
             </div>
             <Link
               href="/savings"
-              className="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center gap-1 transition-colors"
+              className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center gap-1 transition-colors"
             >
               <span>Lihat Semua</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -380,8 +380,8 @@ export default async function DashboardPage() {
 
       {/* ═══════════ Insight & Evaluasi Finansial ═══════════ */}
       <InsightCard
-        totalIncome={totalIncome}
-        totalExpense={totalExpense}
+        totalIncome={cycleIncome}
+        totalExpense={cycleExpense}
         budgets={budgetWithSpending}
         effectiveIncome={effectiveIncome}
         foodSpent={foodSpent}
@@ -395,14 +395,14 @@ export default async function DashboardPage() {
       <section className="space-y-2.5 sm:space-y-3 w-full min-w-0">
         <div className="flex items-center justify-between px-1">
           <div>
-            <h2 className="font-semibold text-sm sm:text-base text-zinc-900">
+            <h2 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white">
               Transaksi Terbaru
             </h2>
-            <p className="text-[11px] sm:text-xs text-zinc-500">5 riwayat transaksi terakhir bulan ini</p>
+            <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">Riwayat transaksi terakhir Anda</p>
           </div>
           <Link
             href="/transactions"
-            className="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center gap-1 transition-colors"
+            className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center gap-1 transition-colors"
           >
             <span>Buku Lengkap</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -412,8 +412,8 @@ export default async function DashboardPage() {
       </section>
 
       {/* ═══════════ Clean Minimal Footer ═══════════ */}
-      <footer className="pt-6 pb-4 border-t border-stone-200/60 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-400 text-center sm:text-left">
-        <p>My Budget · Disiplin Finansial Siklus 25 ke 25</p>
+      <footer className="pt-6 pb-4 border-t border-stone-200/60 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-400 dark:text-zinc-500 text-center sm:text-left">
+        <p>My Budget · Disiplin Finansial Siklus {salaryDate} ke {salaryDate}</p>
         <p>Data tersimpan privat & aman</p>
       </footer>
     </div>
