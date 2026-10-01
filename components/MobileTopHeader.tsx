@@ -14,9 +14,9 @@ export function MobileTopHeader() {
   }
 
   return (
-    <header className="md:hidden sticky top-0 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-stone-200/80 dark:border-zinc-800 px-3.5 py-2.5 flex items-center justify-between transition-colors shadow-xs">
-      <Link href="/" className="flex items-center gap-2.5 active:scale-95 transition-transform">
-        <div className="w-[32px] h-[38px] flex items-center justify-center flex-shrink-0">
+    <header className="md:hidden sticky top-0 z-30 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-stone-200/70 dark:border-zinc-800/70 px-4 h-13 flex items-center justify-between transition-colors">
+      <Link href="/" className="flex items-center gap-2.5 active:scale-98 transition-transform">
+        <div className="w-[24px] h-[29px] flex items-center justify-center flex-shrink-0">
           <Image
             src="/logo-v4-light.png"
             alt="My Budget"
@@ -36,14 +36,9 @@ export function MobileTopHeader() {
             priority
           />
         </div>
-        <div className="flex flex-col justify-center">
-          <h2 className="font-bold text-sm text-zinc-900 dark:text-white leading-tight">
-            My Budget
-          </h2>
-          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium leading-none mt-0.5">
-            Personal Finance
-          </p>
-        </div>
+        <span className="font-semibold text-[15px] text-zinc-900 dark:text-white tracking-tight">
+          My Budget
+        </span>
       </Link>
       <div className="flex items-center">
         <ThemeToggle />

@@ -38,16 +38,18 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-3">
-          <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white dark:bg-zinc-900 border border-stone-200/90 dark:border-zinc-700/80 rounded-3xl flex items-center justify-center mx-auto shadow-md overflow-hidden p-2 sm:p-2.5">
-            <Image src="/logo-v4-light.png" alt="My Budget Logo" width={112} height={112} className="w-full h-full object-contain block dark:hidden" unoptimized priority />
-            <Image src="/logo-v4-dark.png" alt="My Budget Logo" width={112} height={112} className="w-full h-full object-contain hidden dark:block" unoptimized priority />
+          <div className="flex items-center justify-center">
+            <div className="w-12 h-14 relative flex items-center justify-center">
+              <Image src="/logo-v4-light.png" alt="My Budget" width={776} height={935} className="w-full h-full object-contain block dark:hidden" unoptimized priority />
+              <Image src="/logo-v4-dark.png" alt="My Budget" width={776} height={935} className="w-full h-full object-contain hidden dark:block" unoptimized priority />
+            </div>
           </div>
           <div className="space-y-1">
             <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 dark:text-white tracking-tight">
-              My Budget
+              Masuk ke My Budget
             </h1>
             <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-              Masuk untuk mengelola keuangan dan siklus gaji pribadimu
+              Kelola keuangan pribadi dengan disiplin siklus gaji
             </p>
           </div>
         </div>
