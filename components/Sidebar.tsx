@@ -43,13 +43,13 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
     <aside className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white dark:bg-zinc-900 border-r border-stone-200/80 dark:border-zinc-800 flex-col z-50 transition-colors">
       {/* Brand Header */}
       <div className="p-5 border-b border-stone-100 dark:border-zinc-800 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 flex items-center justify-center flex-shrink-0">
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="w-[46px] h-[56px] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
             <Image
               src="/logo.png"
               alt="My Budget"
-              width={44}
-              height={44}
+              width={776}
+              height={935}
               className="w-full h-full object-contain dark:hidden"
               unoptimized
               priority
@@ -57,22 +57,22 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
             <Image
               src="/logo-dark.png"
               alt="My Budget"
-              width={44}
-              height={44}
+              width={776}
+              height={935}
               className="w-full h-full object-contain hidden dark:block"
               unoptimized
               priority
             />
           </div>
-          <div>
-            <h1 className="font-bold text-base text-zinc-900 dark:text-white leading-tight">
+          <div className="flex flex-col justify-center">
+            <h1 className="font-extrabold text-lg text-zinc-900 dark:text-white leading-tight tracking-tight">
               My Budget
             </h1>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
+            <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 mt-0.5">
               Personal Finance
             </p>
           </div>
-        </div>
+        </Link>
         <ThemeToggle />
       </div>
 
