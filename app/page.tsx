@@ -255,7 +255,7 @@ export default async function DashboardPage() {
         cycleLabel={payrollCycle.label}
       />
 
-      {/* ═══════════ Pacing Makan & Prediksi Arus Kas ═══════════ */}
+      {/* ═══════════ Jatah Makan Harian & Prediksi Saldo ═══════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4 w-full min-w-0">
         <DailyBudget
           foodBudgetTotal={foodBudgetTotal}
@@ -325,14 +325,14 @@ export default async function DashboardPage() {
         </section>
       )}
 
-      {/* ═══════════ Pagu Anggaran Kategori ═══════════ */}
+      {/* ═══════════ Anggaran Bulanan Kategori ═══════════ */}
       <section className="space-y-2.5 sm:space-y-3 w-full min-w-0">
         <div className="flex items-center justify-between px-1">
           <div>
             <h2 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white">
-              Pagu Anggaran Kategori
+              Anggaran Pos Pengeluaran
             </h2>
-            <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">Batas pengeluaran per pos belanja siklus ini</p>
+            <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">Batas pengeluaran per pos belanja periode ini</p>
           </div>
           <Link
             href="/budget"

@@ -69,7 +69,7 @@ export function InsightCard({
   if (insights.length === 0) {
     insights.push({
       type: 'info',
-      text: 'Catat transaksi secara rutin untuk menerima evaluasi dan insight keuangan otomatis.',
+      text: 'Catat transaksi secara rutin untuk melihat rangkuman dan evaluasi keuangan otomatis.',
     });
   }
 
@@ -80,7 +80,7 @@ export function InsightCard({
           <Sparkles className="w-3.5 h-3.5" />
         </div>
         <h3 className="font-semibold text-sm text-zinc-900 dark:text-white">
-          Insight & Evaluasi Finansial
+          Catatan & Evaluasi Keuangan
         </h3>
       </div>
 

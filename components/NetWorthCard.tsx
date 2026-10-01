@@ -44,10 +44,10 @@ export function NetWorthCard({
           </div>
           <div>
             <h3 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white leading-none">
-              Kekayaan Bersih (Net Worth)
+              Total Kekayaan Bersih
             </h3>
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-              Total aset likuid & tabungan dikurangi sisa kewajiban utang
+              Total tabungan & kas aktif dikurangi sisa kewajiban cicilan
             </p>
           </div>
         </div>
@@ -63,7 +63,7 @@ export function NetWorthCard({
           <span
             className={cn('w-1.5 h-1.5 rounded-full', isPositive ? 'bg-emerald-500' : 'bg-rose-500')}
           />
-          {isPositive ? 'Aset Surplus' : 'Defisit Utang'}
+          {isPositive ? 'Kekayaan Positif' : 'Kekayaan Minus'}
         </span>
       </div>
 
@@ -85,14 +85,14 @@ export function NetWorthCard({
 
         <div className="flex items-center gap-3 text-xs">
           <div className="text-right">
-            <span className="text-[10px] text-zinc-400 block">Total Aset</span>
+            <span className="text-[10px] text-zinc-400 block">Total Aset & Kas</span>
             <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
               +{formatCurrency(totalAssets)}
             </span>
           </div>
           <div className="w-px h-6 bg-stone-200 dark:bg-zinc-700" />
           <div className="text-right">
-            <span className="text-[10px] text-zinc-400 block">Total Utang</span>
+            <span className="text-[10px] text-zinc-400 block">Sisa Utang</span>
             <span className="font-semibold text-rose-600 dark:text-rose-400 tabular-nums">
               -{formatCurrency(totalLiabilities)}
             </span>
@@ -111,7 +111,7 @@ export function NetWorthCard({
         </div>
         <div className="flex justify-between text-[10px] text-zinc-400 dark:text-zinc-500">
           <span>Aset: {assetRatio}%</span>
-          <span>Liabilitas: {100 - assetRatio}%</span>
+          <span>Utang: {100 - assetRatio}%</span>
         </div>
       </div>
     </div>

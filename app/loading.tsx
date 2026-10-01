@@ -56,7 +56,7 @@ export default function DashboardLoading() {
         ))}
       </div>
 
-      {/* Pacing Makan Harian Skeleton */}
+      {/* Jatah Makan Harian Skeleton */}
       <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/60 dark:border-zinc-800 p-4 sm:p-5 space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-colors">
         <div className="flex justify-between items-center">
           <div className="h-4 w-36 bg-stone-200 dark:bg-zinc-700 rounded" />

@@ -40,19 +40,23 @@ export function ForecastCard({
     const safeDailyCeiling = Math.max(0, Math.round(balance / safeRemaining));
 
     let status: 'surplus' | 'warning' | 'deficit' = 'surplus';
-    let statusLabel = 'Pacing Aman';
+    let statusLabel = 'Pengeluaran Aman';
     let statusBadgeColor = 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
 
     const baseline = effectiveIncome > 0 ? effectiveIncome : Math.max(balance + totalExpense, 1);
 
     if (projectedEndingBalance < 0 || balance <= 0) {
       status = 'deficit';
-      statusLabel = 'Terancam Defisit';
+      statusLabel = 'Berisiko Minus';
       statusBadgeColor = 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800';
     } else if (projectedEndingBalance < 0.1 * baseline) {
       status = 'warning';
-      statusLabel = 'Ketahanan Tipis';
+      statusLabel = 'Perlu Waspada';
       statusBadgeColor = 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+    } else {
+      status = 'surplus';
+      statusLabel = 'Pengeluaran Aman';
+      statusBadgeColor = 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
     }
 
     return {
@@ -76,10 +80,10 @@ export function ForecastCard({
           </div>
           <div>
             <h3 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white leading-none">
-              Prediksi Arus Kas Siklus Gajian
+              Prediksi Saldo Akhir Bulan
             </h3>
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-              Proyeksi saldo akhir berdasarkan laju pengeluaran ({elapsedDays} hari berjalan, {daysRemaining} hari tersisa)
+              Perkiraan sisa uang saat gajian berdasarkan kebiasaan belanja harian
             </p>
           </div>
         </div>
@@ -91,21 +95,21 @@ export function ForecastCard({
 
       {/* Grid Prediction Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-        {/* Laju Belanja Harian */}
+        {/* Rata-rata Belanja Harian */}
         <div className="p-3 rounded-xl bg-stone-50/70 dark:bg-zinc-800/40 border border-stone-200/50 dark:border-zinc-800">
-          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block">Laju Belanja Rata-Rata</span>
+          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block font-medium">Rata-rata Belanja Harian</span>
           <p className="font-sans font-bold text-sm sm:text-base text-zinc-900 dark:text-white tabular-nums mt-0.5">
             {formatCurrency(calculation.dailyBurnRate)}
             <span className="text-[10px] text-zinc-400 font-normal"> /hari</span>
           </p>
           <span className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5 block">
-            Berdasarkan {elapsedDays} hari terakhir
+            Dari {elapsedDays} hari berjalan
           </span>
         </div>
 
         {/* Batas Belanja Aman */}
         <div className="p-3 rounded-xl bg-stone-50/70 dark:bg-zinc-800/40 border border-stone-200/50 dark:border-zinc-800">
-          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block">Batas Maks Harian Sisa</span>
+          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block font-medium">Batas Belanja per Hari</span>
           <p className="font-sans font-bold text-sm sm:text-base text-emerald-600 dark:text-emerald-400 tabular-nums mt-0.5">
             {formatCurrency(calculation.safeDailyCeiling)}
             <span className="text-[10px] text-zinc-400 font-normal"> /hari</span>
@@ -115,9 +119,9 @@ export function ForecastCard({
           </span>
         </div>
 
-        {/* Proyeksi Saldo Akhir */}
+        {/* Estimasi Saldo saat Gajian */}
         <div className="p-3 rounded-xl bg-stone-50/70 dark:bg-zinc-800/40 border border-stone-200/50 dark:border-zinc-800">
-          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block">Proyeksi Saldo saat Gajian</span>
+          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block font-medium">Estimasi Saldo saat Gajian</span>
           <p
             className={cn(
               'font-sans font-bold text-sm sm:text-base tabular-nums mt-0.5',
@@ -130,7 +134,7 @@ export function ForecastCard({
             {formatCurrency(Math.abs(calculation.projectedEndingBalance))}
           </p>
           <span className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5 block">
-            Di tgl {salaryDate} mendatang
+            Tanggal {salaryDate} mendatang
           </span>
         </div>
       </div>
@@ -153,10 +157,10 @@ export function ForecastCard({
         )}
         <p className="leading-relaxed">
           {calculation.status === 'deficit'
-            ? `Peringatan: Pada laju belanja saat ini (${formatCurrency(calculation.dailyBurnRate)}/hari), saldo diperkirakan habis sebelum gajian. Batasi pengeluaran maksimal ${formatCurrency(calculation.safeDailyCeiling)}/hari.`
+            ? `Peringatan: Dengan rata-rata belanja saat ini (${formatCurrency(calculation.dailyBurnRate)}/hari), uang diperkirakan habis sebelum gajian. Batasi pengeluaran maksimal ${formatCurrency(calculation.safeDailyCeiling)}/hari.`
             : calculation.status === 'warning'
-            ? `Ketahanan kas cukup tipis. Pertahankan belanja di bawah ${formatCurrency(calculation.safeDailyCeiling)}/hari untuk menjamin surplus di tanggal ${salaryDate}.`
-            : `Pola belanja kamu sangat terkendali! Jika laju ini dipertahankan, kamu diproyeksikan surplus ${formatCurrency(calculation.projectedEndingBalance)} di akhir siklus gajian.`}
+            ? `Sisa saldo mulai menipis. Usahakan belanja di bawah ${formatCurrency(calculation.safeDailyCeiling)}/hari agar tetap ada sisa tabungan di tanggal ${salaryDate}.`
+            : `Pengeluaran kamu sangat terkendali! Jika ritme ini dipertahankan, kamu diproyeksikan memiliki sisa tabungan ${formatCurrency(calculation.projectedEndingBalance)} di tanggal gajian.`}
         </p>
       </div>
     </div>

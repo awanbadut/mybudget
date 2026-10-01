@@ -247,27 +247,27 @@ export function SettingsClient({
         </Field>
         <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-zinc-800">
           <div>
-            <p className="font-semibold text-zinc-900 dark:text-white text-xs">Prorata Gaji</p>
-            <p className="text-[11px] text-zinc-400 dark:text-zinc-500">Hitung gaji bulan pertama secara prorata</p>
+            <p className="font-semibold text-zinc-900 dark:text-white text-xs">Penyesuaian Masuk Kerja (Prorata)</p>
+            <p className="text-[11px] text-zinc-400 dark:text-zinc-500">Hitung proporsional gaji jika mulai kerja di pertengahan bulan</p>
           </div>
           <Switch checked={prorateEnabled} onCheckedChange={setProrateEnabled} />
         </div>
         {prorateEnabled && (
-          <Field label="Metode Prorata">
+          <Field label="Metode Hitung Prorata">
             <Select value={prorateMethod} onValueChange={setProrateMethod}>
               <SelectTrigger className="w-full bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white touch-manipulation">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white">
-                <SelectItem value="calendar_days">Prorata Hari Kalender (30 hari)</SelectItem>
-                <SelectItem value="working_days">Prorata Hari Kerja (Senin - Jumat)</SelectItem>
+                <SelectItem value="calendar_days">Berdasarkan Hari Kalender (30 hari)</SelectItem>
+                <SelectItem value="working_days">Berdasarkan Hari Kerja (Senin - Jumat)</SelectItem>
               </SelectContent>
             </Select>
           </Field>
         )}
       </Section>
 
-      <Section title="Pagu Anggaran Baku" icon={Calendar}>
+      <Section title="Alokasi Anggaran Bulanan" icon={Calendar}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <Field label="Budget Kos / Sewa (Rp)">
             <input value={rentBudget} onChange={e => setRentBudget(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation" />

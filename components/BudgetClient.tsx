@@ -91,17 +91,17 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 tracking-tight">
-            Pagu Anggaran
+          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 dark:text-white tracking-tight">
+            Anggaran Bulanan
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
             Batas pengeluaran operasional {formatMonth(month, year)}
           </p>
         </div>
 
         <button
           onClick={() => { resetForm(); setShowForm(true); }}
-          className="inline-flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
+          className="inline-flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
         >
           <Plus className="w-4 h-4" />
           <span>Tambah Anggaran</span>
@@ -111,7 +111,7 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
       {/* Overview Card */}
       <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-3 transition-colors">
         <div className="flex justify-between items-baseline text-xs">
-          <span className="font-medium text-zinc-500 dark:text-zinc-400">Realisasi Total Anggaran</span>
+          <span className="font-medium text-zinc-500 dark:text-zinc-400">Pemakaian Anggaran</span>
           <span className="font-bold text-zinc-900 dark:text-white tabular-nums">{overallPct}% Terpakai</span>
         </div>
 
@@ -125,7 +125,7 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
 
         <div className="flex justify-between text-xs pt-1 text-zinc-500 dark:text-zinc-400">
           <span className="tabular-nums">{formatCurrency(totalSpent)} terpakai</span>
-          <span className="font-semibold text-zinc-900 dark:text-white tabular-nums">Pagu: {formatCurrency(totalBudget)}</span>
+          <span className="font-semibold text-zinc-900 dark:text-white tabular-nums">Batas: {formatCurrency(totalBudget)}</span>
         </div>
       </div>
 
@@ -134,7 +134,7 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2.5 transition-colors">
           <PieChart className="w-8 h-8 text-zinc-400 dark:text-zinc-500 mx-auto" />
           <p className="font-semibold text-sm text-zinc-900 dark:text-white">Belum Ada Anggaran Tercatat</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">Atur pagu anggaran per kategori untuk mengontrol pengeluaran.</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">Atur alokasi anggaran per kategori belanja untuk mengontrol pengeluaran.</p>
           <button
             className="mt-2 text-xs font-semibold text-white dark:text-zinc-900 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 px-4 py-2 rounded-xl transition-all shadow-sm"
             onClick={() => { resetForm(); setShowForm(true); }}

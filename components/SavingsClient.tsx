@@ -193,7 +193,7 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
                   {/* Amounts */}
                   <div className="flex justify-between text-xs mb-1.5">
                     <span className="text-zinc-900 dark:text-white font-bold tabular-nums">{formatCurrency(goal.currentAmount)}</span>
-                    <span className="text-zinc-400 dark:text-zinc-500 tabular-nums">Pagu: {formatCurrency(goal.targetAmount)}</span>
+                    <span className="text-zinc-400 dark:text-zinc-500 tabular-nums">Target: {formatCurrency(goal.targetAmount)}</span>
                   </div>
 
                   {/* Progress Bar */}

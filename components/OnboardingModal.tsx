@@ -146,7 +146,7 @@ export function OnboardingModal({
 
             <DialogTitle className="font-bold text-lg sm:text-xl text-zinc-900 dark:text-white leading-tight">
               {step === 1 && 'Siklus Gaji & Profil'}
-              {step === 2 && 'Pagu Anggaran Bulanan'}
+              {step === 2 && 'Anggaran Bulanan'}
               {step === 3 && 'Target Tabungan Perdana'}
             </DialogTitle>
           </DialogHeader>
@@ -193,7 +193,7 @@ export function OnboardingModal({
                   className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl font-bold text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums"
                 />
                 <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
-                  Default 25: Perhitungan pacing harian dihitung 25 bulan ini ke 25 bulan berikutnya.
+                  Default 25: Jatah belanja harian dihitung dari tanggal 25 bulan ini ke tanggal 25 bulan depan.
                 </span>
               </div>
             </div>
@@ -305,7 +305,7 @@ export function OnboardingModal({
                 <span className="font-bold flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Siap Memulai!
                 </span>
-                <p>Parameter kamu akan langsung otomatis dikonfigurasi ke seluruh dashboard, visualisasi grafik, dan pacing harian.</p>
+                <p>Pengaturan kamu akan otomatis diterapkan ke seluruh ringkasan, grafik pengeluaran, dan jatah harian.</p>
               </div>
             </div>
           )}

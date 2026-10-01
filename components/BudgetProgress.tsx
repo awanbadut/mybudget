@@ -57,7 +57,7 @@ export function BudgetProgress({ budgets }: BudgetProgressProps) {
           Belum Ada Alokasi Anggaran Bulanan
         </p>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
-          Tetapkan batas belanja operasional untuk mencegah pengeluaran berlebih.
+          Tetapkan batas belanja bulanan untuk mencegah pengeluaran berlebih.
         </p>
         <Link
           href="/budget"

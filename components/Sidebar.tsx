@@ -12,10 +12,10 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/transactions', label: 'Transaksi', icon: ArrowLeftRight },
-  { href: '/budget', label: 'Pagu Anggaran', icon: PieChart },
-  { href: '/debts', label: 'Cicilan Utang', icon: CreditCard },
-  { href: '/savings', label: 'Target Tabungan', icon: Target },
-  { href: '/reports', label: 'Laporan Berkala', icon: BarChart3 },
+  { href: '/budget', label: 'Anggaran', icon: PieChart },
+  { href: '/debts', label: 'Utang & Cicilan', icon: CreditCard },
+  { href: '/savings', label: 'Tabungan', icon: Target },
+  { href: '/reports', label: 'Laporan', icon: BarChart3 },
   { href: '/settings', label: 'Pengaturan', icon: Settings },
 ];
 

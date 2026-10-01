@@ -75,8 +75,8 @@ export function DashboardSummary({
         </div>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
           {isPositive
-            ? 'Akumulasi total uang riil yang tersedia saat ini (saldo kas bersih).'
-            : 'Perhatian: Total pengeluaran kumulatif melebihi total pemasukan tercatat.'}
+            ? 'Total saldo riil yang aman digunakan saat ini.'
+            : 'Peringatan: Total pengeluaran tercatat melebihi pemasukan.'}
         </p>
       </div>
 
@@ -95,7 +95,7 @@ export function DashboardSummary({
           </p>
           <p className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
             {effectiveIncome > 0 && effectiveIncome !== totalIncome
-              ? `Est. Gaji: ${display(effectiveIncome)}`
+              ? `Perkiraan Gaji: ${display(effectiveIncome)}`
               : cycleLabel ? cycleLabel : 'Bulan ini'}
           </p>
         </div>
@@ -128,14 +128,14 @@ export function DashboardSummary({
             {display(totalSavings)}
           </p>
           <p className="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
-            Terkumpul
+            Total Terkumpul
           </p>
         </div>
 
-        {/* Saving Rate */}
+        {/* Porsi Tabungan */}
         <div className="bg-stone-50/60 dark:bg-zinc-800/50 rounded-xl p-3 sm:p-3.5 border border-stone-200/60 dark:border-zinc-700/60 min-w-0">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] sm:text-xs font-medium text-zinc-500 dark:text-zinc-400 truncate">Rasio Simpan</span>
+            <span className="text-[11px] sm:text-xs font-medium text-zinc-500 dark:text-zinc-400 truncate">Porsi Tabungan</span>
             <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-amber-100/70 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
               <Wallet className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.2]" />
             </div>

@@ -170,7 +170,7 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-stone-200/60 dark:border-zinc-800">
                   <div className="bg-white dark:bg-zinc-800/80 border border-stone-200/60 dark:border-zinc-700 rounded-xl p-3 text-center">
-                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Total Pagu</p>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Total Pinjaman</p>
                     <p className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white tabular-nums mt-0.5">{formatCurrency(stats.total)}</p>
                   </div>
                   <div className="bg-white dark:bg-zinc-800/80 border border-stone-200/60 dark:border-zinc-700 rounded-xl p-3 text-center">

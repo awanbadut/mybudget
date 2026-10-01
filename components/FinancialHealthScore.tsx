@@ -59,13 +59,13 @@ export function FinancialHealthScore({
     if (activeBudgets.length > 0) {
       if (overBudgets.length === 0) {
         budgetScore = 25;
-        budgetStatus = 'Semua Sesuai Pagu';
+        budgetStatus = 'Semua Sesuai Rencana';
       } else if (overBudgets.length === 1) {
         budgetScore = 15;
         budgetStatus = `1 Pos Melebihi (${overBudgets[0].category?.name || 'Pos Belanja'})`;
       } else {
         budgetScore = 5;
-        budgetStatus = `${overBudgets.length} Pos Melebihi Target`;
+        budgetStatus = `${overBudgets.length} Pos Melebihi Batas`;
       }
     }
 
@@ -98,10 +98,10 @@ export function FinancialHealthScore({
       const dailyRemaining = daysRemaining > 0 ? Math.round(balance / daysRemaining) : balance;
       if (dailyRemaining < 20000 && daysRemaining > 5) {
         cashflowScore = 12;
-        cashflowStatus = 'Pacing Kritis';
+        cashflowStatus = 'Kas Menipis';
       } else {
         cashflowScore = 25;
-        cashflowStatus = 'Likuiditas Aman';
+        cashflowStatus = 'Kas Aman';
       }
     }
 
@@ -142,10 +142,10 @@ export function FinancialHealthScore({
       gradeLabel,
       gradeColor,
       pillars: [
-        { label: 'Rasio Tabungan', score: savingScore, max: 25, status: savingStatus },
-        { label: 'Disiplin Pagu Anggaran', score: budgetScore, max: 25, status: budgetStatus },
-        { label: 'Rasio Beban Cicilan', score: debtScore, max: 25, status: debtStatus },
-        { label: 'Ketahanan Arus Kas', score: cashflowScore, max: 25, status: cashflowStatus },
+        { label: 'Porsi Tabungan', score: savingScore, max: 25, status: savingStatus },
+        { label: 'Disiplin Anggaran', score: budgetScore, max: 25, status: budgetStatus },
+        { label: 'Beban Cicilan', score: debtScore, max: 25, status: debtStatus },
+        { label: 'Kondisi Kas', score: cashflowScore, max: 25, status: cashflowStatus },
       ],
       tips,
     };
@@ -164,11 +164,11 @@ export function FinancialHealthScore({
                 Skor Kesehatan Finansial
               </h3>
               <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded-md border', evaluation.gradeColor)}>
-                Grade {evaluation.grade}
+                Kategori {evaluation.grade}
               </span>
             </div>
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-              Evaluasi 4 pilar: tabungan, pagu anggaran, rasio utang & kas
+              Evaluasi 4 pilar: tabungan, anggaran, beban cicilan & kondisi kas
             </p>
           </div>
         </div>

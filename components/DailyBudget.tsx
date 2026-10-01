@@ -47,11 +47,11 @@ export function DailyBudget({
             <Utensils className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-semibold text-sm text-zinc-900 dark:text-white leading-tight">
-              Pacing Makan Harian
+            <h3 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white leading-tight">
+              Jatah Makan Harian
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
-              Siklus: {label}
+              Periode: {label}
             </p>
           </div>
         </div>
@@ -66,7 +66,7 @@ export function DailyBudget({
       <div className="bg-stone-50/70 dark:bg-zinc-800/40 rounded-xl p-3.5 sm:p-5 border border-stone-200/60 dark:border-zinc-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 min-w-0">
         <div className="min-w-0">
           <span className="text-[11px] sm:text-xs font-medium text-zinc-500 dark:text-zinc-400 block mb-1">
-            Jatah Aman Konsumsi Hari Ini
+            Jatah Belanja Makan Hari Ini
           </span>
           <div className="flex items-baseline gap-1.5 sm:gap-2">
             <span className="font-sans font-bold text-2xl sm:text-3xl md:text-4xl text-zinc-900 dark:text-white tabular-nums break-words">
@@ -75,7 +75,7 @@ export function DailyBudget({
             <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">/ hari</span>
           </div>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
-            Target ideal: <strong className="text-zinc-800 dark:text-zinc-200 font-semibold">{formatCurrency(dailyTarget)}/hari</strong> ({totalDays} hari siklus).
+            Target ideal: <strong className="text-zinc-800 dark:text-zinc-200 font-semibold">{formatCurrency(dailyTarget)}/hari</strong> ({totalDays} hari periode).
           </p>
         </div>
 
@@ -90,12 +90,12 @@ export function DailyBudget({
             {isOverBudget ? (
               <>
                 <AlertCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                <span>Perlu Rem Belanja</span>
+                <span>Perlu Dihemat</span>
               </>
             ) : (
               <>
                 <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                <span>Pacing Terkendali</span>
+                <span>Pengeluaran Aman</span>
               </>
             )}
           </span>
@@ -129,7 +129,7 @@ export function DailyBudget({
         </div>
 
         <div className="flex justify-between items-center text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 pt-0.5 gap-2">
-          <span className="truncate">Pagu: {formatCurrency(foodBudgetTotal)}</span>
+          <span className="truncate">Total Anggaran: {formatCurrency(foodBudgetTotal)}</span>
           <span className="flex-shrink-0">Rata-rata: {formatCurrency(dailyActual)}/hari</span>
         </div>
       </div>
