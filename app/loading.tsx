@@ -7,13 +7,14 @@ export default function DashboardLoading() {
       <div className="flex flex-col items-center justify-center py-6 sm:py-8 space-y-3">
         <div className="relative flex items-center justify-center">
           <div className="absolute w-16 h-16 rounded-2xl bg-emerald-500/20 dark:bg-emerald-400/20 animate-ping" />
-          <div className="relative w-14 h-14 rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 p-1.5 shadow-md flex items-center justify-center overflow-hidden">
+          <div className="relative w-16 h-16 rounded-2xl bg-white border border-stone-200/80 dark:border-zinc-700/80 p-1.5 shadow-md flex items-center justify-center overflow-hidden">
             <Image
               src="/logo.png"
               alt="Memuat My Budget"
-              width={48}
-              height={48}
+              width={64}
+              height={64}
               className="w-full h-full object-contain rounded-xl animate-pulse"
+              unoptimized
               priority
             />
           </div>

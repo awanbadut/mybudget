@@ -59,7 +59,7 @@ export function InstallPWA() {
       <div className="fixed bottom-20 left-3 right-3 md:left-auto md:right-6 md:bottom-6 md:w-96 z-40 bg-zinc-900 text-white p-3.5 sm:p-4 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.18)] border border-stone-800 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-5">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden p-0.5 border border-white/20 shadow-sm">
-            <Image src="/logo.png" alt="My Budget" width={40} height={40} className="w-full h-full object-contain rounded-lg" />
+            <Image src="/logo.png" alt="My Budget" width={40} height={40} className="w-full h-full object-contain rounded-lg" unoptimized />
           </div>
           <div className="min-w-0">
             <p className="text-xs sm:text-sm font-bold truncate text-white">Download My Budget di HP</p>

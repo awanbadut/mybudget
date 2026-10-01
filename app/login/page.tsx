@@ -37,16 +37,18 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#FAFAF9] dark:bg-zinc-950 flex items-center justify-center p-4 font-sans text-zinc-900 dark:text-zinc-100 transition-colors">
       <div className="w-full max-w-md space-y-6">
         {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <div className="w-14 h-14 bg-white border border-stone-200/80 dark:border-zinc-700/80 rounded-2xl flex items-center justify-center mx-auto shadow-sm overflow-hidden p-1">
-            <Image src="/logo.png" alt="My Budget" width={56} height={56} className="w-full h-full object-contain rounded-xl" priority />
+        <div className="text-center space-y-3">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white border border-stone-200/80 dark:border-zinc-700/80 rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto shadow-md overflow-hidden p-1.5 sm:p-2">
+            <Image src="/logo.png" alt="My Budget Logo" width={80} height={80} className="w-full h-full object-contain rounded-xl" unoptimized priority />
           </div>
-          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 dark:text-white tracking-tight">
-            My Budget
-          </h1>
-          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-            Masuk untuk mengelola keuangan dan siklus gaji pribadimu
-          </p>
+          <div className="space-y-1">
+            <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 dark:text-white tracking-tight">
+              My Budget
+            </h1>
+            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
+              Masuk untuk mengelola keuangan dan siklus gaji pribadimu
+            </p>
+          </div>
         </div>
 
         {/* Card */}

@@ -44,8 +44,8 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
       {/* Brand Header */}
       <div className="p-5 border-b border-stone-100 dark:border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-white border border-stone-200/80 dark:border-zinc-700/80 shadow-sm flex items-center justify-center flex-shrink-0 overflow-hidden p-0.5">
-            <Image src="/logo.png" alt="My Budget" width={32} height={32} className="w-full h-full object-contain rounded-lg" priority />
+          <div className="w-9 h-9 rounded-xl bg-white border border-stone-200/80 dark:border-zinc-700/80 shadow-sm flex items-center justify-center flex-shrink-0 overflow-hidden p-0.5">
+            <Image src="/logo.png" alt="My Budget" width={36} height={36} className="w-full h-full object-contain rounded-lg" unoptimized priority />
           </div>
           <div>
             <h1 className="font-bold text-sm text-zinc-900 dark:text-white leading-none">
