@@ -18,16 +18,16 @@ export function MobileTopHeader() {
       <Link href="/" className="flex items-center gap-2.5 active:scale-95 transition-transform">
         <div className="w-[32px] h-[38px] flex items-center justify-center flex-shrink-0">
           <Image
-            src="/logo-light.png"
+            src="/logo-v4-light.png"
             alt="My Budget"
             width={776}
             height={935}
-            className="w-full h-full object-contain dark:hidden"
+            className="w-full h-full object-contain block dark:hidden"
             unoptimized
             priority
           />
           <Image
-            src="/logo-dark.png"
+            src="/logo-v4-dark.png"
             alt="My Budget"
             width={776}
             height={935}

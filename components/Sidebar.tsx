@@ -46,16 +46,16 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-[46px] h-[56px] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
             <Image
-              src="/logo-light.png"
+              src="/logo-v4-light.png"
               alt="My Budget"
               width={776}
               height={935}
-              className="w-full h-full object-contain dark:hidden"
+              className="w-full h-full object-contain block dark:hidden"
               unoptimized
               priority
             />
             <Image
-              src="/logo-dark.png"
+              src="/logo-v4-dark.png"
               alt="My Budget"
               width={776}
               height={935}

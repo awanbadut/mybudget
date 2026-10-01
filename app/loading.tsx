@@ -9,16 +9,16 @@ export default function DashboardLoading() {
           <div className="absolute w-20 h-20 rounded-3xl bg-emerald-500/20 dark:bg-emerald-400/20 animate-ping" />
           <div className="relative w-20 h-20 rounded-3xl bg-white dark:bg-zinc-900 border border-stone-200/90 dark:border-zinc-700/80 p-1.5 shadow-md flex items-center justify-center overflow-hidden">
             <Image
-              src="/logo-light.png"
+              src="/logo-v4-light.png"
               alt="Memuat My Budget"
               width={80}
               height={80}
-              className="w-full h-full object-contain animate-pulse dark:hidden"
+              className="w-full h-full object-contain animate-pulse block dark:hidden"
               unoptimized
               priority
             />
             <Image
-              src="/logo-dark.png"
+              src="/logo-v4-dark.png"
               alt="Memuat My Budget"
               width={80}
               height={80}
