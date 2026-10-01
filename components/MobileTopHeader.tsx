@@ -16,13 +16,22 @@ export function MobileTopHeader() {
   return (
     <header className="md:hidden sticky top-0 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-stone-200/80 dark:border-zinc-800 px-3.5 py-2.5 flex items-center justify-between transition-colors shadow-xs">
       <Link href="/" className="flex items-center gap-2.5 active:scale-95 transition-transform">
-        <div className="w-10 h-10 rounded-xl bg-white border border-stone-200/90 dark:border-zinc-700/80 shadow-xs flex items-center justify-center overflow-hidden p-0.5 flex-shrink-0">
+        <div className="w-9 h-9 flex items-center justify-center flex-shrink-0">
           <Image
             src="/logo.png"
             alt="My Budget"
-            width={40}
-            height={40}
-            className="w-full h-full object-contain"
+            width={36}
+            height={36}
+            className="w-full h-full object-contain dark:hidden"
+            unoptimized
+            priority
+          />
+          <Image
+            src="/logo-dark.png"
+            alt="My Budget"
+            width={36}
+            height={36}
+            className="w-full h-full object-contain hidden dark:block"
             unoptimized
             priority
           />

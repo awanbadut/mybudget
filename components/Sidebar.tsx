@@ -44,8 +44,25 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
       {/* Brand Header */}
       <div className="p-5 border-b border-stone-100 dark:border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-white border border-stone-200/90 dark:border-zinc-700/80 shadow-sm flex items-center justify-center flex-shrink-0 overflow-hidden p-0.5">
-            <Image src="/logo.png" alt="My Budget" width={48} height={48} className="w-full h-full object-contain" unoptimized priority />
+          <div className="w-11 h-11 flex items-center justify-center flex-shrink-0">
+            <Image
+              src="/logo.png"
+              alt="My Budget"
+              width={44}
+              height={44}
+              className="w-full h-full object-contain dark:hidden"
+              unoptimized
+              priority
+            />
+            <Image
+              src="/logo-dark.png"
+              alt="My Budget"
+              width={44}
+              height={44}
+              className="w-full h-full object-contain hidden dark:block"
+              unoptimized
+              priority
+            />
           </div>
           <div>
             <h1 className="font-bold text-base text-zinc-900 dark:text-white leading-tight">
