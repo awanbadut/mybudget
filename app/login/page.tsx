@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Loader2, Wallet } from 'lucide-react';
+import Image from 'next/image';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { loginAction } from '@/actions/auth';
 
 export default function LoginPage() {
@@ -37,8 +38,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="w-11 h-11 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
-            <Wallet className="w-6 h-6 stroke-[2.2]" />
+          <div className="w-14 h-14 bg-white border border-stone-200/80 dark:border-zinc-700/80 rounded-2xl flex items-center justify-center mx-auto shadow-sm overflow-hidden p-1">
+            <Image src="/logo.png" alt="My Budget" width={56} height={56} className="w-full h-full object-contain rounded-xl" priority />
           </div>
           <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 dark:text-white tracking-tight">
             My Budget

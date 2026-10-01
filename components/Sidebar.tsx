@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, ArrowLeftRight, PieChart, CreditCard, Target, BarChart3, Settings, LogOut, ShieldCheck, Wallet } from 'lucide-react';
+import { Home, ArrowLeftRight, PieChart, CreditCard, Target, BarChart3, Settings, LogOut, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { logoutAction } from '@/actions/auth';
 import { useTransition } from 'react';
@@ -43,8 +44,8 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
       {/* Brand Header */}
       <div className="p-5 border-b border-stone-100 dark:border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center shadow-sm">
-            <Wallet className="w-4 h-4 stroke-[2.2]" />
+          <div className="w-8 h-8 rounded-xl bg-white border border-stone-200/80 dark:border-zinc-700/80 shadow-sm flex items-center justify-center flex-shrink-0 overflow-hidden p-0.5">
+            <Image src="/logo.png" alt="My Budget" width={32} height={32} className="w-full h-full object-contain rounded-lg" priority />
           </div>
           <div>
             <h1 className="font-bold text-sm text-zinc-900 dark:text-white leading-none">

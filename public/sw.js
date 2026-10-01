@@ -1,9 +1,12 @@
-const CACHE_NAME = 'mybudget-v1';
+const CACHE_NAME = 'mybudget-v2';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/icons/icon-192x192.jpg',
-  '/icons/icon-512x512.jpg',
+  '/logo.png',
+  '/favicon.png',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/icons/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', (event) => {

@@ -1,6 +1,30 @@
+import Image from 'next/image';
+
 export default function DashboardLoading() {
   return (
-    <div className="space-y-5 sm:space-y-7 w-full max-w-full min-w-0 overflow-x-hidden animate-pulse font-sans">
+    <div className="space-y-6 sm:space-y-8 w-full max-w-full min-w-0 overflow-x-hidden font-sans">
+      {/* Brand Loading Animation Banner */}
+      <div className="flex flex-col items-center justify-center py-6 sm:py-8 space-y-3">
+        <div className="relative flex items-center justify-center">
+          <div className="absolute w-16 h-16 rounded-2xl bg-emerald-500/20 dark:bg-emerald-400/20 animate-ping" />
+          <div className="relative w-14 h-14 rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 p-1.5 shadow-md flex items-center justify-center overflow-hidden">
+            <Image
+              src="/logo.png"
+              alt="Memuat My Budget"
+              width={48}
+              height={48}
+              className="w-full h-full object-contain rounded-xl animate-pulse"
+              priority
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:-0.3s]" />
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:-0.15s]" />
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" />
+          <span className="ml-1 text-[11px] tracking-wide">Memuat data keuangan...</span>
+        </div>
+      </div>
       {/* Header Skeleton */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 min-w-0">
         <div className="space-y-2">
