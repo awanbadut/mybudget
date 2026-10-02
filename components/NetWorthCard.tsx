@@ -35,12 +35,12 @@ export function NetWorthCard({
   }, [totalSavings, currentBalance, totalPendingDebt]);
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] p-4 sm:p-5 transition-colors space-y-3.5">
+    <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl border border-zinc-200/80 dark:border-zinc-700/50 shadow-[0_1px_4px_rgba(0,0,0,0.03)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.20)] p-4 sm:p-5 transition-colors space-y-3.5">
       {/* Top Header */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900/40">
-            <Landmark className="w-4 h-4 stroke-[2.2]" />
+          <div className="w-8 h-8 rounded-xl bg-indigo-100/80 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <Landmark className="w-4 h-4" strokeWidth={2.2} />
           </div>
           <div>
             <h3 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white leading-none">
@@ -102,14 +102,14 @@ export function NetWorthCard({
 
       {/* Proportion Bar */}
       <div className="space-y-1.5">
-        <div className="w-full bg-rose-200 dark:bg-rose-950/60 h-2 rounded-full overflow-hidden flex">
+        <div className="w-full bg-rose-200 dark:bg-rose-950/60 h-[3px] rounded-full overflow-hidden flex">
           <div
-            className="bg-emerald-500 dark:bg-emerald-400 h-full transition-all duration-500"
+            className="bg-emerald-500 dark:bg-emerald-400 h-full transition-all duration-700"
             style={{ width: `${assetRatio}%` }}
             title={`Aset: ${assetRatio}%`}
           />
         </div>
-        <div className="flex justify-between text-[10px] text-zinc-400 dark:text-zinc-500">
+        <div className="flex justify-between text-[10.5px] text-zinc-400 dark:text-zinc-500">
           <span>Aset: {assetRatio}%</span>
           <span>Utang: {100 - assetRatio}%</span>
         </div>

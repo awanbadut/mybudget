@@ -204,30 +204,29 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="space-y-5 sm:space-y-7 w-full max-w-full min-w-0 overflow-x-hidden">
+    <div className="space-y-5 sm:space-y-6 w-full max-w-full min-w-0 overflow-x-hidden">
       {/* ═══════════ Header ═══════════ */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 min-w-0">
+      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 min-w-0 pt-1">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1 min-w-0">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          <div className="flex flex-wrap items-center gap-2 mb-2.5 min-w-0">
+            <span className="text-[12px] font-medium text-zinc-400 dark:text-zinc-500">
               {formatMonth(currentMonth, currentYear)}
             </span>
-            <span className="text-zinc-300 dark:text-zinc-600">·</span>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 max-w-full truncate">
-              <Calendar className="w-3 h-3 text-zinc-400 flex-shrink-0" />
-              <span className="truncate">Siklus Gajian tgl {salaryDate} ({payrollCycle.daysRemaining} hari lagi)</span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-[3px] rounded-full text-[11px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 max-w-full truncate border border-zinc-200/70 dark:border-zinc-700/50">
+              <Calendar className="w-3 h-3 flex-shrink-0" strokeWidth={2} />
+              <span className="truncate">Siklus {salaryDate} · {payrollCycle.daysRemaining} hari lagi</span>
             </div>
           </div>
 
-          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 dark:text-white tracking-tight leading-tight">
-            Halo, {user?.name || 'Pengguna'}
+          <h1 className="font-bold text-[1.75rem] sm:text-[2.1rem] text-zinc-900 dark:text-white tracking-tight leading-[1.15]">
+            Halo, {user?.name || 'Pengguna'} 👋
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-            Berikut ringkasan dan status kesehatan finansial pribadimu.
+          <p className="text-[13px] text-zinc-400 dark:text-zinc-500 mt-1">
+            Berikut ringkasan keuangan pribadimu.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto flex-shrink-0">
           <OnboardingModal
             initialSalary={userSettings?.salary || 0}
             initialSalaryDate={salaryDate}
@@ -236,9 +235,9 @@ export default async function DashboardPage() {
           />
           <Link
             href="/transactions?action=new"
-            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2.5 rounded-xl text-[13px] font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.14)] dark:shadow-[0_2px_8px_rgba(255,255,255,0.08)] transition-all active:scale-[0.97] whitespace-nowrap"
           >
-            <Plus className="w-4 h-4 flex-shrink-0" />
+            <Plus className="w-4 h-4 flex-shrink-0" strokeWidth={2.5} />
             <span>Catat Transaksi</span>
           </Link>
         </div>
@@ -295,30 +294,21 @@ export default async function DashboardPage() {
 
       {/* ═══════════ Cicilan Jatuh Tempo ═══════════ */}
       {pendingInstallments.length > 0 && (
-        <section className="space-y-2.5 sm:space-y-3 w-full min-w-0">
-          <div className="flex items-center justify-between px-1">
-            <div>
-              <h2 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white">Cicilan Bulan Ini</h2>
-              <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">Tagihan yang jatuh tempo siklus ini</p>
-            </div>
-            <Link href="/debts" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center gap-1 transition-colors">
-              <span>Kelola</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-amber-200/70 dark:border-amber-900/60 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden transition-colors">
+        <section className="space-y-3 w-full min-w-0">
+          <SectionHeader title="Cicilan Bulan Ini" desc="Tagihan jatuh tempo siklus ini" href="/debts" linkLabel="Kelola" />
+          <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl border border-amber-200/60 dark:border-amber-900/40 shadow-[0_1px_4px_rgba(0,0,0,0.03)] overflow-hidden transition-colors">
             {pendingInstallments.map((inst: any, i: number) => (
-              <div key={inst.id} className={`flex items-center justify-between px-4 py-3 ${i > 0 ? 'border-t border-stone-100 dark:border-zinc-800' : ''}`}>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
-                    <Calendar className="w-3.5 h-3.5" />
+              <div key={inst.id} className={`flex items-center justify-between px-4 sm:px-5 py-3.5 ${i > 0 ? 'border-t border-zinc-100 dark:border-zinc-800/80' : ''}`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100/80 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+                    <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-zinc-900 dark:text-white">Cicilan ke-{inst.installmentNumber}</p>
-                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400">Jatuh tempo: {inst.dueDate}</p>
+                    <p className="text-[13.5px] font-semibold text-zinc-900 dark:text-white">Cicilan ke-{inst.installmentNumber}</p>
+                    <p className="text-[11.5px] text-zinc-400 dark:text-zinc-500">Jatuh tempo: {inst.dueDate}</p>
                   </div>
                 </div>
-                <span className="font-sans font-bold text-xs tabular-nums text-amber-700 dark:text-amber-400">{formatCurrency(inst.amount)}</span>
+                <span className="font-bold text-[13.5px] tabular-nums text-amber-700 dark:text-amber-400">{formatCurrency(inst.amount)}</span>
               </div>
             ))}
           </div>
@@ -326,22 +316,8 @@ export default async function DashboardPage() {
       )}
 
       {/* ═══════════ Anggaran Bulanan Kategori ═══════════ */}
-      <section className="space-y-2.5 sm:space-y-3 w-full min-w-0">
-        <div className="flex items-center justify-between px-1">
-          <div>
-            <h2 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white">
-              Anggaran Pos Pengeluaran
-            </h2>
-            <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">Batas pengeluaran per pos belanja periode ini</p>
-          </div>
-          <Link
-            href="/budget"
-            className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center gap-1 transition-colors"
-          >
-            <span>Kelola</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+      <section className="space-y-3 w-full min-w-0">
+        <SectionHeader title="Anggaran" desc="Batas belanja per pos siklus ini" href="/budget" linkLabel="Kelola" />
         <BudgetProgress budgets={budgetWithSpending} />
       </section>
 
@@ -354,23 +330,9 @@ export default async function DashboardPage() {
 
       {/* ═══════════ Target Tabungan ═══════════ */}
       {savingsGoalsList.length > 0 && (
-        <section className="space-y-2.5 sm:space-y-3 w-full min-w-0">
-          <div className="flex items-center justify-between px-1">
-            <div>
-              <h2 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white">
-                Target Tabungan
-              </h2>
-              <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">Progres pencapaian simpanan dana</p>
-            </div>
-            <Link
-              href="/savings"
-              className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center gap-1 transition-colors"
-            >
-              <span>Lihat Semua</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full min-w-0">
+        <section className="space-y-3 w-full min-w-0">
+          <SectionHeader title="Target Tabungan" desc="Progres simpanan dana" href="/savings" linkLabel="Lihat Semua" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full min-w-0">
             {savingsGoalsList.slice(0, 2).map(goal => (
               <SavingsGoalCard key={goal.id} goal={goal} />
             ))}
@@ -392,30 +354,49 @@ export default async function DashboardPage() {
       />
 
       {/* ═══════════ Transaksi Terbaru ═══════════ */}
-      <section className="space-y-2.5 sm:space-y-3 w-full min-w-0">
-        <div className="flex items-center justify-between px-1">
-          <div>
-            <h2 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white">
-              Transaksi Terbaru
-            </h2>
-            <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400">Riwayat transaksi terakhir Anda</p>
-          </div>
-          <Link
-            href="/transactions"
-            className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center gap-1 transition-colors"
-          >
-            <span>Buku Lengkap</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+      <section className="space-y-3 w-full min-w-0">
+        <SectionHeader title="Transaksi Terbaru" desc="Riwayat transaksi terakhir" href="/transactions" linkLabel="Lihat Semua" />
         <RecentTransactions transactions={recentTransactions} />
       </section>
 
-      {/* ═══════════ Clean Minimal Footer ═══════════ */}
-      <footer className="pt-6 pb-4 border-t border-stone-200/60 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-400 dark:text-zinc-500 text-center sm:text-left">
-        <p>My Budget · Disiplin Finansial Siklus {salaryDate} ke {salaryDate}</p>
-        <p>Data tersimpan privat & aman</p>
+      {/* Footer */}
+      <footer className="pt-5 pb-2 border-t border-zinc-200/60 dark:border-zinc-800/60 flex flex-col sm:flex-row items-center justify-between gap-1.5 text-[11.5px] text-zinc-400 dark:text-zinc-600 text-center sm:text-left">
+        <p>My Budget · Siklus {salaryDate}</p>
+        <p>Data tersimpan privat &amp; aman</p>
       </footer>
+    </div>
+  );
+}
+
+/* ─── Section Header Component ─── */
+function SectionHeader({
+  title,
+  desc,
+  href,
+  linkLabel,
+}: {
+  title: string;
+  desc?: string;
+  href: string;
+  linkLabel: string;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <div>
+        <h2 className="font-bold text-[15px] sm:text-[16px] text-zinc-900 dark:text-white leading-tight">
+          {title}
+        </h2>
+        {desc && (
+          <p className="text-[11.5px] text-zinc-400 dark:text-zinc-500 mt-0.5">{desc}</p>
+        )}
+      </div>
+      <Link
+        href={href}
+        className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center gap-0.5 transition-colors py-1 px-1 -mr-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+      >
+        <span>{linkLabel}</span>
+        <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
+      </Link>
     </div>
   );
 }

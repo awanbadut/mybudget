@@ -71,12 +71,12 @@ export function ForecastCard({
   }, [balance, totalExpense, effectiveIncome, elapsedDays, daysRemaining]);
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] p-4 sm:p-5 transition-colors space-y-3.5">
+    <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl border border-zinc-200/80 dark:border-zinc-700/50 shadow-[0_1px_4px_rgba(0,0,0,0.03)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.20)] p-4 sm:p-5 transition-colors space-y-3.5">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-100 dark:border-blue-900/40">
-            <Compass className="w-4 h-4 stroke-[2.2]" />
+          <div className="w-8 h-8 rounded-xl bg-indigo-100/80 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <Compass className="w-4 h-4" strokeWidth={2.2} />
           </div>
           <div>
             <h3 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-white leading-none">
@@ -96,35 +96,35 @@ export function ForecastCard({
       {/* Grid Prediction Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
         {/* Rata-rata Belanja Harian */}
-        <div className="p-3 rounded-xl bg-stone-50/70 dark:bg-zinc-800/40 border border-stone-200/50 dark:border-zinc-800">
-          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block font-medium">Rata-rata Belanja Harian</span>
-          <p className="font-sans font-bold text-sm sm:text-base text-zinc-900 dark:text-white tabular-nums mt-0.5">
+        <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/60 dark:border-zinc-700/60">
+          <span className="text-[11px] text-zinc-400 dark:text-zinc-500 block font-medium">Rata-rata Harian</span>
+          <p className="font-bold text-[14px] sm:text-[15px] text-zinc-900 dark:text-white tabular-nums mt-1">
             {formatCurrency(calculation.dailyBurnRate)}
             <span className="text-[10px] text-zinc-400 font-normal"> /hari</span>
           </p>
-          <span className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5 block">
-            Dari {elapsedDays} hari berjalan
+          <span className="text-[10.5px] text-zinc-400 dark:text-zinc-500 mt-0.5 block">
+            {elapsedDays} hari berjalan
           </span>
         </div>
 
         {/* Batas Belanja Aman */}
-        <div className="p-3 rounded-xl bg-stone-50/70 dark:bg-zinc-800/40 border border-stone-200/50 dark:border-zinc-800">
-          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block font-medium">Batas Belanja per Hari</span>
-          <p className="font-sans font-bold text-sm sm:text-base text-emerald-600 dark:text-emerald-400 tabular-nums mt-0.5">
+        <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/60 dark:border-zinc-700/60">
+          <span className="text-[11px] text-zinc-400 dark:text-zinc-500 block font-medium">Batas Aman/Hari</span>
+          <p className="font-bold text-[14px] sm:text-[15px] text-emerald-600 dark:text-emerald-400 tabular-nums mt-1">
             {formatCurrency(calculation.safeDailyCeiling)}
             <span className="text-[10px] text-zinc-400 font-normal"> /hari</span>
           </p>
-          <span className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5 block">
-            Untuk {daysRemaining} hari ke depan
+          <span className="text-[10.5px] text-zinc-400 dark:text-zinc-500 mt-0.5 block">
+            {daysRemaining} hari ke depan
           </span>
         </div>
 
         {/* Estimasi Saldo saat Gajian */}
-        <div className="p-3 rounded-xl bg-stone-50/70 dark:bg-zinc-800/40 border border-stone-200/50 dark:border-zinc-800">
-          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block font-medium">Estimasi Saldo saat Gajian</span>
+        <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/60 dark:border-zinc-700/60">
+          <span className="text-[11px] text-zinc-400 dark:text-zinc-500 block font-medium">Est. Saldo Gajian</span>
           <p
             className={cn(
-              'font-sans font-bold text-sm sm:text-base tabular-nums mt-0.5',
+              'font-bold text-[14px] sm:text-[15px] tabular-nums mt-1',
               calculation.projectedEndingBalance >= 0
                 ? 'text-zinc-900 dark:text-white'
                 : 'text-rose-600 dark:text-rose-400'
@@ -133,7 +133,7 @@ export function ForecastCard({
             {calculation.projectedEndingBalance < 0 ? '-' : ''}
             {formatCurrency(Math.abs(calculation.projectedEndingBalance))}
           </p>
-          <span className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5 block">
+          <span className="text-[10.5px] text-zinc-400 dark:text-zinc-500 mt-0.5 block">
             Tanggal {salaryDate} mendatang
           </span>
         </div>

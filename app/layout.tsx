@@ -24,7 +24,7 @@ const fontSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'My Budget - Kelola Keuangan Pribadi',
+  title: 'My Budget — Kelola Keuangan Pribadi',
   description: 'Aplikasi pencatatan keuangan pribadi yang simpel, elegan, dan terstruktur',
   manifest: '/manifest.json',
   icons: {
@@ -43,15 +43,13 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'My Budget',
   },
-  formatDetection: {
-    telephone: false,
-  },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FAFAF9' },
-    { media: '(prefers-color-scheme: dark)', color: '#09090B' },
+    { media: '(prefers-color-scheme: light)', color: '#F8F8F8' },
+    { media: '(prefers-color-scheme: dark)', color: '#0F0F0F' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -60,11 +58,7 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   let session = null;
   try {
     session = await getSession();
@@ -84,29 +78,43 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                const theme = localStorage.getItem('theme');
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (theme === 'dark' || (!theme && prefersDark)) {
-                  document.documentElement.classList.add('dark');
-                } else {
-                  document.documentElement.classList.remove('dark');
-                }
+                const t = localStorage.getItem('theme');
+                const p = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (t === 'dark' || (!t && p)) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
               } catch (_) {}
             `,
           }}
         />
       </head>
-      <body className={`${fontSans.variable} ${fontMono.variable} font-sans bg-[#FAFAF9] dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 min-h-screen antialiased selection:bg-zinc-900 selection:text-white dark:selection:bg-zinc-100 dark:selection:text-zinc-900 w-full max-w-full overflow-x-hidden transition-colors duration-150`}>
-        <div className="flex min-h-screen w-full max-w-full overflow-x-hidden">
+      <body
+        className={`
+          ${fontSans.variable} ${fontMono.variable} font-sans
+          bg-[#F8F8F8] dark:bg-[#0F0F0F]
+          text-zinc-900 dark:text-zinc-50
+          min-h-[100dvh] antialiased
+          selection:bg-zinc-900 selection:text-white
+          dark:selection:bg-zinc-100 dark:selection:text-zinc-900
+          w-full max-w-full overflow-x-hidden
+          transition-colors duration-200
+        `}
+      >
+        <div className="flex min-h-[100dvh] w-full max-w-full overflow-x-hidden">
           {/* Desktop Sidebar */}
           {session && (
             <Sidebar userName={session.name} userRole={session.role} />
           )}
 
           {/* Main Content */}
-          <main className={`flex-1 ${session ? 'md:ml-64' : ''} pb-24 md:pb-10 min-w-0 w-full max-w-full overflow-x-hidden`}>
+          <main
+            className={`
+              flex-1 min-w-0 w-full max-w-full overflow-x-hidden
+              ${session ? 'md:ml-64' : ''}
+              pb-28 md:pb-12
+            `}
+          >
             {session && <MobileTopHeader />}
-            <div className="w-full max-w-md sm:max-w-xl md:max-w-4xl lg:max-w-5xl mx-auto px-3.5 sm:px-6 py-3.5 md:py-8 min-w-0">
+            <div className="w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto px-4 sm:px-6 py-4 md:py-10 min-w-0">
               {children}
             </div>
           </main>

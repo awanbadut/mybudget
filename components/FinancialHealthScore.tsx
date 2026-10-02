@@ -152,11 +152,11 @@ export function FinancialHealthScore({
   }, [savingRate, totalIncome, monthlyDebtAmount, budgets, balance, daysRemaining]);
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] p-4 sm:p-5 transition-colors">
+    <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl border border-zinc-200/80 dark:border-zinc-700/50 shadow-[0_1px_4px_rgba(0,0,0,0.03)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.20)] p-4 sm:p-5 transition-colors">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-100 dark:border-emerald-900/40">
-            <Activity className="w-4 h-4 stroke-[2.2]" />
+          <div className="w-8 h-8 rounded-xl bg-emerald-100/80 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <Activity className="w-4 h-4" strokeWidth={2.2} />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
@@ -184,20 +184,20 @@ export function FinancialHealthScore({
           <button
             type="button"
             onClick={() => setExpanded(!expanded)}
-            className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+            className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
             title="Lihat rincian skor"
           >
-            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {expanded ? <ChevronUp className="w-4 h-4" strokeWidth={2} /> : <ChevronDown className="w-4 h-4" strokeWidth={2} />}
           </button>
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="mt-3 w-full bg-stone-100 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
+      <div className="mt-3.5 w-full bg-zinc-100 dark:bg-zinc-800 h-[3px] rounded-full overflow-hidden">
         <div
           className={cn(
-            'h-full rounded-full transition-all duration-500',
-            evaluation.totalScore >= 80 ? 'bg-emerald-500' : evaluation.totalScore >= 60 ? 'bg-blue-500' : 'bg-amber-500'
+            'h-full rounded-full transition-all duration-700',
+            evaluation.totalScore >= 80 ? 'bg-emerald-500' : evaluation.totalScore >= 60 ? 'bg-indigo-500' : 'bg-amber-500'
           )}
           style={{ width: `${evaluation.totalScore}%` }}
         />
