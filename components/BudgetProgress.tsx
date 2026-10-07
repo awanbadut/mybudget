@@ -93,8 +93,10 @@ export function BudgetProgress({ budgets }: BudgetProgressProps) {
         const pct     = Math.min(budget.percentage, 100);
         const iconName = budget.category?.icon || 'MoreHorizontal';
         const Icon    = ICON_MAP[iconName] || MoreHorizontal;
-        const isOver     = budget.percentage > 90;
-        const isWarning  = budget.percentage >= 70 && budget.percentage <= 90;
+        
+        const isOver     = budget.percentage > 100;
+        const isWarning  = budget.percentage >= 75 && budget.percentage < 100;
+        const isExact    = budget.percentage === 100;
 
         const barColor = isOver
           ? 'bg-rose-500'
@@ -107,6 +109,12 @@ export function BudgetProgress({ budgets }: BudgetProgressProps) {
           : isWarning
             ? 'text-amber-600 dark:text-amber-400'
             : 'text-emerald-600 dark:text-emerald-400';
+
+        const statusText = isOver 
+          ? 'Melebihi batas' 
+          : isExact 
+            ? 'Tepat target' 
+            : `${budget.percentage}% terpakai`;
 
         return (
           <div
@@ -145,7 +153,7 @@ export function BudgetProgress({ budgets }: BudgetProgressProps) {
             {/* Row 3: status */}
             <div className="flex justify-between items-center">
               <span className={cn('text-[11.5px] font-semibold', statusColor)}>
-                {budget.percentage}% terpakai
+                {statusText}
               </span>
               <span
                 className={cn(

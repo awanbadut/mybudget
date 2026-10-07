@@ -2,89 +2,66 @@
 
 import Link from 'next/link';
 import {
-  ArrowUpRight,
-  ArrowDownLeft,
-  Target,
+  Plus,
+  Minus,
+  PiggyBank,
   CreditCard,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 
 const actions = [
   {
     href: '/transactions?action=new&type=expense',
     label: 'Pengeluaran',
     desc: 'Catat belanja',
-    icon: ArrowUpRight,
-    iconClass: 'bg-rose-500',
-    badgeClass: 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400',
+    icon: Minus,
+    color: 'bg-rose-500 dark:bg-rose-500',
+    ring: 'ring-rose-500/20',
   },
   {
     href: '/transactions?action=new&type=income',
     label: 'Pemasukan',
     desc: 'Catat gaji',
-    icon: ArrowDownLeft,
-    iconClass: 'bg-emerald-500',
-    badgeClass: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400',
+    icon: Plus,
+    color: 'bg-emerald-500 dark:bg-emerald-500',
+    ring: 'ring-emerald-500/20',
   },
   {
     href: '/savings',
     label: 'Tabungan',
     desc: 'Pos simpanan',
-    icon: Target,
-    iconClass: 'bg-indigo-500',
-    badgeClass: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400',
+    icon: PiggyBank,
+    color: 'bg-indigo-500 dark:bg-indigo-500',
+    ring: 'ring-indigo-500/20',
   },
   {
     href: '/debts',
     label: 'Cicilan',
     desc: 'Jadwal bayar',
     icon: CreditCard,
-    iconClass: 'bg-amber-500',
-    badgeClass: 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400',
+    color: 'bg-zinc-700 dark:bg-zinc-600',
+    ring: 'ring-zinc-500/20',
   },
 ];
 
 export function QuickActions() {
   return (
-    <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full min-w-0">
+    <div className="grid grid-cols-4 gap-2 sm:gap-2.5 w-full min-w-0">
       {actions.map((action) => {
         const Icon = action.icon;
         return (
           <Link
             key={action.href}
             href={action.href}
-            className="
-              group flex flex-col items-center gap-2 py-3.5 px-1
-              rounded-2xl
-              bg-white dark:bg-[#1c1c1e]
-              border border-zinc-200/70 dark:border-zinc-700/40
-              shadow-[0_1px_2px_rgba(0,0,0,0.04)]
-              dark:shadow-[0_1px_4px_rgba(0,0,0,0.20)]
-              hover:border-zinc-300 dark:hover:border-zinc-600
-              hover:shadow-[0_2px_8px_rgba(0,0,0,0.07)]
-              active:scale-[0.96]
-              transition-all duration-150
-              touch-manipulation min-w-0
-            "
+            className="group flex flex-col items-center gap-2.5 py-4 px-1.5 rounded-2xl bg-white dark:bg-[#1c1c1e] border border-zinc-200/60 dark:border-zinc-800/60 hover:border-zinc-300/80 dark:hover:border-zinc-700/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.20)] active:scale-[0.96] transition-all duration-150 touch-manipulation min-w-0"
           >
-            {/* Icon bubble */}
-            <div
-              className={`
-                w-10 h-10 sm:w-11 sm:h-11 rounded-xl
-                flex items-center justify-center flex-shrink-0
-                ${action.iconClass}
-                shadow-sm
-                group-hover:scale-105 transition-transform duration-150
-              `}
-            >
-              <Icon className="w-5 h-5 text-white" strokeWidth={2.2} />
+            <div className={`w-10 h-10 rounded-[13px] ${action.color} ring-[3px] ${action.ring} flex items-center justify-center flex-shrink-0 group-hover:scale-[1.06] transition-transform duration-150`}>
+              <Icon size={18} weight={action.icon === Plus || action.icon === Minus ? 'bold' : 'fill'} className="text-white" />
             </div>
-
-            {/* Label */}
-            <div className="text-center min-w-0">
-              <p className="font-semibold text-[12px] sm:text-[13px] text-zinc-800 dark:text-zinc-100 leading-tight truncate w-full">
+            <div className="text-center min-w-0 w-full">
+              <p className="font-semibold text-[12px] sm:text-[13px] text-zinc-800 dark:text-zinc-100 leading-tight truncate">
                 {action.label}
               </p>
-              <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5 leading-tight truncate">
+              <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5 leading-tight truncate hidden sm:block">
                 {action.desc}
               </p>
             </div>

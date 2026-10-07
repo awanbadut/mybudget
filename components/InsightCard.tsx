@@ -32,19 +32,25 @@ export function InsightCard({
     if (budget.amount > 0 && budget.percentage >= 85 && budget.percentage < 100) {
       insights.push({
         type: 'warning',
-        text: `Pengeluaran ${budget.category?.name || 'kategori'} telah mencapai ${budget.percentage}% dari alokasi yang ditentukan.`,
+        text: `Pengeluaran ${budget.category?.name || 'kategori'} mendekati batas (${budget.percentage}%) — sisakan sedikit ruang`,
       });
     }
-    if (budget.amount > 0 && budget.percentage >= 100) {
+    if (budget.amount > 0 && budget.percentage === 100) {
+      insights.push({
+        type: 'success',
+        text: `Pengeluaran ${budget.category?.name || 'kategori'} sudah sesuai alokasi — tepat target!`,
+      });
+    }
+    if (budget.amount > 0 && budget.percentage > 100) {
       insights.push({
         type: 'warning',
-        text: `Budget ${budget.category?.name || 'kategori'} telah melampaui batas yang direncanakan bulan ini.`,
+        text: `Pengeluaran ${budget.category?.name || 'kategori'} melebihi alokasi ${budget.percentage}% — perlu diperhatikan`,
       });
     }
     if (budget.amount > 0 && budget.percentage < 50 && budget.spent > 0) {
       insights.push({
         type: 'success',
-        text: `Pengeluaran ${budget.category?.name || 'kategori'} terkendali sangat baik (di bawah 50%).`,
+        text: `Pengeluaran ${budget.category?.name || 'kategori'} sangat terkendali (hanya ${budget.percentage}%) — bagus!`,
       });
     }
   }
