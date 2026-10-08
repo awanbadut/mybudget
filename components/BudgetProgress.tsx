@@ -1,31 +1,22 @@
 import { formatCurrency } from '@/lib/currency';
-import { cn } from '@/lib/utils';
 import {
-  Home,
-  UtensilsCrossed,
-  CreditCard,
-  Music,
-  ShoppingBag,
-  Car,
-  ShoppingCart,
-  FileText,
-  Heart,
-  MoreHorizontal,
-  PieChart,
-} from 'lucide-react';
+  House, ForkKnife, CreditCard, MusicNotes, Bag, Car,
+  ShoppingCart, FileText, Heart, DotsThree, ChartPie,
+} from '@phosphor-icons/react/dist/ssr';
+import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 const ICON_MAP: Record<string, React.ElementType> = {
-  Home,
-  UtensilsCrossed,
+  Home: House,
+  UtensilsCrossed: ForkKnife,
   CreditCard,
-  Music,
-  ShoppingBag,
+  Music: MusicNotes,
+  ShoppingBag: Bag,
   Car,
   ShoppingCart,
   FileText,
   Heart,
-  MoreHorizontal,
+  MoreHorizontal: DotsThree,
 };
 
 interface BudgetItem {
@@ -49,22 +40,13 @@ interface BudgetProgressProps {
 export function BudgetProgress({ budgets }: BudgetProgressProps) {
   if (budgets.length === 0) {
     return (
-      <div className="
-        bg-white dark:bg-[#1c1c1e]
-        rounded-2xl
-        border border-zinc-200/80 dark:border-zinc-700/50
-        p-8 text-center space-y-4
-        shadow-[0_1px_4px_rgba(0,0,0,0.03)]
-        transition-colors
-      ">
-        <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 flex items-center justify-center mx-auto">
-          <PieChart className="w-5 h-5" strokeWidth={1.8} />
+      <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 p-10 text-center space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-colors">
+        <div className="w-11 h-11 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 flex items-center justify-center mx-auto">
+          <ChartPie size={20} weight="regular" />
         </div>
         <div>
-          <p className="font-semibold text-[15px] text-zinc-900 dark:text-white">
-            Belum Ada Anggaran
-          </p>
-          <p className="text-[13px] text-zinc-400 dark:text-zinc-500 mt-1 max-w-xs mx-auto">
+          <p className="font-semibold text-[14px] text-zinc-900 dark:text-white">Belum ada anggaran</p>
+          <p className="text-[12.5px] text-zinc-400 dark:text-zinc-500 mt-1 max-w-xs mx-auto leading-snug">
             Tetapkan batas belanja per kategori untuk mengontrol pengeluaran.
           </p>
         </div>
@@ -79,59 +61,52 @@ export function BudgetProgress({ budgets }: BudgetProgressProps) {
   }
 
   return (
-    <div className="
-      bg-white dark:bg-[#1c1c1e]
-      rounded-2xl
-      border border-zinc-200/80 dark:border-zinc-700/50
-      shadow-[0_1px_4px_rgba(0,0,0,0.03)]
-      dark:shadow-[0_1px_4px_rgba(0,0,0,0.20)]
-      divide-y divide-zinc-100 dark:divide-zinc-800/80
-      overflow-hidden
-      transition-colors
-    ">
-      {budgets.map((budget) => {
-        const pct     = Math.min(budget.percentage, 100);
+    <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.20)] overflow-hidden transition-colors">
+      {budgets.map((budget, index) => {
+        const pct = Math.min(budget.percentage, 100);
         const iconName = budget.category?.icon || 'MoreHorizontal';
-        const Icon    = ICON_MAP[iconName] || MoreHorizontal;
-        
-        const isOver     = budget.percentage > 100;
-        const isWarning  = budget.percentage >= 75 && budget.percentage < 100;
-        const isExact    = budget.percentage === 100;
+        const Icon = ICON_MAP[iconName] || DotsThree;
 
-        const barColor = isOver
-          ? 'bg-rose-500'
-          : isWarning
-            ? 'bg-amber-500'
-            : 'bg-emerald-500';
+        // Fixed threshold: 100% = success, >100% = over, 75-99% = warning, <75% = safe
+        const isExact   = budget.percentage === 100;
+        const isOver    = budget.percentage > 100;
+        const isWarning = budget.percentage >= 75 && budget.percentage < 100;
+        const isSafe    = budget.percentage < 75;
 
+        const barColor = isOver ? 'bg-rose-500' : isExact ? 'bg-emerald-500' : isWarning ? 'bg-amber-400' : 'bg-emerald-500';
+        const statusText = isOver
+          ? `Melebihi ${budget.percentage - 100}%`
+          : isExact
+          ? 'Tepat target'
+          : `${budget.percentage}% terpakai`;
         const statusColor = isOver
           ? 'text-rose-600 dark:text-rose-400'
+          : isExact
+          ? 'text-emerald-600 dark:text-emerald-400'
           : isWarning
-            ? 'text-amber-600 dark:text-amber-400'
-            : 'text-emerald-600 dark:text-emerald-400';
+          ? 'text-amber-600 dark:text-amber-400'
+          : 'text-emerald-600 dark:text-emerald-400';
 
-        const statusText = isOver 
-          ? 'Melebihi batas' 
-          : isExact 
-            ? 'Tepat target' 
-            : `${budget.percentage}% terpakai`;
+        const isLast = index === budgets.length - 1;
 
         return (
           <div
             key={budget.id}
-            className="px-4 sm:px-5 py-4 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30 transition-colors space-y-3"
+            className={cn(
+              'px-4 sm:px-5 py-4 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/25 transition-colors',
+              !isLast && 'border-b border-zinc-100/80 dark:border-zinc-800/60'
+            )}
           >
             {/* Row 1: icon + name + amounts */}
-            <div className="flex justify-between items-center gap-3">
+            <div className="flex justify-between items-center gap-3 mb-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-[15px] h-[15px]" strokeWidth={1.8} />
+                <div className="w-8 h-8 rounded-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 flex items-center justify-center flex-shrink-0">
+                  <Icon size={14} weight="regular" />
                 </div>
                 <span className="font-semibold text-[13.5px] text-zinc-900 dark:text-white truncate">
                   {budget.category?.name || 'Kategori'}
                 </span>
               </div>
-
               <div className="text-right flex-shrink-0">
                 <span className="font-bold text-[13.5px] text-zinc-900 dark:text-white tabular-nums">
                   {formatCurrency(budget.spent)}
@@ -143,26 +118,22 @@ export function BudgetProgress({ budgets }: BudgetProgressProps) {
             </div>
 
             {/* Row 2: progress track */}
-            <div className="w-full h-[3px] bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+            <div className="w-full h-[4px] bg-zinc-100 dark:bg-zinc-800/80 rounded-full overflow-hidden mb-2">
               <div
                 className={cn('h-full rounded-full transition-all duration-500', barColor)}
                 style={{ width: `${pct}%` }}
               />
             </div>
 
-            {/* Row 3: status */}
+            {/* Row 3: status + remaining */}
             <div className="flex justify-between items-center">
-              <span className={cn('text-[11.5px] font-semibold', statusColor)}>
+              <span className={cn('text-[11px] font-semibold', statusColor)}>
                 {statusText}
               </span>
-              <span
-                className={cn(
-                  'text-[11.5px] tabular-nums',
-                  budget.remaining >= 0
-                    ? 'text-zinc-400 dark:text-zinc-500'
-                    : 'text-rose-600 dark:text-rose-400 font-semibold'
-                )}
-              >
+              <span className={cn(
+                'text-[11px] tabular-nums',
+                budget.remaining >= 0 ? 'text-zinc-400 dark:text-zinc-500' : 'text-rose-600 dark:text-rose-400 font-semibold'
+              )}>
                 {budget.remaining >= 0
                   ? `Sisa ${formatCurrency(budget.remaining)}`
                   : `Lebih ${formatCurrency(Math.abs(budget.remaining))}`}

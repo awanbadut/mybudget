@@ -1,6 +1,7 @@
 import { formatCurrency } from '@/lib/currency';
 import { calculateProgress } from '@/lib/calculations';
-import { Target } from 'lucide-react';
+import { Target } from '@phosphor-icons/react/dist/ssr';
+import Link from 'next/link';
 
 interface SavingsGoal {
   id: string;
@@ -12,40 +13,44 @@ interface SavingsGoal {
 
 export function SavingsGoalCard({ goal }: { goal: SavingsGoal }) {
   const progress = calculateProgress(goal.currentAmount, goal.targetAmount);
+  const remaining = goal.targetAmount - goal.currentAmount;
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-3 transition-colors">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100/70 dark:border-indigo-800/60">
-            <Target className="w-4 h-4" />
+    <Link href="/savings" className="block group">
+      <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 p-4 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] space-y-3.5 transition-all hover:shadow-[0_4px_16px_rgba(0,0,0,0.07)] dark:hover:shadow-[0_4px_16px_rgba(0,0,0,0.30)] hover:border-zinc-300/60 dark:hover:border-zinc-700/70 active:scale-[0.99]">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-[10px] bg-indigo-100/80 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0">
+              <Target size={15} weight="fill" />
+            </div>
+            <h4 className="font-semibold text-[13px] text-zinc-900 dark:text-white leading-tight truncate">
+              {goal.name}
+            </h4>
           </div>
-          <div>
-            <h4 className="font-semibold text-sm text-zinc-900 dark:text-white leading-tight">{goal.name}</h4>
-            {goal.deadline && <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Target: 1 tahun</p>}
-          </div>
-        </div>
-
-        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-100/80 dark:border-indigo-800/60">
-          {progress}%
-        </span>
-      </div>
-
-      <div className="space-y-1.5 pt-1">
-        <div className="flex justify-between text-xs">
-          <span className="text-zinc-500 dark:text-zinc-400 tabular-nums">
-            Terkumpul: <strong className="text-zinc-900 dark:text-white font-semibold">{formatCurrency(goal.currentAmount)}</strong>
+          <span className="flex-shrink-0 text-[11px] font-bold tabular-nums px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 border border-indigo-100/80 dark:border-indigo-900/60">
+            {progress}%
           </span>
-          <span className="font-semibold text-zinc-900 dark:text-white tabular-nums">{formatCurrency(goal.targetAmount)}</span>
         </div>
 
-        <div className="w-full bg-stone-100 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-indigo-600 rounded-full transition-all"
-            style={{ width: `${progress}%` }}
-          />
+        {/* Progress bar */}
+        <div className="space-y-2">
+          <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-[5px] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <div className="flex justify-between items-baseline">
+            <span className="text-[12px] font-bold text-zinc-900 dark:text-white tabular-nums">
+              {formatCurrency(goal.currentAmount)}
+            </span>
+            <span className="text-[11px] text-zinc-400 dark:text-zinc-500 tabular-nums">
+              Sisa {formatCurrency(remaining)}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
