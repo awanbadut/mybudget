@@ -93,22 +93,22 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-150',
+                'group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)]',
                 isActive
-                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
+                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-[0_2px_8px_rgba(0,0,0,0.14)] dark:shadow-[0_2px_8px_rgba(255,255,255,0.10)]'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 hover:translate-x-0.5'
               )}
             >
               <Icon
                 className={cn(
-                  'w-[17px] h-[17px] flex-shrink-0 transition-colors',
+                  'w-[17px] h-[17px] flex-shrink-0 transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)]',
                   isActive
                     ? 'text-white dark:text-zinc-900'
-                    : 'text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300'
+                    : 'text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 group-hover:scale-[1.08]'
                 )}
                 strokeWidth={isActive ? 2.2 : 1.8}
               />
-              <span>{item.label}</span>
+              <span className="tracking-[-0.01em]">{item.label}</span>
             </Link>
           );
         })}
