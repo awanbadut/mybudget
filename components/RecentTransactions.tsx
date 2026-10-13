@@ -2,7 +2,7 @@ import { formatCurrency } from '@/lib/currency';
 import { formatDateShort } from '@/lib/dates';
 import {
   House, ForkKnife, CreditCard, MusicNotes, Bag, Car,
-  ShoppingCart, FileText, Heart, DotsThree, TrendUp, Money, Gift, Laptop,
+  ShoppingCart, FileText, Heart, DotsThree, TrendUp, Money, Gift, Laptop, ArrowsLeftRight,
 } from '@phosphor-icons/react/dist/ssr';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -60,8 +60,9 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden transition-colors">
       {transactions.map((tx, index) => {
         const isIncome = tx.type === 'income';
+        const isTransfer = tx.type === 'transfer';
         const iconName = tx.category?.icon || 'MoreHorizontal';
-        const Icon = ICON_MAP[iconName] || DotsThree;
+        const Icon = isTransfer ? ArrowsLeftRight : (ICON_MAP[iconName] || DotsThree);
         const isLast = index === transactions.length - 1;
 
         return (
@@ -77,11 +78,13 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
             <div className="flex items-center gap-3 min-w-0">
               <div className={cn(
                 'w-9 h-9 rounded-[11px] flex items-center justify-center flex-shrink-0',
-                isIncome
+                isTransfer
+                  ? 'bg-blue-600 text-white'
+                  : isIncome
                   ? 'bg-green-600 text-white'
                   : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300'
               )}>
-                <Icon size={16} weight={isIncome ? 'bold' : 'regular'} />
+                <Icon size={16} weight={isTransfer || isIncome ? 'bold' : 'regular'} />
               </div>
               <div className="min-w-0">
                 <p className="font-semibold text-[13.5px] text-zinc-900 dark:text-white truncate leading-tight">
@@ -89,7 +92,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate">
-                    {tx.category?.name || 'Umum'}
+                    {isTransfer ? 'Transfer Antar Dompet' : (tx.category?.name || 'Umum')}
                   </span>
                   <span className="text-zinc-300 dark:text-zinc-700 text-[9px] select-none">·</span>
                   <span className="text-[11px] text-zinc-400 dark:text-zinc-500 flex-shrink-0">
@@ -103,15 +106,15 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
             <div className="text-right flex-shrink-0">
               <p className={cn(
                 'font-bold text-[14px] tabular-nums leading-tight',
-                isIncome ? 'text-green-600 dark:text-green-500' : 'text-zinc-900 dark:text-white'
+                isTransfer ? 'text-blue-600 dark:text-blue-400' : isIncome ? 'text-green-600 dark:text-green-500' : 'text-zinc-900 dark:text-white'
               )}>
-                {isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
+                {isTransfer ? '⇄ ' : isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
               </p>
               <span className={cn(
                 'text-[10px] font-medium block mt-0.5',
-                isIncome ? 'text-green-600 dark:text-green-500' : 'text-zinc-400 dark:text-zinc-500'
+                isTransfer ? 'text-blue-600 dark:text-blue-400' : isIncome ? 'text-green-600 dark:text-green-500' : 'text-zinc-400 dark:text-zinc-500'
               )}>
-                {isIncome ? 'Masuk' : 'Keluar'}
+                {isTransfer ? 'Transfer' : isIncome ? 'Masuk' : 'Keluar'}
               </span>
             </div>
           </Link>

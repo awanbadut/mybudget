@@ -1,12 +1,11 @@
 'use server';
 
 import { db } from '@/db';
-import { savingsGoals, savingsTransactions } from '@/db/schema';
+import { savingsGoals, savingsTransactions, transactions, categories, accounts } from '@/db/schema';
 import { SavingsGoalSchema, SavingsTransactionSchema } from '@/lib/validation';
 import { safeRevalidate, getUserId } from '@/lib/server-utils';
-import { revalidatePath } from 'next/cache';
+import { ensureAccountsTable } from '@/actions/accounts';
 import { eq, and } from 'drizzle-orm';
-
 
 export async function createSavingsGoal(data: unknown) {
   try {
@@ -51,6 +50,7 @@ export async function deleteSavingsGoal(id: string) {
 
 export async function addSavings(data: unknown) {
   try {
+    await ensureAccountsTable();
     const validated = SavingsTransactionSchema.parse(data);
     const userId = await getUserId();
     
@@ -65,8 +65,43 @@ export async function addSavings(data: unknown) {
     if (!goal) {
       return { success: false, error: 'Target tabungan tidak ditemukan.' };
     }
+
+    let linkedCashTxId: string | null = null;
+
+    // If deductFromCash is true, record matching expense in cash ledger
+    if (validated.deductFromCash) {
+      // Find category for tabungan
+      let savingsCat = await db.query.categories.findFirst({
+        where: (c, { and: a, eq: e }) => a(e(c.userId, userId), e(c.name, 'Tabungan'), e(c.type, 'expense')),
+      });
+      if (!savingsCat) {
+        savingsCat = await db.query.categories.findFirst({
+          where: (c, { and: a, eq: e }) => a(e(c.userId, userId), e(c.type, 'expense')),
+        });
+      }
+
+      const [cashTx] = await db.insert(transactions).values({
+        userId,
+        categoryId: savingsCat?.id || null,
+        accountId: validated.accountId || null,
+        type: 'expense',
+        name: `Setor Tabungan: ${goal.name}`,
+        amount: validated.amount,
+        transactionDate: validated.transactionDate,
+        note: validated.note ? `[Tabungan] ${validated.note}` : `[Alokasi ke target: ${goal.name}]`,
+      }).returning();
+
+      linkedCashTxId = cashTx.id;
+    }
     
-    await db.insert(savingsTransactions).values(validated);
+    await db.insert(savingsTransactions).values({
+      savingsGoalId: validated.savingsGoalId,
+      amount: validated.amount,
+      transactionDate: validated.transactionDate,
+      note: validated.note,
+      accountId: validated.accountId || null,
+      transactionId: linkedCashTxId,
+    });
     
     // Update current amount
     await db.update(savingsGoals)
@@ -78,6 +113,8 @@ export async function addSavings(data: unknown) {
     
     safeRevalidate('/savings');
     safeRevalidate('/');
+    safeRevalidate('/transactions');
+    safeRevalidate('/reports');
     return { success: true };
   } catch (error) {
     console.error('addSavings error:', error);
@@ -87,6 +124,7 @@ export async function addSavings(data: unknown) {
 
 export async function deleteSavingsTransaction(id: string, goalId: string) {
   try {
+    await ensureAccountsTable();
     const userId = await getUserId();
     
     // Verify goal belongs to user
@@ -95,13 +133,19 @@ export async function deleteSavingsTransaction(id: string, goalId: string) {
     });
     if (!goal) return { success: false, error: 'Target tabungan tidak ditemukan.' };
 
-    // Get the transaction amount before deleting
+    // Get the transaction before deleting
     const tx = await db.query.savingsTransactions.findFirst({
       where: (t, { eq: e }) => e(t.id, id),
     });
     if (!tx) return { success: false, error: 'Setoran tidak ditemukan.' };
 
-    // Delete transaction
+    // If there is a linked cash expense transaction, delete it to refund the wallet balance
+    if (tx.transactionId) {
+      await db.delete(transactions)
+        .where(and(eq(transactions.id, tx.transactionId), eq(transactions.userId, userId)));
+    }
+
+    // Delete savings transaction
     await db.delete(savingsTransactions).where(eq(savingsTransactions.id, id));
 
     // Update currentAmount
@@ -110,8 +154,10 @@ export async function deleteSavingsTransaction(id: string, goalId: string) {
       .set({ currentAmount: newAmount, updatedAt: new Date() })
       .where(eq(savingsGoals.id, goalId));
 
-    revalidatePath('/savings');
-    revalidatePath('/');
+    safeRevalidate('/savings');
+    safeRevalidate('/');
+    safeRevalidate('/transactions');
+    safeRevalidate('/reports');
     return { success: true };
   } catch (error) {
     console.error('deleteSavingsTransaction error:', error);

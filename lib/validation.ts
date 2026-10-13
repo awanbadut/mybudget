@@ -1,9 +1,29 @@
 import { z } from 'zod';
 
+export const AccountSchema = z.object({
+  name: z.string().min(1, 'Nama dompet harus diisi').max(255),
+  type: z.enum(['bank', 'ewallet', 'cash', 'other']).default('bank'),
+  accountNumber: z.string().max(100).optional().nullable(),
+  initialBalance: z.number().int().default(0),
+  color: z.string().max(50).default('#2563eb'),
+  icon: z.string().max(50).default('Wallet'),
+  isDefault: z.boolean().default(false),
+});
+
+export const TransferSchema = z.object({
+  fromAccountId: z.string().uuid('Pilih dompet asal'),
+  toAccountId: z.string().uuid('Pilih dompet tujuan'),
+  amount: z.number().int().positive('Nominal transfer harus lebih dari 0'),
+  transactionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal tidak valid'),
+  note: z.string().max(1000).optional().nullable(),
+});
+
 export const TransactionSchema = z.object({
-  type: z.enum(['income', 'expense']),
+  type: z.enum(['income', 'expense', 'transfer']),
   name: z.string().min(1, 'Nama harus diisi').max(255),
-  categoryId: z.string().uuid('Kategori tidak valid'),
+  categoryId: z.string().uuid('Kategori tidak valid').optional().nullable(),
+  accountId: z.string().uuid('Dompet tidak valid').optional().nullable(),
+  toAccountId: z.string().uuid('Dompet tujuan tidak valid').optional().nullable(),
   amount: z.number().int().positive('Nominal harus lebih dari 0'),
   transactionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal tidak valid'),
   note: z.string().max(1000).optional().nullable(),
@@ -39,9 +59,11 @@ export const SavingsGoalSchema = z.object({
 
 export const SavingsTransactionSchema = z.object({
   savingsGoalId: z.string().uuid(),
-  amount: z.number().int().positive(),
-  transactionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  amount: z.number().int().positive('Nominal harus lebih dari 0'),
+  transactionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal tidak valid'),
   note: z.string().max(1000).optional().nullable(),
+  deductFromCash: z.boolean().default(true),
+  accountId: z.string().uuid().optional().nullable(),
 });
 
 export const SettingsSchema = z.object({

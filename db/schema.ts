@@ -51,11 +51,29 @@ export const categories = pgTable('categories', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const accounts = pgTable('accounts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 255 }).notNull(),
+  type: varchar('type', { length: 50 }).notNull().default('bank'), // 'bank' | 'ewallet' | 'cash' | 'other'
+  accountNumber: varchar('account_number', { length: 100 }),
+  initialBalance: bigint('initial_balance', { mode: 'number' }).notNull().default(0),
+  color: varchar('color', { length: 50 }).default('#2563eb'),
+  icon: varchar('icon', { length: 50 }).default('Wallet'),
+  isDefault: boolean('is_default').notNull().default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('accounts_user_id_idx').on(table.userId),
+}));
+
 export const transactions = pgTable('transactions', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  categoryId: uuid('category_id').notNull().references(() => categories.id, { onDelete: 'restrict' }),
-  type: varchar('type', { length: 20 }).notNull(), // 'income' | 'expense'
+  categoryId: uuid('category_id').references(() => categories.id, { onDelete: 'set null' }),
+  accountId: uuid('account_id').references(() => accounts.id, { onDelete: 'set null' }),
+  toAccountId: uuid('to_account_id').references(() => accounts.id, { onDelete: 'set null' }),
+  type: varchar('type', { length: 20 }).notNull(), // 'income' | 'expense' | 'transfer'
   name: varchar('name', { length: 255 }).notNull(),
   amount: bigint('amount', { mode: 'number' }).notNull(),
   transactionDate: date('transaction_date').notNull(),
@@ -67,6 +85,7 @@ export const transactions = pgTable('transactions', {
   dateIdx: index('transactions_date_idx').on(table.transactionDate),
   userDateIdx: index('transactions_user_date_idx').on(table.userId, table.transactionDate),
   categoryIdx: index('transactions_category_idx').on(table.categoryId),
+  accountIdx: index('transactions_account_idx').on(table.accountId),
 }));
 
 export const budgets = pgTable('budgets', {
@@ -128,6 +147,8 @@ export const savingsTransactions = pgTable('savings_transactions', {
   amount: bigint('amount', { mode: 'number' }).notNull(),
   transactionDate: date('transaction_date').notNull(),
   note: text('note'),
+  accountId: uuid('account_id').references(() => accounts.id, { onDelete: 'set null' }),
+  transactionId: uuid('transaction_id').references(() => transactions.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   goalIdIdx: index('savings_transactions_goal_id_idx').on(table.savingsGoalId),
@@ -152,6 +173,11 @@ export const recurringTransactions = pgTable('recurring_transactions', {
 }));
 
 // Relations
+export const accountsRelations = relations(accounts, ({ one, many }) => ({
+  user: one(users, { fields: [accounts.userId], references: [users.id] }),
+  transactions: many(transactions),
+}));
+
 export const usersRelations = relations(users, ({ one, many }) => ({
   settings: one(settings),
   categories: many(categories),
@@ -160,6 +186,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   debts: many(debts),
   savingsGoals: many(savingsGoals),
   recurringTransactions: many(recurringTransactions),
+  accounts: many(accounts),
 }));
 
 export const recurringTransactionsRelations = relations(recurringTransactions, ({ one }) => ({
@@ -180,6 +207,8 @@ export const categoriesRelations = relations(categories, ({ one, many }) => ({
 export const transactionsRelations = relations(transactions, ({ one }) => ({
   user: one(users, { fields: [transactions.userId], references: [users.id] }),
   category: one(categories, { fields: [transactions.categoryId], references: [categories.id] }),
+  account: one(accounts, { fields: [transactions.accountId], references: [accounts.id], relationName: 'fromAccount' }),
+  toAccount: one(accounts, { fields: [transactions.toAccountId], references: [accounts.id], relationName: 'toAccount' }),
 }));
 
 export const budgetsRelations = relations(budgets, ({ one }) => ({
@@ -203,4 +232,6 @@ export const savingsGoalsRelations = relations(savingsGoals, ({ one, many }) => 
 
 export const savingsTransactionsRelations = relations(savingsTransactions, ({ one }) => ({
   savingsGoal: one(savingsGoals, { fields: [savingsTransactions.savingsGoalId], references: [savingsGoals.id] }),
+  account: one(accounts, { fields: [savingsTransactions.accountId], references: [accounts.id] }),
+  transaction: one(transactions, { fields: [savingsTransactions.transactionId], references: [transactions.id] }),
 }));

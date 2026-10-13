@@ -3,10 +3,11 @@
 import { useState, useTransition } from 'react';
 import { formatCurrency } from '@/lib/currency';
 import { formatDateShort, toDateString } from '@/lib/dates';
-import { createSavingsGoal, updateSavingsGoal, deleteSavingsGoal, addSavings } from '@/actions/savings';
+import { createSavingsGoal, updateSavingsGoal, deleteSavingsGoal, addSavings, deleteSavingsTransaction } from '@/actions/savings';
+import { AccountWithBalance } from '@/actions/accounts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Target, Plus, Pencil, Trash2, PiggyBank, ChevronDown, ChevronUp } from 'lucide-react';
+import { Target, Plus, Pencil, Trash2, PiggyBank, ChevronDown, ChevronUp, Wallet } from 'lucide-react';
 import { calculateProgress } from '@/lib/calculations';
 import { cn } from '@/lib/utils';
 
@@ -15,6 +16,8 @@ interface SavingsTransaction {
   amount: number;
   transactionDate: string;
   note: string | null;
+  accountId?: string | null;
+  transactionId?: string | null;
 }
 
 interface SavingsGoal {
@@ -26,9 +29,17 @@ interface SavingsGoal {
   transactions: SavingsTransaction[];
 }
 
-export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
+export function SavingsClient({
+  goals,
+  accounts = [],
+}: {
+  goals: SavingsGoal[];
+  accounts?: AccountWithBalance[];
+}) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const defaultAccount = accounts.find(a => a.isDefault) || accounts[0];
+
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [editGoal, setEditGoal] = useState<SavingsGoal | null>(null);
   const [deleteGoalId, setDeleteGoalId] = useState<string | null>(null);
@@ -44,6 +55,8 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
   const [savingsAmount, setSavingsAmount] = useState('');
   const [savingsDate, setSavingsDate] = useState(toDateString(new Date()));
   const [savingsNote, setSavingsNote] = useState('');
+  const [deductFromCash, setDeductFromCash] = useState(true);
+  const [selectedAccountId, setSelectedAccountId] = useState(defaultAccount?.id || '');
 
   function resetGoalForm() {
     setGoalName(''); setGoalTarget(''); setGoalDeadline('');
@@ -106,10 +119,30 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
         amount,
         transactionDate: savingsDate,
         note: savingsNote || null,
+        deductFromCash,
+        accountId: deductFromCash ? (selectedAccountId || null) : null,
       });
       if (result.success) {
-        toast({ title: 'Tabungan ditambahkan! ✓', description: `+${formatCurrency(amount)}` });
-        setAddSavingsGoalId(null); setSavingsAmount(''); setSavingsNote('');
+        const accName = accounts.find(a => a.id === selectedAccountId)?.name;
+        toast({
+          title: 'Tabungan ditambahkan! ✓',
+          description: deductFromCash && accName
+            ? `+${formatCurrency(amount)} (Dipotong dari ${accName})`
+            : `+${formatCurrency(amount)}`,
+        });
+        setAddSavingsGoalId(null);
+        setSavingsAmount('');
+        setSavingsNote('');
+      }
+    });
+  }
+
+  async function handleDeleteSavingsEntry(txId: string, goalId: string) {
+    if (!confirm('Hapus setoran tabungan ini? Jika terpotong dari kas, saldo akan dikembalikan ke dompet.')) return;
+    startTransition(async () => {
+      const result = await deleteSavingsTransaction(txId, goalId);
+      if (result.success) {
+        toast({ title: 'Setoran tabungan dihapus & saldo kas dikembalikan ✓' });
       }
     });
   }
@@ -231,12 +264,34 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
                   {/* Expanded history */}
                   {isExpanded && goal.transactions.length > 0 && (
                     <div className="rounded-xl border border-stone-200/80 dark:border-zinc-800 bg-stone-50/50 dark:bg-zinc-800/50 divide-y divide-stone-100 dark:divide-zinc-800 p-2 text-xs">
-                      {goal.transactions.slice(0, 5).map(tx => (
-                        <div key={tx.id} className="flex justify-between items-center py-1.5 px-2">
-                          <span className="text-zinc-500 dark:text-zinc-400">{formatDateShort(tx.transactionDate)}</span>
-                          <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">+{formatCurrency(tx.amount)}</span>
-                        </div>
-                      ))}
+                      {goal.transactions.slice(0, 8).map(tx => {
+                        const acc = tx.accountId ? accounts.find(a => a.id === tx.accountId) : null;
+                        return (
+                          <div key={tx.id} className="flex justify-between items-center py-2 px-2.5">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-zinc-600 dark:text-zinc-300 font-medium">{formatDateShort(tx.transactionDate)}</span>
+                                {acc && (
+                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200">
+                                    {acc.name}
+                                  </span>
+                                )}
+                              </div>
+                              {tx.note && <p className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate mt-0.5">{tx.note}</p>}
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">+{formatCurrency(tx.amount)}</span>
+                              <button
+                                onClick={() => handleDeleteSavingsEntry(tx.id, goal.id)}
+                                className="p-1 text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+                                title="Hapus setoran ini"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -282,6 +337,42 @@ export function SavingsClient({ goals }: { goals: SavingsGoal[] }) {
                 onChange={e => setSavingsNote(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
               />
+            </div>
+
+            {/* Connected wallet deduction */}
+            <div className="pt-2 border-t border-stone-100 dark:border-zinc-800 space-y-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="deductFromCashCheck"
+                  checked={deductFromCash}
+                  onChange={(e) => setDeductFromCash(e.target.checked)}
+                  className="w-4 h-4 rounded text-zinc-900 focus:ring-zinc-900 dark:focus:ring-white border-stone-300 dark:border-zinc-700 cursor-pointer"
+                />
+                <label htmlFor="deductFromCashCheck" className="font-semibold text-zinc-700 dark:text-zinc-300 cursor-pointer">
+                  Potong dari Saldo Kas / Dompet
+                </label>
+              </div>
+
+              {deductFromCash && accounts.length > 0 && (
+                <div className="space-y-1.5 pl-6">
+                  <label className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Pilih Dompet Sumber Dana:</label>
+                  <select
+                    value={selectedAccountId}
+                    onChange={(e) => setSelectedAccountId(e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white font-medium focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
+                  >
+                    {accounts.map(acc => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.name} ({formatCurrency(acc.balance)})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-tight">
+                    Saldo dompet ini akan otomatis berkurang sehingga uang kas Anda tidak tercatat ganda.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">

@@ -4,10 +4,12 @@ import { db } from '@/db';
 import { transactions } from '@/db/schema';
 import { TransactionSchema } from '@/lib/validation';
 import { safeRevalidate, getUserId } from '@/lib/server-utils';
+import { ensureAccountsTable } from '@/actions/accounts';
 import { eq, and } from 'drizzle-orm';
 
 export async function createTransaction(data: unknown) {
   try {
+    await ensureAccountsTable();
     const validated = TransactionSchema.parse(data);
     const userId = await getUserId();
     await db.insert(transactions).values({

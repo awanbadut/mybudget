@@ -93,7 +93,11 @@ export function ReportsClient({ transactions, savingsGoals, debts = [] }: Props)
 
   // Lifetime liquid balance (all-time total income minus all-time total expense)
   const lifetimeCashBalance = useMemo(() => {
-    return transactions.reduce((sum, t) => t.type === 'income' ? sum + t.amount : sum - t.amount, 0);
+    return transactions.reduce((sum, t) => {
+      if (t.type === 'income') return sum + t.amount;
+      if (t.type === 'expense') return sum - t.amount;
+      return sum;
+    }, 0);
   }, [transactions]);
 
   // Total savings across all goals
@@ -118,7 +122,7 @@ export function ReportsClient({ transactions, savingsGoals, debts = [] }: Props)
       const key = `${MONTH_NAMES[m-1]} ${y}`;
       if (!map[key]) map[key] = { income: 0, expense: 0 };
       if (t.type === 'income') map[key].income += t.amount;
-      else map[key].expense += t.amount;
+      else if (t.type === 'expense') map[key].expense += t.amount;
     });
     return Object.entries(map).map(([label, data]) => ({
       label,

@@ -6,9 +6,11 @@ import { formatDateShort, toDateString } from '@/lib/dates';
 import { createTransaction, updateTransaction, deleteTransaction } from '@/actions/transactions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat, ArrowLeftRight } from 'lucide-react';
 import { RecurringManager, RecurringItem } from '@/components/RecurringManager';
+import { TransferModal } from '@/components/TransferModal';
+import { AccountWithBalance } from '@/actions/accounts';
+import { cn } from '@/lib/utils';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car,
@@ -26,6 +28,14 @@ interface Category {
   icon: string | null;
 }
 
+interface AccountRef {
+  id: string;
+  name: string;
+  type: string;
+  color: string | null;
+  icon: string | null;
+}
+
 interface Transaction {
   id: string;
   name: string;
@@ -33,13 +43,18 @@ interface Transaction {
   type: string;
   transactionDate: string;
   note: string | null;
-  categoryId: string;
-  category: Category | null;
+  categoryId?: string | null;
+  category?: Category | null;
+  accountId?: string | null;
+  account?: AccountRef | null;
+  toAccountId?: string | null;
+  toAccount?: AccountRef | null;
 }
 
 interface Props {
   transactions: Transaction[];
   categories: Category[];
+  accounts?: AccountWithBalance[];
   recurringList?: RecurringItem[];
   currentMonth?: number;
   currentYear?: number;
@@ -50,6 +65,7 @@ interface Props {
 export function TransactionListClient({
   transactions,
   categories,
+  accounts = [],
   recurringList = [],
   currentMonth = new Date().getMonth() + 1,
   currentYear = new Date().getFullYear(),
@@ -58,13 +74,17 @@ export function TransactionListClient({
 }: Props) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const defaultAccount = accounts.find(a => a.isDefault) || accounts[0];
+
   const [showForm, setShowForm] = useState(openForm || false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [subTab, setSubTab] = useState<'ledger' | 'recurring'>('ledger');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>(initialType || 'all');
+  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense' | 'transfer'>(initialType || 'all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [filterAccount, setFilterAccount] = useState<string>('all');
   const [filterMonth, setFilterMonth] = useState<string>('all');
 
   const dueRecurringCount = useMemo(() => {
@@ -77,6 +97,7 @@ export function TransactionListClient({
   const [formType, setFormType] = useState<'income' | 'expense'>(initialType || 'expense');
   const [formName, setFormName] = useState('');
   const [formCategory, setFormCategory] = useState('');
+  const [formAccount, setFormAccount] = useState(defaultAccount?.id || '');
   const [formAmount, setFormAmount] = useState('');
   const [formDate, setFormDate] = useState(toDateString(new Date()));
   const [formNote, setFormNote] = useState('');
@@ -97,23 +118,30 @@ export function TransactionListClient({
     return transactions.filter(t => {
       if (filterType !== 'all' && t.type !== filterType) return false;
       if (filterCategory !== 'all' && t.categoryId !== filterCategory) return false;
+      if (filterAccount !== 'all') {
+        const isFrom = t.accountId === filterAccount || (!t.accountId && defaultAccount?.id === filterAccount);
+        const isTo = t.toAccountId === filterAccount;
+        if (!isFrom && !isTo) return false;
+      }
       if (filterMonth !== 'all' && !t.transactionDate.startsWith(filterMonth)) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchName = t.name.toLowerCase().includes(q);
         const matchCat = t.category?.name.toLowerCase().includes(q);
+        const matchAccount = (t.account?.name || '').toLowerCase().includes(q);
         const matchNote = t.note?.toLowerCase().includes(q);
-        if (!matchName && !matchCat && !matchNote) return false;
+        if (!matchName && !matchCat && !matchAccount && !matchNote) return false;
       }
       return true;
     });
-  }, [transactions, filterType, filterCategory, filterMonth, searchQuery]);
+  }, [transactions, filterType, filterCategory, filterAccount, filterMonth, searchQuery, defaultAccount]);
 
   const filteredCategories = categories.filter(c => c.type === formType);
 
   function resetForm() {
     setFormName('');
     setFormCategory('');
+    setFormAccount(defaultAccount?.id || '');
     setFormAmount('');
     setFormDate(toDateString(new Date()));
     setFormNote('');
@@ -124,9 +152,10 @@ export function TransactionListClient({
 
   function openEdit(tx: Transaction) {
     setEditingTx(tx);
-    setFormType(tx.type as 'income' | 'expense');
+    setFormType((tx.type === 'income' ? 'income' : 'expense'));
     setFormName(tx.name);
-    setFormCategory(tx.categoryId);
+    setFormCategory(tx.categoryId || '');
+    setFormAccount(tx.accountId || defaultAccount?.id || '');
     setFormAmount(String(tx.amount));
     setFormDate(tx.transactionDate);
     setFormNote(tx.note || '');
@@ -148,7 +177,8 @@ export function TransactionListClient({
       const data = {
         type: formType,
         name: formName.trim(),
-        categoryId: formCategory,
+        categoryId: formCategory || null,
+        accountId: formAccount || null,
         amount,
         transactionDate: formDate,
         note: formNote.trim() || null,
@@ -195,13 +225,23 @@ export function TransactionListClient({
         </div>
 
         {subTab === 'ledger' && (
-          <button
-            onClick={() => { resetForm(); setShowForm(true); }}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
-          >
-            <Plus className="w-4 h-4 flex-shrink-0" />
-            <span>Catat Transaksi</span>
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setShowTransferModal(true)}
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98] touch-manipulation"
+            >
+              <ArrowLeftRight className="w-4 h-4 flex-shrink-0" />
+              <span>Transfer Saldo</span>
+            </button>
+            <button
+              onClick={() => { resetForm(); setShowForm(true); }}
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-[0.98] touch-manipulation"
+            >
+              <Plus className="w-4 h-4 flex-shrink-0" />
+              <span>Catat Transaksi</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -293,7 +333,7 @@ export function TransactionListClient({
         </div>
 
         <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 text-xs w-full min-w-0 max-w-full">
-          {(['all', 'expense', 'income'] as const).map(type => (
+          {(['all', 'expense', 'income', 'transfer'] as const).map(type => (
             <button
               key={type}
               onClick={() => setFilterType(type)}
@@ -304,9 +344,22 @@ export function TransactionListClient({
                   : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border-stone-200/80 dark:border-zinc-800 hover:bg-stone-50 dark:hover:bg-zinc-800/60'
               )}
             >
-              {type === 'all' ? 'Semua' : type === 'expense' ? 'Pengeluaran' : 'Pemasukan'}
+              {type === 'all' ? 'Semua' : type === 'expense' ? 'Pengeluaran' : type === 'income' ? 'Pemasukan' : 'Transfer Antar Dompet'}
             </button>
           ))}
+
+          {accounts.length > 0 && (
+            <select
+              value={filterAccount}
+              onChange={e => setFilterAccount(e.target.value)}
+              className="px-3 py-1.5 rounded-xl text-base sm:text-xs font-medium bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-stone-200/80 dark:border-zinc-800 outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white flex-shrink-0 transition-colors"
+            >
+              <option value="all">Semua Dompet</option>
+              {accounts.map(a => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
+          )}
 
           <select
             value={filterMonth}
@@ -338,8 +391,11 @@ export function TransactionListClient({
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] divide-y divide-stone-100 dark:divide-zinc-800 overflow-hidden w-full min-w-0 transition-colors">
           {filtered.map(tx => {
             const isIncome = tx.type === 'income';
+            const isTransfer = tx.type === 'transfer';
             const iconName = tx.category?.icon || 'MoreHorizontal';
-            const Icon = ICON_MAP[iconName] || MoreHorizontal;
+            const Icon = isTransfer ? ArrowLeftRight : (ICON_MAP[iconName] || MoreHorizontal);
+            const accountName = tx.account?.name || (tx.accountId ? accounts.find(a => a.id === tx.accountId)?.name : defaultAccount?.name);
+            const toAccountName = tx.toAccount?.name || (tx.toAccountId ? accounts.find(a => a.id === tx.toAccountId)?.name : null);
 
             return (
               <div key={tx.id} className="flex items-center justify-between gap-2.5 sm:gap-3 p-3.5 sm:p-4 hover:bg-stone-50/60 dark:hover:bg-zinc-800/40 transition-colors min-w-0">
@@ -347,7 +403,9 @@ export function TransactionListClient({
                   <div
                     className={cn(
                       'w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0',
-                      isIncome
+                      isTransfer
+                        ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
+                        : isIncome
                         ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
                         : 'bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300'
                     )}
@@ -359,15 +417,29 @@ export function TransactionListClient({
                     <p className="font-semibold text-xs sm:text-sm text-zinc-900 dark:text-white truncate">
                       {tx.name}
                     </p>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 truncate">
-                        {tx.category?.name || 'Umum'}
-                      </span>
+                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                      {isTransfer ? (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">
+                          Transfer Antar Dompet
+                        </span>
+                      ) : (
+                        <span className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                          {tx.category?.name || 'Umum'}
+                        </span>
+                      )}
+                      {accountName && (
+                        <>
+                          <span className="text-zinc-300 dark:text-zinc-600 text-xs">·</span>
+                          <span className="text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded bg-stone-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
+                            {isTransfer && toAccountName ? `${accountName} → ${toAccountName}` : accountName}
+                          </span>
+                        </>
+                      )}
                       <span className="text-zinc-300 dark:text-zinc-600 text-xs">·</span>
                       <span className="text-[10px] sm:text-xs text-zinc-400 dark:text-zinc-500 flex-shrink-0">
                         {formatDateShort(tx.transactionDate)}
                       </span>
-                      {tx.note && <span className="text-[10px] sm:text-xs text-zinc-400 dark:text-zinc-500 italic truncate max-w-[100px] hidden sm:inline">· {tx.note}</span>}
+                      {tx.note && <span className="text-[10px] sm:text-xs text-zinc-400 dark:text-zinc-500 italic truncate max-w-[120px] hidden sm:inline">· {tx.note}</span>}
                     </div>
                   </div>
                 </div>
@@ -376,20 +448,22 @@ export function TransactionListClient({
                   <div className="text-right flex-shrink-0">
                     <p className={cn(
                       'font-sans font-semibold text-xs sm:text-sm md:text-base tabular-nums',
-                      isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-900 dark:text-white'
+                      isTransfer ? 'text-blue-600 dark:text-blue-400' : isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-900 dark:text-white'
                     )}>
-                      {isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
+                      {isTransfer ? '⇄ ' : isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
                     </p>
                   </div>
 
                   <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
-                    <button
-                      onClick={() => openEdit(tx)}
-                      className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-800 rounded-lg transition-colors touch-manipulation"
-                      title="Edit"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
+                    {!isTransfer && (
+                      <button
+                        onClick={() => openEdit(tx)}
+                        className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-800 rounded-lg transition-colors touch-manipulation"
+                        title="Edit"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                     <button
                       onClick={() => setDeleteId(tx.id)}
                       className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors touch-manipulation"
@@ -459,6 +533,23 @@ export function TransactionListClient({
                 ))}
               </select>
             </div>
+
+            {accounts.length > 0 && (
+              <div className="space-y-1">
+                <label className="font-semibold text-zinc-700 dark:text-zinc-300">Sumber Dompet / Rekening</label>
+                <select
+                  value={formAccount}
+                  onChange={e => setFormAccount(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                >
+                  {accounts.map(acc => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.name} ({formatCurrency(acc.balance)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="space-y-1">
               <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nominal (Rp)</label>
@@ -561,6 +652,13 @@ export function TransactionListClient({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Transfer Modal */}
+      <TransferModal
+        open={showTransferModal}
+        onOpenChange={setShowTransferModal}
+        accounts={accounts}
+      />
     </div>
   );
 }

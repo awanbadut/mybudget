@@ -18,12 +18,22 @@ import { OnboardingModal } from '@/components/OnboardingModal';
 import { FinancialHealthScore } from '@/components/FinancialHealthScore';
 import { NetWorthCard } from '@/components/NetWorthCard';
 import { ForecastCard } from '@/components/ForecastCard';
+import { WalletCards } from '@/components/WalletCards';
+import { getAccounts } from '@/actions/accounts';
+import { postRecurringTransactions } from '@/actions/recurring';
 import Link from 'next/link';
 import { Plus, ChevronRight, AlertTriangle, Calendar } from 'lucide-react';
 
 export default async function DashboardPage() {
   const DEV_USER_ID = await getUserId();
   const { month: currentMonth, year: currentYear } = getCurrentMonth();
+
+  // Auto-post due recurring transactions for the current cycle
+  try {
+    await postRecurringTransactions(currentMonth, currentYear);
+  } catch (err) {
+    console.error('Auto post recurring error:', err);
+  }
 
   type UserSettingsType = typeof import('@/db/schema').settings.$inferSelect;
   type UserType = typeof import('@/db/schema').users.$inferSelect;
@@ -34,6 +44,7 @@ export default async function DashboardPage() {
   let monthBudgets: Array<any> = [];
   let savingsGoalsList: Array<any> = [];
   let activeDebts: Array<any> = [];
+  let userAccounts: Array<any> = [];
   let fetchError: string | null = null;
 
   try {
@@ -59,8 +70,16 @@ export default async function DashboardPage() {
           andFn(eqFn(d.userId, DEV_USER_ID), eqFn(d.status, 'active')),
         with: { installments: true },
       }),
+      getAccounts(),
     ]);
-    [userSettings, user, allTransactions, monthBudgets, savingsGoalsList, activeDebts] = data;
+    const [s, u, tx, b, g, d, accRes] = data;
+    userSettings = s;
+    user = u;
+    allTransactions = tx;
+    monthBudgets = b;
+    savingsGoalsList = g;
+    activeDebts = d;
+    userAccounts = accRes.data || [];
   } catch (err: any) {
     console.error('Error fetching dashboard data:', err);
     fetchError = err?.message || String(err);
@@ -260,6 +279,11 @@ export default async function DashboardPage() {
           effectiveIncome={effectiveIncome}
           cycleLabel={payrollCycle.label}
         />
+      </div>
+
+      {/* ═══════════ Dompet & Rekening (Multi-Wallets) ═══════════ */}
+      <div className="reveal-up reveal-up-2">
+        <WalletCards accounts={userAccounts} />
       </div>
 
       {/* ═══════════ Jatah Makan Harian & Prediksi Saldo ═══════════ */}
