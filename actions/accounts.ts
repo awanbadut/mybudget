@@ -67,17 +67,6 @@ export async function ensureAccountsTable() {
         ) THEN
           ALTER TABLE savings_transactions ADD COLUMN transaction_id UUID REFERENCES transactions(id) ON DELETE SET NULL;
         END IF;
-
-        -- Auto-migrate legacy transactions without account_id to the cash account (or earliest account)
-        IF EXISTS (SELECT 1 FROM accounts WHERE type = 'cash') THEN
-          UPDATE transactions 
-          SET account_id = (SELECT id FROM accounts WHERE type = 'cash' ORDER BY created_at ASC LIMIT 1) 
-          WHERE account_id IS NULL;
-        ELSIF EXISTS (SELECT 1 FROM accounts) THEN
-          UPDATE transactions 
-          SET account_id = (SELECT id FROM accounts ORDER BY created_at ASC LIMIT 1) 
-          WHERE account_id IS NULL;
-        END IF;
       END $$;
     `);
     tablesEnsured = true;
