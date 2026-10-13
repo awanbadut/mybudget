@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { createAccount, updateAccount, deleteAccount, AccountWithBalance } from '@/actions/accounts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -36,7 +36,19 @@ export function AccountModal({ open, onOpenChange, account, onSuccess }: Account
   const [isDefault, setIsDefault] = useState(account?.isDefault || false);
   const [error, setError] = useState('');
 
-  // Reset or initialize when opened
+  useEffect(() => {
+    if (open) {
+      setName(account?.name || '');
+      setType((account?.type as any) || 'bank');
+      setAccountNumber(account?.accountNumber || '');
+      setInitialBalance(account ? String(account.initialBalance) : '0');
+      setColor(account?.color || '#2563eb');
+      setIcon(account?.icon || (account?.type === 'ewallet' ? 'Smartphone' : account?.type === 'cash' ? 'Coins' : 'Building2'));
+      setIsDefault(account?.isDefault || false);
+      setError('');
+    }
+  }, [open, account]);
+
   const numBalance = parseInt(initialBalance.replace(/[^0-9]/g, ''), 10) || 0;
 
   function handleSubmit(e: React.FormEvent) {

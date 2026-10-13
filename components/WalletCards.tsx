@@ -112,15 +112,25 @@ export function WalletCards({ accounts }: WalletCardsProps) {
                 </div>
               </div>
 
-              {/* Balance */}
-              <div className="mt-3.5 pt-3 border-t border-stone-100 dark:border-zinc-800/80 flex items-baseline justify-between">
-                <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Saldo Dompet</span>
-                <span className={cn(
-                  'text-base font-extrabold tabular-nums tracking-tight',
-                  acc.balance >= 0 ? 'text-zinc-900 dark:text-white' : 'text-rose-600 dark:text-rose-400'
-                )}>
-                  {formatCurrency(acc.balance)}
-                </span>
+              {/* Balance & Breakdown */}
+              <div className="mt-3 pt-3 border-t border-stone-100 dark:border-zinc-800/80 space-y-1.5">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Saldo Dompet</span>
+                  <span className={cn(
+                    'text-base font-extrabold tabular-nums tracking-tight',
+                    acc.balance >= 0 ? 'text-zinc-900 dark:text-white' : 'text-rose-600 dark:text-rose-400'
+                  )}>
+                    {formatCurrency(acc.balance)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500 pt-0.5">
+                  <span>Saldo Awal: {formatCurrency(acc.initialBalance)}</span>
+                  {((acc.totalIncome || 0) > 0 || (acc.totalExpense || 0) > 0) && (
+                    <span className="font-medium text-zinc-600 dark:text-zinc-400">
+                      +{(acc.totalIncome || 0) > 0 ? formatCurrency(acc.totalIncome) : '0'} / -{(acc.totalExpense || 0) > 0 ? formatCurrency(acc.totalExpense) : '0'}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           );

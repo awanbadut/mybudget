@@ -109,7 +109,8 @@ export default async function DashboardPage() {
   const salaryDate = userSettings?.salaryDate || 25;
   const payrollCycle = getPayrollCycle(salaryDate, new Date());
 
-  // 2. Real Lifetime Cash Balance (Saldo Kas Bersih Riil Sepanjang Masa)
+  // 2. Real Available Balance across all user wallets / bank accounts
+  const totalWalletsBalance = userAccounts.reduce((sum, a) => sum + (a.balance || 0), 0);
   const totalLifetimeIncome = allTransactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -118,7 +119,8 @@ export default async function DashboardPage() {
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const realAvailableBalance = totalLifetimeIncome - totalLifetimeExpense;
+  // Total balance matches sum of all individual wallets (BCA, BNI, Cash, etc.)
+  const realAvailableBalance = userAccounts.length > 0 ? totalWalletsBalance : (totalLifetimeIncome - totalLifetimeExpense);
 
   // 3. Transactions inside active payroll cycle (25 Sep - 25 Okt)
   const cycleTransactions = allTransactions.filter(

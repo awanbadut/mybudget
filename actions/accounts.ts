@@ -67,6 +67,17 @@ export async function ensureAccountsTable() {
         ) THEN
           ALTER TABLE savings_transactions ADD COLUMN transaction_id UUID REFERENCES transactions(id) ON DELETE SET NULL;
         END IF;
+
+        -- Auto-migrate legacy transactions without account_id to the cash account (or earliest account)
+        IF EXISTS (SELECT 1 FROM accounts WHERE type = 'cash') THEN
+          UPDATE transactions 
+          SET account_id = (SELECT id FROM accounts WHERE type = 'cash' ORDER BY created_at ASC LIMIT 1) 
+          WHERE account_id IS NULL;
+        ELSIF EXISTS (SELECT 1 FROM accounts) THEN
+          UPDATE transactions 
+          SET account_id = (SELECT id FROM accounts ORDER BY created_at ASC LIMIT 1) 
+          WHERE account_id IS NULL;
+        END IF;
       END $$;
     `);
     tablesEnsured = true;
@@ -81,6 +92,8 @@ export interface AccountWithBalance {
   type: string;
   accountNumber: string | null;
   initialBalance: number;
+  totalIncome: number;
+  totalExpense: number;
   balance: number;
   color: string | null;
   icon: string | null;
@@ -120,36 +133,40 @@ export async function getAccounts(): Promise<{ success: boolean; data: AccountWi
       });
     }
 
-    // Fetch all user transactions to calculate accurate live balance per account
+    // Fetch all user transactions to calculate accurate live balance strictly per account
     const allUserTx = await db.query.transactions.findMany({
       where: (t, { eq: eqFn }) => eqFn(t.userId, userId),
     });
 
-    const defaultAcc = userAccounts.find(a => a.isDefault) || userAccounts[0];
-
     const result: AccountWithBalance[] = userAccounts.map((acc) => {
       let balance = acc.initialBalance;
+      let totalIncome = 0;
+      let totalExpense = 0;
 
       for (const tx of allUserTx) {
-        const isThisAccount = tx.accountId === acc.id || (!tx.accountId && acc.id === defaultAcc?.id);
-
-        if (tx.type === 'income' && isThisAccount) {
-          balance += tx.amount;
-        } else if (tx.type === 'expense' && isThisAccount) {
-          balance -= tx.amount;
-        } else if (tx.type === 'transfer') {
-          if (tx.toAccountId === acc.id) {
-            balance += tx.amount; // incoming transfer
+        if (tx.accountId === acc.id) {
+          if (tx.type === 'income') {
+            balance += tx.amount;
+            totalIncome += tx.amount;
+          } else if (tx.type === 'expense') {
+            balance -= tx.amount;
+            totalExpense += tx.amount;
+          } else if (tx.type === 'transfer') {
+            balance -= tx.amount; // outgoing transfer from this account
+            totalExpense += tx.amount;
           }
-          if (tx.accountId === acc.id) {
-            balance -= tx.amount; // outgoing transfer
-          }
+        }
+        if (tx.type === 'transfer' && tx.toAccountId === acc.id) {
+          balance += tx.amount; // incoming transfer to this account
+          totalIncome += tx.amount;
         }
       }
 
       return {
         ...acc,
         balance,
+        totalIncome,
+        totalExpense,
       };
     });
 

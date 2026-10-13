@@ -119,7 +119,7 @@ export function TransactionListClient({
       if (filterType !== 'all' && t.type !== filterType) return false;
       if (filterCategory !== 'all' && t.categoryId !== filterCategory) return false;
       if (filterAccount !== 'all') {
-        const isFrom = t.accountId === filterAccount || (!t.accountId && defaultAccount?.id === filterAccount);
+        const isFrom = t.accountId === filterAccount;
         const isTo = t.toAccountId === filterAccount;
         if (!isFrom && !isTo) return false;
       }
@@ -134,7 +134,7 @@ export function TransactionListClient({
       }
       return true;
     });
-  }, [transactions, filterType, filterCategory, filterAccount, filterMonth, searchQuery, defaultAccount]);
+  }, [transactions, filterType, filterCategory, filterAccount, filterMonth, searchQuery]);
 
   const filteredCategories = categories.filter(c => c.type === formType);
 
@@ -394,7 +394,7 @@ export function TransactionListClient({
             const isTransfer = tx.type === 'transfer';
             const iconName = tx.category?.icon || 'MoreHorizontal';
             const Icon = isTransfer ? ArrowLeftRight : (ICON_MAP[iconName] || MoreHorizontal);
-            const accountName = tx.account?.name || (tx.accountId ? accounts.find(a => a.id === tx.accountId)?.name : defaultAccount?.name);
+            const accountName = tx.account?.name || (tx.accountId ? accounts.find(a => a.id === tx.accountId)?.name : null);
             const toAccountName = tx.toAccount?.name || (tx.toAccountId ? accounts.find(a => a.id === tx.toAccountId)?.name : null);
 
             return (

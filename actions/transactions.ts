@@ -12,9 +12,20 @@ export async function createTransaction(data: unknown) {
     await ensureAccountsTable();
     const validated = TransactionSchema.parse(data);
     const userId = await getUserId();
+
+    let accountId = validated.accountId;
+    if (!accountId) {
+      const defaultAcc = await db.query.accounts.findFirst({
+        where: (a, { eq: eqFn }) => eqFn(a.userId, userId),
+        orderBy: (a, { desc, asc }) => [desc(a.isDefault), asc(a.name)],
+      });
+      accountId = defaultAcc?.id || null;
+    }
+
     await db.insert(transactions).values({
       userId,
       ...validated,
+      accountId,
     });
     safeRevalidate('/');
     safeRevalidate('/transactions');
@@ -32,6 +43,7 @@ export async function createTransaction(data: unknown) {
 
 export async function updateTransaction(id: string, data: unknown) {
   try {
+    await ensureAccountsTable();
     const validated = TransactionSchema.parse(data);
     const userId = await getUserId();
     await db.update(transactions)
