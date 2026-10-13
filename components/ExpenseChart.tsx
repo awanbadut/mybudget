@@ -31,7 +31,7 @@ export function ExpenseChart({ data, total }: ExpenseChartProps) {
 
   if (chartData.length === 0) {
     return (
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] w-full min-w-0 transition-colors">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] w-full min-w-0 transition-colors">
         <h3 className="font-semibold text-sm text-zinc-900 dark:text-white mb-3">
           Pengeluaran per Kategori
         </h3>
@@ -43,7 +43,7 @@ export function ExpenseChart({ data, total }: ExpenseChartProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-4 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-4 w-full min-w-0 overflow-hidden transition-colors">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-4 w-full min-w-0 overflow-hidden transition-colors">
       <div className="flex items-center justify-between gap-2">
         <h3 className="font-semibold text-xs sm:text-sm text-zinc-900 dark:text-white truncate">
           Pengeluaran per Kategori

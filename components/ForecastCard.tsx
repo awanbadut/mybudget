@@ -33,19 +33,25 @@ export function ForecastCard({
 
     let status: 'surplus' | 'warning' | 'deficit' = 'surplus';
     let statusLabel = 'Aman';
-    let statusColor = 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/60 dark:border-emerald-900/50';
+    // Solid badge colors
+    let statusBadgeClass = 'bg-green-600 text-white';
 
     const baseline = effectiveIncome > 0 ? effectiveIncome : Math.max(balance + totalExpense, 1);
 
     if (projectedEndingBalance < 0 || balance <= 0) {
       status = 'deficit';
       statusLabel = 'Berisiko';
-      statusColor = 'text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border-rose-200/60 dark:border-rose-900/50';
+      statusBadgeClass = 'bg-red-600 text-white';
     } else if (projectedEndingBalance < 0.1 * baseline) {
       status = 'warning';
       statusLabel = 'Waspada';
-      statusColor = 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border-amber-200/60 dark:border-amber-900/50';
+      statusBadgeClass = 'bg-amber-500 text-white';
     }
+
+    // Advisory box colors — solid
+    let advisoryClass = 'bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400';
+    if (status === 'deficit') advisoryClass = 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200';
+    if (status === 'warning') advisoryClass = 'bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200';
 
     return {
       dailyBurnRate,
@@ -54,16 +60,18 @@ export function ForecastCard({
       safeDailyCeiling,
       status,
       statusLabel,
-      statusColor,
+      statusBadgeClass,
+      advisoryClass,
     };
   }, [balance, totalExpense, effectiveIncome, elapsedDays, daysRemaining]);
 
   return (
-    <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.20)] p-4 sm:p-5 transition-colors space-y-4">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4 sm:p-5 transition-colors space-y-4">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-[10px] bg-indigo-100/80 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0">
+          {/* Solid icon bg */}
+          <div className="w-8 h-8 rounded-[10px] bg-blue-600 text-white flex items-center justify-center flex-shrink-0">
             <Wallet size={15} weight="fill" />
           </div>
           <div>
@@ -75,13 +83,14 @@ export function ForecastCard({
             </p>
           </div>
         </div>
-        <span className={cn('text-[11px] font-semibold px-2.5 py-1 rounded-full border flex-shrink-0', calculation.statusColor)}>
+        {/* Solid status badge */}
+        <span className={cn('text-[11px] font-bold px-3 py-1 rounded-full flex-shrink-0', calculation.statusBadgeClass)}>
           {calculation.statusLabel}
         </span>
       </div>
 
       {/* 3-metric row */}
-      <div className="grid grid-cols-3 gap-px bg-zinc-100 dark:bg-zinc-800/50 rounded-xl overflow-hidden border border-zinc-100 dark:border-zinc-800/50">
+      <div className="grid grid-cols-3 gap-px bg-zinc-100 dark:bg-zinc-800 rounded-xl overflow-hidden border border-zinc-100 dark:border-zinc-800">
         <Metric
           label="Rata-rata/hari"
           value={`${formatCurrency(calculation.dailyBurnRate)}`}
@@ -92,30 +101,23 @@ export function ForecastCard({
           label="Batas aman/hari"
           value={formatCurrency(calculation.safeDailyCeiling)}
           sub={`${daysRemaining} hari lagi`}
-          valueClass="text-emerald-600 dark:text-emerald-400"
+          valueClass="text-green-600 dark:text-green-500"
         />
         <Metric
           label="Est. saldo gajian"
           value={(calculation.projectedEndingBalance < 0 ? '-' : '') + formatCurrency(Math.abs(calculation.projectedEndingBalance))}
           sub={`Tgl ${salaryDate} mendatang`}
-          valueClass={calculation.projectedEndingBalance >= 0 ? 'text-zinc-900 dark:text-white' : 'text-rose-600 dark:text-rose-400'}
+          valueClass={calculation.projectedEndingBalance >= 0 ? 'text-zinc-900 dark:text-white' : 'text-red-600 dark:text-red-500'}
         />
       </div>
 
-      {/* Advisory */}
-      <div className={cn(
-        'p-3 rounded-xl text-[11.5px] flex items-start gap-2.5 border leading-relaxed',
-        calculation.status === 'deficit'
-          ? 'bg-rose-50 dark:bg-rose-950/30 border-rose-200/60 dark:border-rose-900/40 text-rose-800 dark:text-rose-300'
-          : calculation.status === 'warning'
-          ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-900/40 text-amber-800 dark:text-amber-300'
-          : 'bg-zinc-50 dark:bg-zinc-800/40 border-zinc-200/60 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400'
-      )}>
+      {/* Advisory — solid backgrounds */}
+      <div className={cn('p-3 rounded-xl text-[11.5px] flex items-start gap-2.5 border leading-relaxed', calculation.advisoryClass)}>
         {calculation.status === 'deficit'
-          ? <Warning size={14} weight="fill" className="text-rose-500 flex-shrink-0 mt-0.5" />
+          ? <Warning size={14} weight="fill" className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
           : calculation.status === 'warning'
-          ? <Warning size={14} weight="fill" className="text-amber-500 flex-shrink-0 mt-0.5" />
-          : <Lightning size={14} weight="fill" className="text-emerald-500 dark:text-emerald-400 flex-shrink-0 mt-0.5" />}
+          ? <Warning size={14} weight="fill" className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+          : <Lightning size={14} weight="fill" className="text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />}
         <p>
           {calculation.status === 'deficit'
             ? `Sisa saldo habis sebelum gajian jika pola belanja berlanjut. Batasi maksimal ${formatCurrency(calculation.safeDailyCeiling)}/hari.`
@@ -130,7 +132,7 @@ export function ForecastCard({
 
 function Metric({ label, value, sub, valueClass }: { label: string; value: string; sub: string; valueClass: string }) {
   return (
-    <div className="bg-white dark:bg-[#1c1c1e] px-3 py-2.5 space-y-1 min-w-0">
+    <div className="bg-white dark:bg-zinc-900 px-3 py-2.5 space-y-1 min-w-0">
       <span className="text-[10.5px] text-zinc-400 dark:text-zinc-500 font-medium block truncate">{label}</span>
       <p className={cn('font-bold text-[13px] sm:text-[14px] tabular-nums truncate leading-none', valueClass)}>{value}</p>
       <span className="text-[10px] text-zinc-400 dark:text-zinc-500 block truncate">{sub}</span>

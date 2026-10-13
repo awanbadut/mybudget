@@ -47,7 +47,7 @@ export function ThemeToggle({ className, showLabel = false }: { className?: stri
       aria-label={isDark ? 'Beralih ke mode terang' : 'Beralih ke mode gelap'}
       title={isDark ? 'Beralih ke mode terang' : 'Beralih ke mode gelap'}
       className={cn(
-        'inline-flex items-center gap-2 p-2 rounded-xl text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white bg-stone-100/80 dark:bg-zinc-800/80 hover:bg-stone-200/80 dark:hover:bg-zinc-700/80 transition-all active:scale-95 touch-manipulation',
+        'inline-flex items-center gap-2 p-2 rounded-xl text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95 touch-manipulation',
         className
       )}
     >

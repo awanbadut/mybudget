@@ -44,7 +44,7 @@ interface RecentTransactionsProps {
 export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   if (transactions.length === 0) {
     return (
-      <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 p-10 text-center space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-colors">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-8 sm:p-10 text-center space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-colors">
         <div className="w-11 h-11 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400 flex items-center justify-center mx-auto">
           <DotsThree size={20} weight="bold" />
         </div>
@@ -57,7 +57,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.20)] overflow-hidden transition-colors">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden transition-colors">
       {transactions.map((tx, index) => {
         const isIncome = tx.type === 'income';
         const iconName = tx.category?.icon || 'MoreHorizontal';
@@ -69,8 +69,8 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
             key={tx.id}
             href="/transactions"
             className={cn(
-              'flex items-center justify-between gap-3 px-4 sm:px-5 py-3.5 hover:bg-zinc-50/70 dark:hover:bg-zinc-800/30 active:bg-zinc-100/60 dark:active:bg-zinc-800/60 transition-colors group',
-              !isLast && 'border-b border-zinc-100/80 dark:border-zinc-800/60'
+              'flex items-center justify-between gap-3 px-4 sm:px-5 py-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 active:bg-zinc-100 dark:active:bg-zinc-800 transition-colors group',
+              !isLast && 'border-b border-zinc-100 dark:border-zinc-800'
             )}
           >
             {/* Icon + details */}
@@ -78,10 +78,10 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
               <div className={cn(
                 'w-9 h-9 rounded-[11px] flex items-center justify-center flex-shrink-0',
                 isIncome
-                  ? 'bg-emerald-100/80 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400'
-                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300'
               )}>
-                <Icon size={15} weight="regular" />
+                <Icon size={16} weight={isIncome ? 'bold' : 'regular'} />
               </div>
               <div className="min-w-0">
                 <p className="font-semibold text-[13.5px] text-zinc-900 dark:text-white truncate leading-tight">
@@ -91,7 +91,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                   <span className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate">
                     {tx.category?.name || 'Umum'}
                   </span>
-                  <span className="text-zinc-200 dark:text-zinc-700 text-[9px] select-none">·</span>
+                  <span className="text-zinc-300 dark:text-zinc-700 text-[9px] select-none">·</span>
                   <span className="text-[11px] text-zinc-400 dark:text-zinc-500 flex-shrink-0">
                     {formatDateShort(tx.transactionDate)}
                   </span>
@@ -103,11 +103,14 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
             <div className="text-right flex-shrink-0">
               <p className={cn(
                 'font-bold text-[14px] tabular-nums leading-tight',
-                isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-900 dark:text-white'
+                isIncome ? 'text-green-600 dark:text-green-500' : 'text-zinc-900 dark:text-white'
               )}>
                 {isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
               </p>
-              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">
+              <span className={cn(
+                'text-[10px] font-medium block mt-0.5',
+                isIncome ? 'text-green-600 dark:text-green-500' : 'text-zinc-400 dark:text-zinc-500'
+              )}>
                 {isIncome ? 'Masuk' : 'Keluar'}
               </span>
             </div>

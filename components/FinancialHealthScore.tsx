@@ -77,17 +77,17 @@ export function FinancialHealthScore({
 
     let grade = 'A';
     let gradeLabel = 'Sangat Prima';
-    let gradeColor = 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60';
-    let barColor = 'bg-emerald-500';
+    let gradeBadge = 'bg-green-600 text-white';
+    let barColor = 'bg-green-600';
 
     if (totalScore >= 85) {
-      grade = 'A'; gradeLabel = 'Sangat Prima'; gradeColor = 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60'; barColor = 'bg-emerald-500';
+      grade = 'A'; gradeLabel = 'Sangat Prima'; gradeBadge = 'bg-green-600 text-white'; barColor = 'bg-green-600';
     } else if (totalScore >= 70) {
-      grade = 'B'; gradeLabel = 'Sehat'; gradeColor = 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800/60'; barColor = 'bg-blue-500';
+      grade = 'B'; gradeLabel = 'Sehat'; gradeBadge = 'bg-blue-600 text-white'; barColor = 'bg-blue-600';
     } else if (totalScore >= 50) {
-      grade = 'C'; gradeLabel = 'Perlu Perhatian'; gradeColor = 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/60'; barColor = 'bg-amber-500';
+      grade = 'C'; gradeLabel = 'Perlu Perhatian'; gradeBadge = 'bg-amber-500 text-white'; barColor = 'bg-amber-500';
     } else {
-      grade = 'D'; gradeLabel = 'Perlu Perbaikan'; gradeColor = 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/60'; barColor = 'bg-rose-500';
+      grade = 'D'; gradeLabel = 'Perlu Perbaikan'; gradeBadge = 'bg-red-600 text-white'; barColor = 'bg-red-600';
     }
 
     const tips: string[] = [];
@@ -97,7 +97,7 @@ export function FinancialHealthScore({
     if (balance > 0 && tips.length === 0) tips.push('Pola pengeluaran konsisten. Pertahankan dan tingkatkan target tabungan.');
 
     return {
-      totalScore, grade, gradeLabel, gradeColor, barColor,
+      totalScore, grade, gradeLabel, gradeBadge, barColor,
       pillars: [
         { label: 'Porsi Tabungan', score: savingScore, max: 25, status: savingStatus },
         { label: 'Disiplin Anggaran', score: budgetScore, max: 25, status: budgetStatus },
@@ -109,11 +109,11 @@ export function FinancialHealthScore({
   }, [savingRate, totalIncome, monthlyDebtAmount, budgets, balance, daysRemaining]);
 
   return (
-    <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.20)] p-4 sm:p-5 transition-colors">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4 sm:p-5 transition-colors">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-[10px] bg-emerald-100/80 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-[10px] bg-green-600 text-white flex items-center justify-center flex-shrink-0">
             <Pulse size={15} weight="bold" />
           </div>
           <div>
@@ -121,7 +121,7 @@ export function FinancialHealthScore({
               <h3 className="font-semibold text-[13.5px] sm:text-[14.5px] text-zinc-900 dark:text-white leading-none">
                 Skor Finansial
               </h3>
-              <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded-md border', evaluation.gradeColor)}>
+              <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full', evaluation.gradeBadge)}>
                 {evaluation.grade}
               </span>
             </div>
@@ -163,13 +163,13 @@ export function FinancialHealthScore({
             {evaluation.pillars.map(p => (
               <div
                 key={p.label}
-                className="p-2.5 rounded-xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-zinc-800/60 space-y-1.5"
+                className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 space-y-1.5"
               >
                 <div className="flex justify-between items-center text-[11px]">
                   <span className="font-medium text-zinc-600 dark:text-zinc-400">{p.label}</span>
                   <span className="font-bold text-zinc-900 dark:text-white tabular-nums">{p.score}/{p.max}</span>
                 </div>
-                <div className="w-full bg-zinc-200/80 dark:bg-zinc-700 h-[3px] rounded-full overflow-hidden">
+                <div className="w-full bg-zinc-200 dark:bg-zinc-700 h-[3px] rounded-full overflow-hidden">
                   <div className="h-full bg-zinc-900 dark:bg-white rounded-full transition-all" style={{ width: `${(p.score / p.max) * 100}%` }} />
                 </div>
                 <p className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate">{p.status}</p>
@@ -178,10 +178,10 @@ export function FinancialHealthScore({
           </div>
 
           {evaluation.tips.length > 0 && (
-            <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/60 dark:border-zinc-800 flex items-start gap-2.5">
-              <Sparkle size={14} weight="fill" className="text-amber-500 flex-shrink-0 mt-0.5" />
-              <div className="space-y-1 text-[11px] text-zinc-600 dark:text-zinc-300">
-                <span className="font-semibold text-zinc-800 dark:text-zinc-200">Saran:</span>
+            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 flex items-start gap-2.5">
+              <Sparkle size={14} weight="fill" className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className="space-y-1 text-[11px] text-amber-900 dark:text-amber-200">
+                <span className="font-semibold">Saran:</span>
                 {evaluation.tips.map((tip, idx) => (
                   <p key={idx} className="leading-relaxed">• {tip}</p>
                 ))}

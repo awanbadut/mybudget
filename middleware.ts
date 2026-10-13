@@ -16,11 +16,12 @@ const WINDOW_MS = 5 * 60 * 1000; // 5 menit
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public assets and API routes
+  // Allow public assets, static files, and API routes
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/icons') ||
+    pathname.includes('.') ||
     pathname === '/manifest.json' ||
     pathname === '/sw.js' ||
     pathname === '/favicon.ico'

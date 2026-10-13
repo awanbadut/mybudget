@@ -40,7 +40,7 @@ interface BudgetProgressProps {
 export function BudgetProgress({ budgets }: BudgetProgressProps) {
   if (budgets.length === 0) {
     return (
-      <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 p-10 text-center space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-colors">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-10 text-center space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-colors">
         <div className="w-11 h-11 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 flex items-center justify-center mx-auto">
           <ChartPie size={20} weight="regular" />
         </div>
@@ -61,7 +61,7 @@ export function BudgetProgress({ budgets }: BudgetProgressProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.20)] overflow-hidden transition-colors">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden transition-colors">
       {budgets.map((budget, index) => {
         const pct = Math.min(budget.percentage, 100);
         const iconName = budget.category?.icon || 'MoreHorizontal';
@@ -71,21 +71,17 @@ export function BudgetProgress({ budgets }: BudgetProgressProps) {
         const isExact   = budget.percentage === 100;
         const isOver    = budget.percentage > 100;
         const isWarning = budget.percentage >= 75 && budget.percentage < 100;
-        const isSafe    = budget.percentage < 75;
 
-        const barColor = isOver ? 'bg-rose-500' : isExact ? 'bg-emerald-500' : isWarning ? 'bg-amber-400' : 'bg-emerald-500';
-        const statusText = isOver
-          ? `Melebihi ${budget.percentage - 100}%`
-          : isExact
-          ? 'Tepat target'
-          : `${budget.percentage}% terpakai`;
+        // Solid colors — no pastel opacity variants
+        const barColor    = isOver ? 'bg-red-600' : isExact ? 'bg-green-600' : isWarning ? 'bg-amber-500' : 'bg-green-600';
+        const statusText  = isOver ? `Melebihi ${budget.percentage - 100}%` : isExact ? 'Tepat target' : `${budget.percentage}% terpakai`;
         const statusColor = isOver
-          ? 'text-rose-600 dark:text-rose-400'
+          ? 'text-red-600 dark:text-red-500'
           : isExact
-          ? 'text-emerald-600 dark:text-emerald-400'
+          ? 'text-green-600 dark:text-green-500'
           : isWarning
-          ? 'text-amber-600 dark:text-amber-400'
-          : 'text-emerald-600 dark:text-emerald-400';
+          ? 'text-amber-600 dark:text-amber-500'
+          : 'text-green-600 dark:text-green-500';
 
         const isLast = index === budgets.length - 1;
 
@@ -93,14 +89,14 @@ export function BudgetProgress({ budgets }: BudgetProgressProps) {
           <div
             key={budget.id}
             className={cn(
-              'px-4 sm:px-5 py-4 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/25 transition-colors',
-              !isLast && 'border-b border-zinc-100/80 dark:border-zinc-800/60'
+              'px-4 sm:px-5 py-4 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors',
+              !isLast && 'border-b border-zinc-100 dark:border-zinc-800'
             )}
           >
             {/* Row 1: icon + name + amounts */}
             <div className="flex justify-between items-center gap-3 mb-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center flex-shrink-0">
                   <Icon size={14} weight="regular" />
                 </div>
                 <span className="font-semibold text-[13.5px] text-zinc-900 dark:text-white truncate">
@@ -118,7 +114,7 @@ export function BudgetProgress({ budgets }: BudgetProgressProps) {
             </div>
 
             {/* Row 2: progress track */}
-            <div className="w-full h-[4px] bg-zinc-100 dark:bg-zinc-800/80 rounded-full overflow-hidden mb-2">
+            <div className="w-full h-[4px] bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden mb-2">
               <div
                 className={cn('h-full rounded-full transition-all duration-500', barColor)}
                 style={{ width: `${pct}%` }}
@@ -132,7 +128,7 @@ export function BudgetProgress({ budgets }: BudgetProgressProps) {
               </span>
               <span className={cn(
                 'text-[11px] tabular-nums',
-                budget.remaining >= 0 ? 'text-zinc-400 dark:text-zinc-500' : 'text-rose-600 dark:text-rose-400 font-semibold'
+                budget.remaining >= 0 ? 'text-zinc-400 dark:text-zinc-500' : 'text-red-600 dark:text-red-500 font-semibold'
               )}>
                 {budget.remaining >= 0
                   ? `Sisa ${formatCurrency(budget.remaining)}`

@@ -50,11 +50,11 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
   ];
 
   return (
-    <aside className="hidden md:flex fixed left-0 top-0 h-full w-60 flex-col z-50 select-none border-r border-zinc-200/60 dark:border-zinc-800/60 bg-white/90 dark:bg-[#141414]/90 backdrop-blur-xl">
+    <aside className="hidden md:flex fixed left-0 top-0 h-full w-60 flex-col z-50 select-none border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
       {/* Brand */}
-      <div className="h-16 px-5 flex items-center justify-between border-b border-zinc-200/50 dark:border-zinc-800/50">
+      <div className="h-16 px-5 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800">
         <Link href="/" className="flex items-center gap-2.5 min-w-0 group">
-          <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 group-hover:opacity-80 transition-opacity">
+          <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 group-hover:opacity-80 transition-opacity">
             <Image
               src="/logo-v4-light.png"
               alt="My Budget"
@@ -93,18 +93,18 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                'group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)]',
+                'group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-150',
                 isActive
-                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-[0_2px_8px_rgba(0,0,0,0.14)] dark:shadow-[0_2px_8px_rgba(255,255,255,0.10)]'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 hover:translate-x-0.5'
+                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-sm'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
               )}
             >
               <Icon
                 className={cn(
-                  'w-[17px] h-[17px] flex-shrink-0 transition-all duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)]',
+                  'w-[17px] h-[17px] flex-shrink-0 transition-colors',
                   isActive
                     ? 'text-white dark:text-zinc-900'
-                    : 'text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 group-hover:scale-[1.08]'
+                    : 'text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300'
                 )}
                 strokeWidth={isActive ? 2.2 : 1.8}
               />
@@ -115,9 +115,9 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
       </nav>
 
       {/* User dock */}
-      <div className="px-3 pb-5 border-t border-zinc-200/50 dark:border-zinc-800/50 pt-3">
+      <div className="px-3 pb-5 border-t border-zinc-200 dark:border-zinc-800 pt-3">
         {userName && (
-          <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/60 dark:border-zinc-700/50">
+          <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
             <div className="w-8 h-8 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-[13px] flex items-center justify-center flex-shrink-0 shadow-sm">
               {userName.charAt(0).toUpperCase()}
             </div>
@@ -133,7 +133,7 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
               onClick={handleLogout}
               disabled={isPending}
               title="Keluar"
-              className="p-1.5 text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-colors flex-shrink-0 active:scale-95"
+              className="p-1.5 text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors flex-shrink-0 active:scale-95"
             >
               <LogOut className="w-3.5 h-3.5" strokeWidth={2} />
             </button>

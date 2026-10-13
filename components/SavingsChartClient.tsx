@@ -9,12 +9,12 @@ interface SavingsChartClientProps {
 
 export function SavingsChartClient({ data }: SavingsChartClientProps) {
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-4 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-4 w-full min-w-0 overflow-hidden transition-colors">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-4 w-full min-w-0 overflow-hidden transition-colors">
       <div className="flex items-center justify-between gap-2">
         <h3 className="font-semibold text-xs sm:text-sm text-zinc-900 dark:text-white truncate">
           Perkembangan Tabungan
         </h3>
-        <span className="text-[11px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100/80 dark:border-emerald-800/60 px-2.5 py-0.5 rounded-full flex-shrink-0">
+        <span className="text-[11px] sm:text-xs font-semibold text-white bg-green-600 px-2.5 py-0.5 rounded-full flex-shrink-0">
           6 Bulan Terakhir
         </span>
       </div>

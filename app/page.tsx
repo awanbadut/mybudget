@@ -210,11 +210,11 @@ export default async function DashboardPage() {
         <div className="min-w-0 space-y-3">
           {/* Eyebrow tag */}
           <div className="flex flex-wrap items-center gap-2 min-w-0">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-[0.18em] bg-zinc-900/5 dark:bg-white/8 text-zinc-500 dark:text-zinc-400 border border-zinc-200/70 dark:border-zinc-700/50">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-[0.18em] bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-600 flex-shrink-0" />
               {formatMonth(currentMonth, currentYear)}
             </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-[0.12em] bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 border border-zinc-200/60 dark:border-zinc-700/40">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-[0.12em] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               <Calendar className="w-3 h-3 flex-shrink-0" strokeWidth={2} />
               Siklus {salaryDate} · {payrollCycle.daysRemaining} hari lagi
             </span>
@@ -238,11 +238,11 @@ export default async function DashboardPage() {
           />
           <Link
             href="/transactions?action=new"
-            className="press flex-1 sm:flex-initial group inline-flex items-center justify-center gap-2.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 pl-5 pr-2 py-2.5 rounded-full text-[13px] font-semibold shadow-[0_2px_12px_rgba(0,0,0,0.18)] dark:shadow-[0_2px_12px_rgba(255,255,255,0.10)] transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] whitespace-nowrap"
+            className="press flex-1 sm:flex-initial group inline-flex items-center justify-center gap-2.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 pl-5 pr-2 py-2.5 rounded-full text-[13px] font-semibold shadow-md transition-all duration-200 whitespace-nowrap"
           >
             <span>Catat Transaksi</span>
             {/* Trailing icon circle — Button-in-Button */}
-            <span className="w-7 h-7 rounded-full bg-white/15 dark:bg-black/12 flex items-center justify-center flex-shrink-0 group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]">
+            <span className="w-7 h-7 rounded-full bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
               <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
             </span>
           </Link>
@@ -306,11 +306,11 @@ export default async function DashboardPage() {
       {pendingInstallments.length > 0 && (
         <section className="space-y-3 w-full min-w-0">
           <SectionHeader title="Cicilan Bulan Ini" desc="Tagihan jatuh tempo siklus ini" href="/debts" linkLabel="Kelola" />
-          <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl border border-amber-200/60 dark:border-amber-900/40 shadow-[0_1px_4px_rgba(0,0,0,0.03)] overflow-hidden transition-colors card-hover">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-amber-300 dark:border-amber-800 shadow-[0_1px_4px_rgba(0,0,0,0.03)] overflow-hidden transition-colors">
             {pendingInstallments.map((inst: any, i: number) => (
-              <div key={inst.id} className={`flex items-center justify-between px-4 sm:px-5 py-3.5 ${i > 0 ? 'border-t border-zinc-100 dark:border-zinc-800/80' : ''}`}>
+              <div key={inst.id} className={`flex items-center justify-between px-4 sm:px-5 py-3.5 ${i > 0 ? 'border-t border-zinc-100 dark:border-zinc-800' : ''}`}>
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-amber-100/80 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0">
                     <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
                   </div>
                   <div>
@@ -318,7 +318,7 @@ export default async function DashboardPage() {
                     <p className="text-[11.5px] text-zinc-400 dark:text-zinc-500">Jatuh tempo: {inst.dueDate}</p>
                   </div>
                 </div>
-                <span className="font-bold text-[13.5px] tabular-nums text-amber-700 dark:text-amber-400">{formatCurrency(inst.amount)}</span>
+                <span className="font-bold text-[13.5px] tabular-nums text-amber-600 dark:text-amber-400">{formatCurrency(inst.amount)}</span>
               </div>
             ))}
           </div>

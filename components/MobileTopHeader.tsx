@@ -17,22 +17,10 @@ export function MobileTopHeader() {
   }
 
   return (
-    <header
-      className="
-        md:hidden sticky top-0 z-30
-        bg-white/80 dark:bg-[#0F0F0F]/82
-        backdrop-blur-2xl
-        border-b border-zinc-200/50 dark:border-zinc-800/50
-        px-4 h-14
-        flex items-center justify-between
-        transition-colors
-      "
-      style={{
-        boxShadow: '0 1px 0 rgba(0,0,0,0.04)',
-      }}
-    >
+    <header className="md:hidden sticky top-0 z-30 bg-white dark:bg-[#0F0F0F] border-b border-zinc-200 dark:border-zinc-800 px-4 h-14 flex items-center justify-between transition-colors">
       <Link href="/" className="flex items-center gap-2.5 active:opacity-70 transition-opacity">
-        <div className="w-6 h-7 flex items-center justify-center flex-shrink-0">
+        {/* Logo — ukuran lebih besar agar terlihat jelas */}
+        <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
           <Image
             src="/logo-v4-light.png"
             alt="My Budget"
