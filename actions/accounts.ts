@@ -287,16 +287,24 @@ export async function transferBetweenAccounts(data: unknown) {
       return { success: false, error: 'Dompet asal atau dompet tujuan tidak ditemukan.' };
     }
 
+    // Determine intuitive transaction name
+    let txName = `Transfer: ${fromAcc.name} → ${toAcc.name}`;
+    if (fromAcc.type === 'bank' && toAcc.type === 'cash') {
+      txName = `Tarik Tunai: ${fromAcc.name} → Tunai`;
+    } else if (fromAcc.type === 'cash' && toAcc.type === 'bank') {
+      txName = `Setor Tunai: Tunai → ${toAcc.name}`;
+    }
+
     // Insert inter-wallet transfer transaction
     const [tx] = await db.insert(transactions).values({
       userId,
       type: 'transfer',
-      name: `Transfer: ${fromAcc.name} → ${toAcc.name}`,
+      name: txName,
       amount: validated.amount,
       accountId: validated.fromAccountId,
       toAccountId: validated.toAccountId,
       transactionDate: validated.transactionDate,
-      note: validated.note || `Pindah saldo dari ${fromAcc.name} ke ${toAcc.name}`,
+      note: validated.note || txName,
     }).returning();
 
     safeRevalidate('/');

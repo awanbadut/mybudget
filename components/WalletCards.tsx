@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { formatCurrency } from '@/lib/currency';
 import { AccountWithBalance } from '@/actions/accounts';
-import { TransferModal } from '@/components/TransferModal';
+import { TransferModal, TransferModalMode } from '@/components/TransferModal';
 import { AccountModal } from '@/components/AccountModal';
-import { Building2, Smartphone, Coins, Wallet, ArrowLeftRight, Plus, Pencil, CheckCircle2 } from 'lucide-react';
+import { Building2, Smartphone, Coins, Wallet, ArrowLeftRight, Plus, Pencil, Banknote, ArrowDownToLine } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -21,10 +21,31 @@ interface WalletCardsProps {
 
 export function WalletCards({ accounts }: WalletCardsProps) {
   const [showTransfer, setShowTransfer] = useState(false);
+  const [transferMode, setTransferMode] = useState<TransferModalMode>('withdraw');
+  const [transferFromId, setTransferFromId] = useState<string | undefined>(undefined);
+
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<AccountWithBalance | null>(null);
 
   const totalBalance = accounts.reduce((sum, a) => sum + a.balance, 0);
+
+  function openWithdraw(accId?: string) {
+    setTransferMode('withdraw');
+    setTransferFromId(accId);
+    setShowTransfer(true);
+  }
+
+  function openTransfer(accId?: string) {
+    setTransferMode('transfer');
+    setTransferFromId(accId);
+    setShowTransfer(true);
+  }
+
+  function openDeposit(accId?: string) {
+    setTransferMode('deposit');
+    setTransferFromId(accId);
+    setShowTransfer(true);
+  }
 
   return (
     <div className="space-y-3 font-sans">
@@ -50,13 +71,21 @@ export function WalletCards({ accounts }: WalletCardsProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <button
-            onClick={() => setShowTransfer(true)}
+            onClick={() => openWithdraw()}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-[0.98] touch-manipulation"
+          >
+            <Banknote className="w-3.5 h-3.5" />
+            <span>Tarik Tunai</span>
+          </button>
+
+          <button
+            onClick={() => openTransfer()}
             className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-[0.98] touch-manipulation"
           >
             <ArrowLeftRight className="w-3.5 h-3.5" />
-            <span>Transfer Saldo</span>
+            <span>Pindah Saldo</span>
           </button>
 
           <button
@@ -131,6 +160,50 @@ export function WalletCards({ accounts }: WalletCardsProps) {
                     </span>
                   )}
                 </div>
+
+                {/* Instant Quick Action Buttons per Card */}
+                <div className="pt-2 flex items-center gap-1.5">
+                  {acc.type === 'bank' && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openWithdraw(acc.id);
+                      }}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-lg text-[11px] font-semibold transition-colors touch-manipulation"
+                    >
+                      <Banknote className="w-3.5 h-3.5" />
+                      <span>Tarik Tunai ATM</span>
+                    </button>
+                  )}
+
+                  {acc.type === 'cash' && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openDeposit(acc.id);
+                      }}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 px-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded-lg text-[11px] font-semibold transition-colors touch-manipulation"
+                    >
+                      <ArrowDownToLine className="w-3.5 h-3.5" />
+                      <span>Setor ke Bank</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openTransfer(acc.id);
+                    }}
+                    className="inline-flex items-center justify-center gap-1 py-1.5 px-2 bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-lg text-[11px] font-medium transition-colors touch-manipulation"
+                    title="Pindah Saldo"
+                  >
+                    <ArrowLeftRight className="w-3 h-3" />
+                    <span>Pindah</span>
+                  </button>
+                </div>
               </div>
             </div>
           );
@@ -142,6 +215,8 @@ export function WalletCards({ accounts }: WalletCardsProps) {
         open={showTransfer}
         onOpenChange={setShowTransfer}
         accounts={accounts}
+        initialMode={transferMode}
+        initialFromAccountId={transferFromId}
       />
 
       <AccountModal
