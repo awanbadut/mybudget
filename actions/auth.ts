@@ -3,22 +3,28 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { db } from '@/db';
-import { users, settings, categories, budgets, savingsGoals } from '@/db/schema';
+import { users, settings, categories, budgets, savingsGoals, accounts } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { hashPassword, comparePassword, signToken, getSession } from '@/lib/auth';
 import { safeRevalidate } from '@/lib/server-utils';
+import { ensureAccountsTable } from '@/actions/accounts';
 
 export async function loginAction(formData: FormData) {
-  const username = (formData.get('username') as string)?.trim();
+  const rawUsername = (formData.get('username') as string)?.trim();
   const password = formData.get('password') as string;
 
-  if (!username || !password) {
+  if (!rawUsername || !password) {
     return { error: 'Username dan password harus diisi.' };
   }
 
+  const username = rawUsername.toLowerCase();
+
   try {
     const user = await db.query.users.findFirst({
-      where: (u, { eq: eqFn }) => eqFn(u.username, username),
+      where: (u, { eq: eqFn, or: orFn }) =>
+        orFn
+          ? orFn(eqFn(u.username, rawUsername), eqFn(u.username, username))
+          : eqFn(u.username, rawUsername),
     });
 
     if (!user || !user.passwordHash) {
@@ -61,21 +67,22 @@ export async function logoutAction() {
 
 export async function registerAction(formData: FormData) {
   const name = (formData.get('name') as string)?.trim();
-  const username = (formData.get('username') as string)?.trim();
+  const rawUsername = (formData.get('username') as string)?.trim();
+  const username = rawUsername?.toLowerCase();
   const email = (formData.get('email') as string)?.trim() || null;
   const password = formData.get('password') as string;
-  const confirmPassword = formData.get('confirmPassword') as string;
+  const confirmPassword = formData.get('confirmPassword') as string | null;
 
   if (!name || !username || !password) {
-    return { error: 'Semua kolom harus diisi.' };
+    return { error: 'Semua kolom wajib diisi.' };
   }
 
   if (password.length < 6) {
     return { error: 'Password minimal 6 karakter.' };
   }
 
-  if (password !== confirmPassword) {
-    return { error: 'Password tidak cocok.' };
+  if (confirmPassword !== null && confirmPassword !== undefined && password !== confirmPassword) {
+    return { error: 'Konfirmasi password tidak cocok.' };
   }
 
   if (!/^[a-zA-Z0-9_]+$/.test(username)) {
@@ -85,7 +92,10 @@ export async function registerAction(formData: FormData) {
   try {
     // Check if username already taken
     const existing = await db.query.users.findFirst({
-      where: (u, { eq: eqFn }) => eqFn(u.username, username),
+      where: (u, { eq: eqFn, or: orFn }) =>
+        orFn
+          ? orFn(eqFn(u.username, rawUsername), eqFn(u.username, username))
+          : eqFn(u.username, username),
     });
     if (existing) {
       return { error: 'Username sudah digunakan.' };
@@ -137,11 +147,21 @@ export async function registerAction(formData: FormData) {
       { name: 'Lainnya', color: '#94a3b8', icon: 'MoreHorizontal' },
     ];
 
-    for (const cat of defaultExpenseCategories) {
-      await db.insert(categories).values({ userId: newUser.id, type: 'expense', ...cat });
-    }
-    for (const cat of defaultIncomeCategories) {
-      await db.insert(categories).values({ userId: newUser.id, type: 'income', ...cat });
+    await db.insert(categories).values([
+      ...defaultExpenseCategories.map(cat => ({ userId: newUser.id, type: 'expense' as const, ...cat })),
+      ...defaultIncomeCategories.map(cat => ({ userId: newUser.id, type: 'income' as const, ...cat })),
+    ]);
+
+    // Ensure accounts table and initialize default accounts for new user
+    try {
+      await ensureAccountsTable();
+      await db.insert(accounts).values([
+        { userId: newUser.id, name: 'Kas Tunai', type: 'cash', initialBalance: 0, color: '#16a34a', icon: 'Coins', isDefault: true },
+        { userId: newUser.id, name: 'BCA', type: 'bank', initialBalance: 0, color: '#2563eb', icon: 'Building2', isDefault: false },
+        { userId: newUser.id, name: 'GoPay', type: 'ewallet', initialBalance: 0, color: '#0284c7', icon: 'Smartphone', isDefault: false },
+      ]);
+    } catch (accErr) {
+      console.warn('Accounts initialization note:', accErr);
     }
 
     // Default savings goal
@@ -168,6 +188,9 @@ export async function registerAction(formData: FormData) {
       maxAge: 60 * 60 * 24 * 30, // 30 days
       path: '/',
     });
+
+    safeRevalidate('/');
+    safeRevalidate('/admin');
 
     return { success: true };
   } catch (error) {

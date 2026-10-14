@@ -26,8 +26,7 @@ export default function RegisterPage() {
       } else if (result?.success) {
         setSuccess(true);
         setTimeout(() => {
-          router.push('/');
-          router.refresh();
+          window.location.href = '/';
         }, 1200);
       }
     });
@@ -44,8 +43,7 @@ export default function RegisterPage() {
           <p className="text-xs text-zinc-500 dark:text-zinc-400">Selamat datang di My Budget. Membuka dashboard pribadi Anda...</p>
           <button
             onClick={() => {
-              router.push('/');
-              router.refresh();
+              window.location.href = '/';
             }}
             className="w-full bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition-all"
           >
@@ -100,6 +98,9 @@ export default function RegisterPage() {
                 placeholder="Username unik (tanpa spasi)"
                 required
                 autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-base sm:text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
               />
             </div>
@@ -137,6 +138,22 @@ export default function RegisterPage() {
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block font-semibold text-zinc-700 dark:text-zinc-300">
+                Konfirmasi Password
+              </label>
+              <div className="relative">
+                <input
+                  name="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Ulangi password Anda"
+                  required
+                  autoComplete="new-password"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-base sm:text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white pr-10 touch-manipulation"
+                />
               </div>
             </div>
 
