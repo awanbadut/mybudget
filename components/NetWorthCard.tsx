@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { formatCurrency } from '@/lib/currency';
+import { useBalanceVisibility } from '@/context/BalanceVisibilityContext';
 import { Bank, CheckCircle, Warning } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +17,7 @@ export function NetWorthCard({
   currentBalance,
   totalPendingDebt,
 }: NetWorthCardProps) {
+  const { showBalance, formatMasked } = useBalanceVisibility();
   const { totalAssets, totalLiabilities, netWorth, isPositive, assetRatio } = useMemo(() => {
     const liquidCash = Math.max(0, currentBalance);
     const assets = totalSavings + liquidCash;
@@ -70,7 +72,7 @@ export function NetWorthCard({
           'font-bold text-2xl sm:text-3xl tabular-nums tracking-tight leading-none',
           isPositive ? 'text-zinc-900 dark:text-white' : 'text-red-600 dark:text-red-500'
         )}>
-          {isPositive ? '' : '-'}{formatCurrency(Math.abs(netWorth))}
+          {formatMasked(netWorth)}
         </p>
       </div>
 
@@ -86,10 +88,12 @@ export function NetWorthCard({
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-green-600 flex-shrink-0" />
             <span className="text-[11px] text-zinc-500 dark:text-zinc-400">Aset</span>
-            <span className="font-semibold text-[11px] text-green-600 dark:text-green-500 tabular-nums">+{formatCurrency(totalAssets)}</span>
+            <span className="font-semibold text-[11px] text-green-600 dark:text-green-500 tabular-nums">{formatMasked(totalAssets, { showSign: true })}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-[11px] text-red-600 dark:text-red-500 tabular-nums">-{formatCurrency(totalLiabilities)}</span>
+            <span className="font-semibold text-[11px] text-red-600 dark:text-red-500 tabular-nums">
+              {showBalance ? `-${formatCurrency(totalLiabilities)}` : '-••••••'}
+            </span>
             <span className="text-[11px] text-zinc-500 dark:text-zinc-400">Utang</span>
             <span className="w-2 h-2 rounded-full bg-red-600 flex-shrink-0" />
           </div>

@@ -8,6 +8,7 @@ import { getSession } from '@/lib/auth';
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar';
 import { InstallPWA } from '@/components/InstallPWA';
 import { MobileTopHeader } from '@/components/MobileTopHeader';
+import { BalanceVisibilityProvider } from '@/context/BalanceVisibilityContext';
 
 const fontMono = Spline_Sans_Mono({
   subsets: ['latin'],
@@ -99,34 +100,36 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           transition-colors duration-200
         `}
       >
-        <div className="flex min-h-[100dvh] w-full max-w-full overflow-x-hidden">
-          {/* Desktop Sidebar */}
-          {session && (
-            <Sidebar userName={session.name} userRole={session.role} />
-          )}
+        <BalanceVisibilityProvider>
+          <div className="flex min-h-[100dvh] w-full max-w-full overflow-x-hidden">
+            {/* Desktop Sidebar */}
+            {session && (
+              <Sidebar userName={session.name} userRole={session.role} />
+            )}
 
-          {/* Main Content */}
-          <main
-            className={`
-              flex-1 min-w-0 w-full max-w-full overflow-x-hidden
-              ${session ? 'md:ml-64' : ''}
-              pb-28 md:pb-12
-            `}
-          >
-            {session && <MobileTopHeader />}
-            <div className="w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto px-4 sm:px-6 py-4 md:py-10 min-w-0">
-              {children}
-            </div>
-          </main>
-        </div>
+            {/* Main Content */}
+            <main
+              className={`
+                flex-1 min-w-0 w-full max-w-full overflow-x-hidden
+                ${session ? 'md:ml-64' : ''}
+                pb-28 md:pb-12
+              `}
+            >
+              {session && <MobileTopHeader />}
+              <div className="w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto px-4 sm:px-6 py-4 md:py-10 min-w-0">
+                {children}
+              </div>
+            </main>
+          </div>
 
-        {/* Mobile Bottom Navigation */}
-        {session && <MobileNav />}
+          {/* Mobile Bottom Navigation */}
+          {session && <MobileNav />}
 
-        {/* PWA Components */}
-        <InstallPWA />
-        <ServiceWorkerRegistrar />
-        <Toaster />
+          {/* PWA Components */}
+          <InstallPWA />
+          <ServiceWorkerRegistrar />
+          <Toaster />
+        </BalanceVisibilityProvider>
       </body>
     </html>
   );

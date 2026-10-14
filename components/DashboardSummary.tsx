@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { formatCurrency } from '@/lib/currency';
+import { useBalanceVisibility } from '@/context/BalanceVisibilityContext';
 import {
   ArrowUp,
   ArrowDown,
@@ -30,7 +31,7 @@ export function DashboardSummary({
   effectiveIncome,
   cycleLabel,
 }: DashboardSummaryProps) {
-  const [showAmount, setShowAmount] = useState(true);
+  const { showBalance: showAmount, toggleBalance } = useBalanceVisibility();
 
   const mask = '••••••';
   const display = (val: number) => {
@@ -55,7 +56,7 @@ export function DashboardSummary({
           </span>
           <button
             type="button"
-            onClick={() => setShowAmount(!showAmount)}
+            onClick={toggleBalance}
             className="flex items-center gap-1.5 text-[11.5px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 px-2.5 py-1 rounded-lg transition-all duration-200 active:scale-95"
             aria-label={showAmount ? 'Sembunyikan saldo' : 'Tampilkan saldo'}
           >

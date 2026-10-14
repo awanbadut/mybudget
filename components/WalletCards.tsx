@@ -5,7 +5,8 @@ import { formatCurrency } from '@/lib/currency';
 import { AccountWithBalance } from '@/actions/accounts';
 import { TransferModal, TransferModalMode } from '@/components/TransferModal';
 import { AccountModal } from '@/components/AccountModal';
-import { Building2, Smartphone, Coins, Wallet, ArrowLeftRight, Plus, Pencil, Banknote, ArrowDownToLine } from 'lucide-react';
+import { useBalanceVisibility } from '@/context/BalanceVisibilityContext';
+import { Building2, Smartphone, Coins, Wallet, ArrowLeftRight, Plus, Pencil, Banknote, ArrowDownToLine, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -20,6 +21,8 @@ interface WalletCardsProps {
 }
 
 export function WalletCards({ accounts }: WalletCardsProps) {
+  const { showBalance, toggleBalance, formatMasked } = useBalanceVisibility();
+
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferMode, setTransferMode] = useState<TransferModalMode>('withdraw');
   const [transferFromId, setTransferFromId] = useState<string | undefined>(undefined);
@@ -64,9 +67,19 @@ export function WalletCards({ accounts }: WalletCardsProps) {
                 {accounts.length} Dompet
               </span>
             </div>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Total Saldo Semua Kas: <span className="font-semibold text-zinc-900 dark:text-white">{formatCurrency(totalBalance)}</span>
-            </p>
+            <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+              <span>Total Saldo Semua Kas:</span>
+              <span className="font-semibold text-zinc-900 dark:text-white tabular-nums">{formatMasked(totalBalance)}</span>
+              <button
+                type="button"
+                onClick={toggleBalance}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors ml-0.5 touch-manipulation"
+                title={showBalance ? 'Sembunyikan saldo' : 'Tampilkan saldo'}
+                aria-label={showBalance ? 'Sembunyikan saldo' : 'Tampilkan saldo'}
+              >
+                {showBalance ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -149,14 +162,18 @@ export function WalletCards({ accounts }: WalletCardsProps) {
                     'text-base font-extrabold tabular-nums tracking-tight',
                     acc.balance >= 0 ? 'text-zinc-900 dark:text-white' : 'text-rose-600 dark:text-rose-400'
                   )}>
-                    {formatCurrency(acc.balance)}
+                    {formatMasked(acc.balance)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500 pt-0.5">
-                  <span>Saldo Awal: {formatCurrency(acc.initialBalance)}</span>
+                  <span>Saldo Awal: {formatMasked(acc.initialBalance)}</span>
                   {((acc.totalIncome || 0) > 0 || (acc.totalExpense || 0) > 0) && (
                     <span className="font-medium text-zinc-600 dark:text-zinc-400">
-                      +{(acc.totalIncome || 0) > 0 ? formatCurrency(acc.totalIncome) : '0'} / -{(acc.totalExpense || 0) > 0 ? formatCurrency(acc.totalExpense) : '0'}
+                      {showBalance ? (
+                        `+${(acc.totalIncome || 0) > 0 ? formatCurrency(acc.totalIncome) : '0'} / -${(acc.totalExpense || 0) > 0 ? formatCurrency(acc.totalExpense) : '0'}`
+                      ) : (
+                        '+•••••• / -••••••'
+                      )}
                     </span>
                   )}
                 </div>

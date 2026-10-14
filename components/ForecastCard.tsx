@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { formatCurrency } from '@/lib/currency';
+import { useBalanceVisibility } from '@/context/BalanceVisibilityContext';
 import { Wallet, TrendUp, Warning, CheckCircle, Lightning } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +23,7 @@ export function ForecastCard({
   daysRemaining,
   salaryDate,
 }: ForecastCardProps) {
+  const { showBalance, formatMasked } = useBalanceVisibility();
   const calculation = useMemo(() => {
     const safeElapsed = Math.max(1, elapsedDays);
     const safeRemaining = Math.max(1, daysRemaining);
@@ -93,19 +95,19 @@ export function ForecastCard({
       <div className="grid grid-cols-3 gap-px bg-zinc-100 dark:bg-zinc-800 rounded-xl overflow-hidden border border-zinc-100 dark:border-zinc-800">
         <Metric
           label="Rata-rata/hari"
-          value={`${formatCurrency(calculation.dailyBurnRate)}`}
+          value={formatMasked(calculation.dailyBurnRate)}
           sub={`${elapsedDays} hari lalu`}
           valueClass="text-zinc-900 dark:text-white"
         />
         <Metric
           label="Batas aman/hari"
-          value={formatCurrency(calculation.safeDailyCeiling)}
+          value={formatMasked(calculation.safeDailyCeiling)}
           sub={`${daysRemaining} hari lagi`}
           valueClass="text-green-600 dark:text-green-500"
         />
         <Metric
           label="Est. saldo gajian"
-          value={(calculation.projectedEndingBalance < 0 ? '-' : '') + formatCurrency(Math.abs(calculation.projectedEndingBalance))}
+          value={formatMasked(calculation.projectedEndingBalance)}
           sub={`Tgl ${salaryDate} mendatang`}
           valueClass={calculation.projectedEndingBalance >= 0 ? 'text-zinc-900 dark:text-white' : 'text-red-600 dark:text-red-500'}
         />
