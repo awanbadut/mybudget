@@ -1,23 +1,34 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Loader2, CheckCircle2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, CheckCircle2, BriefcaseBusiness, GraduationCap } from 'lucide-react';
 import { registerAction } from '@/actions/auth';
 import { Logo } from '@/components/Logo';
 
+type UserType = 'employee' | 'student';
+
+const INPUT_CLS =
+  'w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-base sm:text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation';
+
 export default function RegisterPage() {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [userType, setUserType] = useState<UserType>('employee');
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     const formData = new FormData(e.currentTarget);
+    // Inject userType so server action can read it
+    formData.set('userType', userType);
+    // If student, clear salary/salaryDate so backend uses defaults
+    if (userType === 'student') {
+      formData.set('salary', '0');
+      formData.set('salaryDate', '1');
+    }
 
     startTransition(async () => {
       const result = await registerAction(formData);
@@ -40,11 +51,11 @@ export default function RegisterPage() {
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <h2 className="font-bold text-xl text-zinc-900 dark:text-white">Akun Berhasil Dibuat</h2>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">Selamat datang di My Budget. Membuka dashboard pribadi Anda...</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Selamat datang di My Budget. Membuka dashboard pribadi Anda...
+          </p>
           <button
-            onClick={() => {
-              window.location.href = '/';
-            }}
+            onClick={() => { window.location.href = '/'; }}
             className="w-full bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition-all"
           >
             Buka Dashboard Sekarang
@@ -57,6 +68,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF9] dark:bg-zinc-950 flex items-center justify-center p-4 font-sans text-zinc-900 dark:text-zinc-100 transition-colors">
       <div className="w-full max-w-md space-y-6">
+
         {/* Brand Header */}
         <div className="text-center space-y-3">
           <div className="flex items-center justify-center">
@@ -67,7 +79,7 @@ export default function RegisterPage() {
               Daftar Akun Baru
             </h1>
             <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-              Mulai kelola keuangan pribadi dengan disiplin siklus gaji
+              Mulai kelola keuangan pribadi Anda
             </p>
           </div>
         </div>
@@ -75,23 +87,62 @@ export default function RegisterPage() {
         {/* Card */}
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-5 transition-colors">
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+
+            {/* ── User type toggle ── */}
             <div className="space-y-1.5">
               <label className="block font-semibold text-zinc-700 dark:text-zinc-300">
-                Nama Lengkap
+                Saya adalah...
               </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setUserType('employee')}
+                  className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-xs font-semibold transition-all touch-manipulation ${
+                    userType === 'employee'
+                      ? 'border-zinc-900 dark:border-white bg-zinc-900 dark:bg-white text-white dark:text-zinc-900'
+                      : 'border-stone-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-500'
+                  }`}
+                >
+                  <BriefcaseBusiness className="w-5 h-5" />
+                  <span>Karyawan / Wirausaha</span>
+                  <span className={`text-[10px] font-normal ${userType === 'employee' ? 'text-zinc-300 dark:text-zinc-600' : 'text-zinc-400 dark:text-zinc-500'}`}>
+                    Gaji rutin tiap bulan
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setUserType('student')}
+                  className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-xs font-semibold transition-all touch-manipulation ${
+                    userType === 'student'
+                      ? 'border-zinc-900 dark:border-white bg-zinc-900 dark:bg-white text-white dark:text-zinc-900'
+                      : 'border-stone-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-500'
+                  }`}
+                >
+                  <GraduationCap className="w-5 h-5" />
+                  <span>Mahasiswa / Pelajar</span>
+                  <span className={`text-[10px] font-normal ${userType === 'student' ? 'text-zinc-300 dark:text-zinc-600' : 'text-zinc-400 dark:text-zinc-500'}`}>
+                    Kiriman/uang saku tidak tentu
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* ── Nama ── */}
+            <div className="space-y-1.5">
+              <label className="block font-semibold text-zinc-700 dark:text-zinc-300">Nama Lengkap</label>
               <input
                 name="name"
                 type="text"
                 placeholder="Nama lengkap Anda"
                 required
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-base sm:text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
+                className={INPUT_CLS}
               />
             </div>
 
+            {/* ── Username ── */}
             <div className="space-y-1.5">
-              <label className="block font-semibold text-zinc-700 dark:text-zinc-300">
-                Username
-              </label>
+              <label className="block font-semibold text-zinc-700 dark:text-zinc-300">Username</label>
               <input
                 name="username"
                 type="text"
@@ -101,27 +152,25 @@ export default function RegisterPage() {
                 autoCapitalize="none"
                 autoCorrect="off"
                 spellCheck={false}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-base sm:text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
+                className={INPUT_CLS}
               />
             </div>
 
+            {/* ── Email (optional) ── */}
             <div className="space-y-1.5">
-              <label className="block font-semibold text-zinc-700 dark:text-zinc-300">
-                Email (opsional)
-              </label>
+              <label className="block font-semibold text-zinc-700 dark:text-zinc-300">Email (opsional)</label>
               <input
                 name="email"
                 type="email"
                 placeholder="nama@email.com"
                 autoComplete="email"
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-base sm:text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
+                className={INPUT_CLS}
               />
             </div>
 
+            {/* ── Password ── */}
             <div className="space-y-1.5">
-              <label className="block font-semibold text-zinc-700 dark:text-zinc-300">
-                Password
-              </label>
+              <label className="block font-semibold text-zinc-700 dark:text-zinc-300">Password</label>
               <div className="relative">
                 <input
                   name="password"
@@ -129,7 +178,7 @@ export default function RegisterPage() {
                   placeholder="Minimal 6 karakter"
                   required
                   autoComplete="new-password"
-                  className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-base sm:text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white pr-10 touch-manipulation"
+                  className={`${INPUT_CLS} pr-10`}
                 />
                 <button
                   type="button"
@@ -141,56 +190,75 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* ── Konfirmasi Password ── */}
             <div className="space-y-1.5">
-              <label className="block font-semibold text-zinc-700 dark:text-zinc-300">
-                Konfirmasi Password
-              </label>
-              <div className="relative">
-                <input
-                  name="confirmPassword"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Ulangi password Anda"
-                  required
-                  autoComplete="new-password"
-                  className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-base sm:text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white pr-10 touch-manipulation"
-                />
+              <label className="block font-semibold text-zinc-700 dark:text-zinc-300">Konfirmasi Password</label>
+              <input
+                name="confirmPassword"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Ulangi password Anda"
+                required
+                autoComplete="new-password"
+                className={INPUT_CLS}
+              />
+            </div>
+
+            {/* ── Karyawan: Gaji & Tanggal Gajian ── */}
+            {userType === 'employee' && (
+              <div className="space-y-3 pt-1 border-t border-stone-100 dark:border-zinc-800">
+                <p className="text-[11px] text-zinc-400 dark:text-zinc-500 pt-1">
+                  Digunakan untuk menghitung siklus keuangan bulanan Anda.
+                </p>
+                <div className="space-y-1.5">
+                  <label className="block font-semibold text-zinc-700 dark:text-zinc-300">
+                    Gaji Pokok Bulanan (Rp)
+                  </label>
+                  <input
+                    name="salary"
+                    type="number"
+                    placeholder="4000000"
+                    defaultValue={4000000}
+                    inputMode="numeric"
+                    className={`${INPUT_CLS} tabular-nums`}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block font-semibold text-zinc-700 dark:text-zinc-300">
+                    Tanggal Gajian (1–31)
+                  </label>
+                  <input
+                    name="salaryDate"
+                    type="number"
+                    placeholder="25"
+                    defaultValue={25}
+                    min={1}
+                    max={31}
+                    inputMode="numeric"
+                    className={`${INPUT_CLS} tabular-nums`}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="space-y-1.5">
-              <label className="block font-semibold text-zinc-700 dark:text-zinc-300">
-                Gaji Pokok Bulanan (Rp)
-              </label>
-              <input
-                name="salary"
-                type="number"
-                placeholder="4000000"
-                defaultValue={4000000}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-base sm:text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation"
-              />
-            </div>
+            {/* ── Mahasiswa: info kiriman ── */}
+            {userType === 'student' && (
+              <div className="rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 p-3.5 text-[11px] text-blue-700 dark:text-blue-300 space-y-1">
+                <p className="font-semibold">Mode Mahasiswa / Uang Kiriman 🎓</p>
+                <p className="text-blue-600/80 dark:text-blue-400/80 leading-relaxed">
+                  Anda tidak perlu mengisi gaji bulanan atau tanggal gajian. Cukup catat setiap kiriman
+                  masuk sebagai pemasukan, dan pantau pengeluarannya dari dashboard.
+                </p>
+              </div>
+            )}
 
-            <div className="space-y-1.5">
-              <label className="block font-semibold text-zinc-700 dark:text-zinc-300">
-                Tanggal Gajian Siklus (1 sampai 31)
-              </label>
-              <input
-                name="salaryDate"
-                type="number"
-                placeholder="25"
-                defaultValue={25}
-                min={1}
-                max={31}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-base sm:text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation"
-              />
-            </div>
-
+            {/* ── Error ── */}
             {error && (
               <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 px-3.5 py-2.5 rounded-xl text-xs">
                 {error}
               </div>
             )}
 
+            {/* ── Submit ── */}
             <button
               type="submit"
               disabled={isPending}
