@@ -20,6 +20,16 @@ import {
 } from 'lucide-react';
 import { logoutAction } from '@/actions/auth';
 
+interface AccountDetailItem {
+  id: string;
+  name: string;
+  type: string;
+  accountNumber: string | null;
+  balance: number;
+  initialBalance: number;
+  isDefault: boolean;
+}
+
 interface TransactionItem {
   id: string;
   type: string;
@@ -27,6 +37,7 @@ interface TransactionItem {
   amount: number;
   transactionDate: string;
   note: string | null;
+  accountName?: string | null;
 }
 
 interface InstallmentItem {
@@ -70,7 +81,9 @@ export interface UserDetail {
   name: string;
   username: string;
   createdAt: string;
+  latestTransactionDate?: string | null;
   settings: SettingsItem | null;
+  accounts?: AccountDetailItem[];
   transactions: TransactionItem[];
   savingsGoals: SavingsGoalItem[];
   debts: DebtItem[];
@@ -90,6 +103,7 @@ interface AdminDashboardClientProps {
 export function AdminDashboardClient({ adminName, users }: AdminDashboardClientProps) {
   const [search, setSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
+  const [txSearch, setTxSearch] = useState('');
 
   const filteredUsers = users.filter((u) =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -202,10 +216,11 @@ export function AdminDashboardClient({ adminName, users }: AdminDashboardClientP
               <thead>
                 <tr className="bg-stone-50/70 dark:bg-zinc-800/60 border-b border-stone-100 dark:border-zinc-800 text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                   <th className="px-5 py-3">Pengguna</th>
+                  <th className="px-5 py-3">Transaksi Terakhir</th>
                   <th className="px-5 py-3">Gaji Pokok</th>
                   <th className="px-5 py-3">Pemasukan</th>
                   <th className="px-5 py-3">Pengeluaran</th>
-                  <th className="px-5 py-3">Saldo</th>
+                  <th className="px-5 py-3">Saldo Dompet</th>
                   <th className="px-5 py-3">Tabungan</th>
                   <th className="px-5 py-3">Utang Aktif</th>
                   <th className="px-5 py-3 text-right">Aksi</th>
@@ -215,7 +230,10 @@ export function AdminDashboardClient({ adminName, users }: AdminDashboardClientP
                 {filteredUsers.map((u) => (
                   <tr
                     key={u.id}
-                    onClick={() => setSelectedUser(u)}
+                    onClick={() => {
+                      setSelectedUser(u);
+                      setTxSearch('');
+                    }}
                     className="hover:bg-stone-50/70 dark:hover:bg-zinc-800/40 cursor-pointer transition-colors group"
                   >
                     <td className="px-5 py-3.5">
@@ -226,6 +244,20 @@ export function AdminDashboardClient({ adminName, users }: AdminDashboardClientP
                         <p className="text-xs text-zinc-400 dark:text-zinc-500">@{u.username}</p>
                         <p className="text-[10px] text-zinc-400 dark:text-zinc-500">Daftar: {formatDate(u.createdAt)}</p>
                       </div>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      {u.latestTransactionDate ? (
+                        <div>
+                          <span className="font-semibold text-xs text-zinc-900 dark:text-zinc-200">
+                            {formatDate(u.latestTransactionDate)}
+                          </span>
+                          <span className="block text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                            Terbaru
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-zinc-400 dark:text-zinc-500 text-xs">-</span>
+                      )}
                     </td>
                     <td className="px-5 py-3.5 font-medium text-zinc-900 dark:text-zinc-200 tabular-nums">
                       {formatCurrency(u.settings?.salary || 0)}
@@ -263,6 +295,7 @@ export function AdminDashboardClient({ adminName, users }: AdminDashboardClientP
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedUser(u);
+                          setTxSearch('');
                         }}
                         className="inline-flex items-center gap-1 text-xs font-semibold text-white dark:text-zinc-900 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 px-3 py-1.5 rounded-xl transition-all shadow-sm"
                       >
@@ -273,7 +306,7 @@ export function AdminDashboardClient({ adminName, users }: AdminDashboardClientP
                 ))}
                 {filteredUsers.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-zinc-400 dark:text-zinc-500 text-xs">
+                    <td colSpan={9} className="px-6 py-12 text-center text-zinc-400 dark:text-zinc-500 text-xs">
                       Tidak ada pengguna yang cocok dengan pencarian
                     </td>
                   </tr>
@@ -331,27 +364,120 @@ export function AdminDashboardClient({ adminName, users }: AdminDashboardClientP
                 </div>
               </div>
 
+              {/* Wallets & Accounts */}
+              {selectedUser.accounts && selectedUser.accounts.length > 0 && (
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-sm text-zinc-900 dark:text-white flex items-center gap-2">
+                      <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      Dompet & Rekening ({selectedUser.accounts.length})
+                    </h4>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                      Total Kas: <strong className="text-zinc-900 dark:text-white tabular-nums">{formatCurrency(selectedUser.balance)}</strong>
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    {selectedUser.accounts.map((acc) => (
+                      <div
+                        key={acc.id}
+                        className="bg-stone-50/80 dark:bg-zinc-800/60 border border-stone-200/70 dark:border-zinc-700/70 rounded-xl p-3"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-semibold text-xs text-zinc-900 dark:text-white truncate">
+                            {acc.name}
+                          </span>
+                          {acc.isDefault && (
+                            <span className="text-[9px] bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 font-semibold px-1.5 py-0.5 rounded">
+                              Utama
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm font-bold text-zinc-900 dark:text-white tabular-nums">
+                          {formatCurrency(acc.balance)}
+                        </p>
+                        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5 capitalize">
+                          {acc.type === 'bank' ? 'Bank Rekening' : acc.type === 'cash' ? 'Uang Tunai' : acc.type === 'ewallet' ? 'E-Wallet' : acc.type}
+                          {acc.accountNumber ? ` · ${acc.accountNumber}` : ''}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Transactions List */}
               <div className="space-y-2.5">
-                <h4 className="font-semibold text-sm text-zinc-900 dark:text-white">
-                  Daftar Transaksi ({selectedUser.transactions.length})
-                </h4>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <h4 className="font-semibold text-sm text-zinc-900 dark:text-white">
+                    Daftar Transaksi ({selectedUser.transactions.length})
+                  </h4>
+                  <div className="relative w-full sm:w-64">
+                    <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Cari transaksi / akun / catatan..."
+                      value={txSearch}
+                      onChange={(e) => setTxSearch(e.target.value)}
+                      className="w-full pl-8 pr-7 py-1.5 text-xs bg-stone-100 dark:bg-zinc-800 border border-stone-200/60 dark:border-zinc-700/60 rounded-lg outline-none text-zinc-900 dark:text-white placeholder:text-zinc-400"
+                    />
+                    {txSearch && (
+                      <button
+                        onClick={() => setTxSearch('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
 
-                <div className="border border-stone-200/80 dark:border-zinc-800 rounded-xl divide-y divide-stone-100 dark:divide-zinc-800 max-h-56 overflow-y-auto">
-                  {selectedUser.transactions.length > 0 ? (
-                    selectedUser.transactions.map((t) => (
-                      <div key={t.id} className="p-3 flex items-center justify-between hover:bg-stone-50 dark:hover:bg-zinc-800/40 text-xs">
-                        <div>
-                          <p className="font-semibold text-zinc-900 dark:text-white">{t.name}</p>
-                          <p className="text-[11px] text-zinc-400 dark:text-zinc-500">{formatDate(t.transactionDate)}</p>
+                <div className="border border-stone-200/80 dark:border-zinc-800 rounded-xl divide-y divide-stone-100 dark:divide-zinc-800 max-h-80 sm:max-h-96 overflow-y-auto">
+                  {selectedUser.transactions.filter((t) => {
+                    if (!txSearch.trim()) return true;
+                    const q = txSearch.toLowerCase();
+                    return (
+                      t.name.toLowerCase().includes(q) ||
+                      t.transactionDate.includes(q) ||
+                      (t.note && t.note.toLowerCase().includes(q)) ||
+                      (t.accountName && t.accountName.toLowerCase().includes(q))
+                    );
+                  }).length > 0 ? (
+                    selectedUser.transactions
+                      .filter((t) => {
+                        if (!txSearch.trim()) return true;
+                        const q = txSearch.toLowerCase();
+                        return (
+                          t.name.toLowerCase().includes(q) ||
+                          t.transactionDate.includes(q) ||
+                          (t.note && t.note.toLowerCase().includes(q)) ||
+                          (t.accountName && t.accountName.toLowerCase().includes(q))
+                        );
+                      })
+                      .map((t) => (
+                        <div key={t.id} className="p-3 flex items-center justify-between hover:bg-stone-50 dark:hover:bg-zinc-800/40 text-xs">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-zinc-900 dark:text-white">{t.name}</p>
+                              {t.accountName && (
+                                <span className="text-[10px] font-medium bg-stone-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-1.5 py-0.5 rounded border border-stone-200/70 dark:border-zinc-700/70">
+                                  {t.accountName}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-zinc-400 dark:text-zinc-500">
+                              {formatDate(t.transactionDate)}
+                              {t.note ? ` · ${t.note}` : ''}
+                            </p>
+                          </div>
+                          <span className={`font-semibold tabular-nums ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : t.type === 'transfer' ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-900 dark:text-white'}`}>
+                            {t.type === 'income' ? '+' : t.type === 'transfer' ? '⇄ ' : '-'}{formatCurrency(t.amount)}
+                          </span>
                         </div>
-                        <span className={`font-semibold tabular-nums ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-900 dark:text-white'}`}>
-                          {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
-                        </span>
-                      </div>
-                    ))
+                      ))
                   ) : (
-                    <div className="p-5 text-center text-zinc-400 dark:text-zinc-500 text-xs">Belum ada transaksi tercatat</div>
+                    <div className="p-5 text-center text-zinc-400 dark:text-zinc-500 text-xs">
+                      {txSearch ? 'Tidak ada transaksi yang cocok dengan pencarian' : 'Belum ada transaksi tercatat'}
+                    </div>
                   )}
                 </div>
               </div>

@@ -187,6 +187,7 @@ export async function createAccount(data: unknown) {
     safeRevalidate('/transactions');
     safeRevalidate('/savings');
     safeRevalidate('/reports');
+    safeRevalidate('/admin');
 
     return { success: true, data: created };
   } catch (error: any) {
@@ -221,6 +222,7 @@ export async function updateAccount(id: string, data: unknown) {
     safeRevalidate('/transactions');
     safeRevalidate('/savings');
     safeRevalidate('/reports');
+    safeRevalidate('/admin');
 
     return { success: true };
   } catch (error: any) {
@@ -256,6 +258,7 @@ export async function deleteAccount(id: string) {
     safeRevalidate('/transactions');
     safeRevalidate('/savings');
     safeRevalidate('/reports');
+    safeRevalidate('/admin');
 
     return { success: true };
   } catch (error) {
@@ -310,6 +313,7 @@ export async function transferBetweenAccounts(data: unknown) {
     safeRevalidate('/');
     safeRevalidate('/transactions');
     safeRevalidate('/reports');
+    safeRevalidate('/admin');
 
     return { success: true, data: tx };
   } catch (error: any) {

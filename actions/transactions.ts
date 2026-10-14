@@ -31,6 +31,7 @@ export async function createTransaction(data: unknown) {
     safeRevalidate('/transactions');
     safeRevalidate('/budget');
     safeRevalidate('/reports');
+    safeRevalidate('/admin');
     return { success: true };
   } catch (error: any) {
     console.error('createTransaction error:', error);
@@ -53,6 +54,7 @@ export async function updateTransaction(id: string, data: unknown) {
     safeRevalidate('/transactions');
     safeRevalidate('/budget');
     safeRevalidate('/reports');
+    safeRevalidate('/admin');
     return { success: true };
   } catch (error: any) {
     console.error('updateTransaction error:', error);
@@ -72,6 +74,7 @@ export async function deleteTransaction(id: string) {
     safeRevalidate('/transactions');
     safeRevalidate('/budget');
     safeRevalidate('/reports');
+    safeRevalidate('/admin');
     return { success: true };
   } catch (error: any) {
     console.error('deleteTransaction error:', error);

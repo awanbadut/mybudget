@@ -115,6 +115,7 @@ export async function addSavings(data: unknown) {
     safeRevalidate('/');
     safeRevalidate('/transactions');
     safeRevalidate('/reports');
+    safeRevalidate('/admin');
     return { success: true };
   } catch (error) {
     console.error('addSavings error:', error);
@@ -158,6 +159,7 @@ export async function deleteSavingsTransaction(id: string, goalId: string) {
     safeRevalidate('/');
     safeRevalidate('/transactions');
     safeRevalidate('/reports');
+    safeRevalidate('/admin');
     return { success: true };
   } catch (error) {
     console.error('deleteSavingsTransaction error:', error);

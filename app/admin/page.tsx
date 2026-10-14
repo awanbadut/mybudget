@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 import { db } from '@/db';
 import { users } from '@/db/schema';
@@ -12,12 +13,15 @@ export default async function AdminPage() {
     redirect('/');
   }
 
-  // Fetch all users with their full data
+  // Fetch all non-admin users with full related data
   const allUsers = await db.query.users.findMany({
     where: (u, { ne }) => ne(u.role, 'admin'),
     with: {
       settings: true,
-      transactions: true,
+      accounts: true,
+      transactions: {
+        orderBy: (t, { desc }) => [desc(t.transactionDate), desc(t.createdAt)],
+      },
       savingsGoals: true,
       debts: {
         with: { installments: true },
@@ -27,13 +31,51 @@ export default async function AdminPage() {
   });
 
   const formattedUsers: UserDetail[] = allUsers.map((u) => {
-    const income = u.transactions
+    // 1. Sort transactions strictly by date DESC, then createdAt DESC
+    const sortedTransactions = [...(u.transactions || [])].sort((a, b) => {
+      const cmp = b.transactionDate.localeCompare(a.transactionDate);
+      if (cmp !== 0) return cmp;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      return bTime - aTime;
+    });
+
+    // 2. Calculate live balances for each account / wallet
+    const userAccounts = (u.accounts || []).map((acc) => {
+      let balance = acc.initialBalance;
+      for (const tx of sortedTransactions) {
+        if (tx.accountId === acc.id) {
+          if (tx.type === 'income') balance += tx.amount;
+          else if (tx.type === 'expense') balance -= tx.amount;
+          else if (tx.type === 'transfer') balance -= tx.amount;
+        }
+        if (tx.toAccountId === acc.id && tx.type === 'transfer') {
+          balance += tx.amount;
+        }
+      }
+      return {
+        id: acc.id,
+        name: acc.name,
+        type: acc.type,
+        accountNumber: acc.accountNumber,
+        balance,
+        initialBalance: acc.initialBalance,
+        isDefault: acc.isDefault,
+      };
+    });
+
+    const accMap = new Map(userAccounts.map((a) => [a.id, a.name]));
+
+    const income = sortedTransactions
       .filter((t) => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
 
-    const expense = u.transactions
+    const expense = sortedTransactions
       .filter((t) => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
+
+    const totalWalletsBalance = userAccounts.reduce((sum, a) => sum + a.balance, 0);
+    const realAvailableBalance = userAccounts.length > 0 ? totalWalletsBalance : (income - expense);
 
     const savings = u.savingsGoals.reduce((sum, g) => sum + (g.currentAmount || 0), 0);
     const activeDebts = u.debts.filter((d) => d.status === 'active');
@@ -51,6 +93,7 @@ export default async function AdminPage() {
       name: u.name,
       username: u.username || '-',
       createdAt: u.createdAt.toISOString(),
+      latestTransactionDate: sortedTransactions[0]?.transactionDate || null,
       settings: u.settings ? {
         salary: u.settings.salary,
         salaryDate: u.settings.salaryDate,
@@ -61,13 +104,15 @@ export default async function AdminPage() {
         transportBudget: u.settings.transportBudget,
         startWorkDate: u.settings.startWorkDate,
       } : null,
-      transactions: u.transactions.map((t) => ({
+      accounts: userAccounts,
+      transactions: sortedTransactions.map((t) => ({
         id: t.id,
         type: t.type,
         name: t.name,
         amount: t.amount,
         transactionDate: t.transactionDate,
         note: t.note,
+        accountName: t.accountId ? accMap.get(t.accountId) || null : null,
       })),
       savingsGoals: u.savingsGoals.map((g) => ({
         id: g.id,
@@ -92,7 +137,7 @@ export default async function AdminPage() {
       })),
       income,
       expense,
-      balance: income - expense,
+      balance: realAvailableBalance,
       savings,
       activeDebtsCount: activeDebts.length,
       pendingDebtAmount,

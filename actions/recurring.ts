@@ -193,6 +193,7 @@ export async function postRecurringTransactions(month: number, year: number) {
     safeRevalidate('/transactions');
     safeRevalidate('/budget');
     safeRevalidate('/reports');
+    safeRevalidate('/admin');
 
     return {
       success: true,
