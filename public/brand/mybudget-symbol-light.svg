@@ -1,0 +1,32 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' width='256' height='256' role='img'>
+  <title>My Budget - Vault B</title>
+  <path fill='#09090b' fill-rule='evenodd' d='
+    M 56 36
+    L 144 36
+    A 44 44 0 0 1 188 80
+    A 44 44 0 0 1 150 124
+    L 56 124
+    Z
+    M 92 68
+    L 140 68
+    A 16 16 0 0 1 156 84
+    A 16 16 0 0 1 140 100
+    L 92 100
+    Z
+  '/>
+  <path fill='#10b981' fill-rule='evenodd' d='
+    M 56 124
+    L 150 124
+    A 48 48 0 0 1 200 172
+    A 48 48 0 0 1 152 220
+    L 56 220
+    Z
+    M 92 148
+    L 144 148
+    A 20 20 0 0 1 164 168
+    L 164 176
+    L 144 196
+    L 92 196
+    Z
+  '/>
+</svg>

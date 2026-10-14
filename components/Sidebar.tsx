@@ -58,8 +58,8 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
             <Image
               src="/logo-v4-light.png"
               alt="My Budget"
-              width={776}
-              height={935}
+              width={512}
+              height={512}
               className="w-full h-full object-contain block dark:hidden"
               unoptimized
               priority
@@ -67,8 +67,8 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
             <Image
               src="/logo-v4-dark.png"
               alt="My Budget"
-              width={776}
-              height={935}
+              width={512}
+              height={512}
               className="w-full h-full object-contain hidden dark:block"
               unoptimized
               priority

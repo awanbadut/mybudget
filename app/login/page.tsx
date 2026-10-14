@@ -36,10 +36,10 @@ export default function LoginPage() {
         {/* Brand */}
         <div className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="w-14 h-[67px] relative">
-              <Image src="/logo-v4-light.png" alt="My Budget" width={776} height={935}
+            <div className="w-14 h-14 relative">
+              <Image src="/logo-v4-light.png" alt="My Budget" width={512} height={512}
                 className="w-full h-full object-contain block dark:hidden" unoptimized priority />
-              <Image src="/logo-v4-dark.png" alt="My Budget" width={776} height={935}
+              <Image src="/logo-v4-dark.png" alt="My Budget" width={512} height={512}
                 className="w-full h-full object-contain hidden dark:block" unoptimized priority />
             </div>
           </div>

@@ -62,9 +62,9 @@ export default function RegisterPage() {
         {/* Brand Header */}
         <div className="text-center space-y-3">
           <div className="flex items-center justify-center">
-            <div className="w-12 h-14 relative flex items-center justify-center">
-              <Image src="/logo-v4-light.png" alt="My Budget" width={776} height={935} className="w-full h-full object-contain block dark:hidden" unoptimized priority />
-              <Image src="/logo-v4-dark.png" alt="My Budget" width={776} height={935} className="w-full h-full object-contain hidden dark:block" unoptimized priority />
+            <div className="w-12 h-12 relative flex items-center justify-center">
+              <Image src="/logo-v4-light.png" alt="My Budget" width={512} height={512} className="w-full h-full object-contain block dark:hidden" unoptimized priority />
+              <Image src="/logo-v4-dark.png" alt="My Budget" width={512} height={512} className="w-full h-full object-contain hidden dark:block" unoptimized priority />
             </div>
           </div>
           <div className="space-y-1">

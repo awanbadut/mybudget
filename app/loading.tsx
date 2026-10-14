@@ -5,12 +5,12 @@ export default function DashboardLoading() {
     <div className="space-y-6 sm:space-y-8 w-full max-w-full min-w-0 overflow-x-hidden font-sans">
       {/* Brand Loading Indicator */}
       <div className="flex flex-col items-center justify-center py-6 sm:py-8 space-y-2.5">
-        <div className="w-10 h-12 flex items-center justify-center animate-pulse">
+        <div className="w-10 h-10 flex items-center justify-center animate-pulse">
           <Image
             src="/logo-v4-light.png"
             alt="Memuat My Budget"
-            width={776}
-            height={935}
+            width={512}
+            height={512}
             className="w-full h-full object-contain block dark:hidden"
             unoptimized
             priority
@@ -18,8 +18,8 @@ export default function DashboardLoading() {
           <Image
             src="/logo-v4-dark.png"
             alt="Memuat My Budget"
-            width={776}
-            height={935}
+            width={512}
+            height={512}
             className="w-full h-full object-contain hidden dark:block"
             unoptimized
             priority
