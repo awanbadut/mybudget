@@ -1,34 +1,14 @@
-<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' width='512' height='512'>
-  <rect width='512' height='512' rx='112' fill='#09090b'/>
-  <g transform='translate(128, 128) scale(1)'>
-    <path fill='#ffffff' fill-rule='evenodd' d='
-      M 56 36
-      L 144 36
-      A 44 44 0 0 1 188 80
-      A 44 44 0 0 1 150 124
-      L 56 124
-      Z
-      M 92 68
-      L 140 68
-      A 16 16 0 0 1 156 84
-      A 16 16 0 0 1 140 100
-      L 92 100
-      Z
-    '/>
-    <path fill='#10b981' fill-rule='evenodd' d='
-      M 56 124
-      L 150 124
-      A 48 48 0 0 1 200 172
-      A 48 48 0 0 1 152 220
-      L 56 220
-      Z
-      M 92 148
-      L 144 148
-      A 20 20 0 0 1 164 168
-      L 164 176
-      L 144 196
-      L 92 196
-      Z
-    '/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
+  <title>My Budget App Icon</title>
+  <rect width="512" height="512" rx="112" fill="#09090b"/>
+  <g transform="translate(128, 128)">
+    <path d="M 72 36 L 184 36 L 220 72 L 220 184 L 184 220 L 72 220 L 36 184 L 36 72 Z" fill="#18181b" stroke="#27272a" stroke-width="4"/>
+    <circle cx="128" cy="128" r="64" stroke="#52525b" stroke-width="6" stroke-dasharray="12 6"/>
+    <line x1="128" y1="76" x2="128" y2="180" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+    <line x1="76" y1="128" x2="180" y2="128" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="128" cy="128" r="26" fill="#ffffff"/>
+    <circle cx="128" cy="128" r="12" fill="#18181b"/>
+    <path d="M 154 102 L 204 52 M 204 52 H 174 M 204 52 V 82" stroke="#10b981" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="204" cy="52" r="6" fill="#10b981"/>
   </g>
 </svg>

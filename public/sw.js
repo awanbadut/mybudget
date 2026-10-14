@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mybudget-v7';
+const CACHE_NAME = 'mybudget-v8';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',

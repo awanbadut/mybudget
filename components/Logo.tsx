@@ -5,6 +5,11 @@ interface LogoProps {
   variant?: 'symbol' | 'tile';
 }
 
+/**
+ * Sovereign Vault Logo for My Budget
+ * Real chamfered safe vault body + precision dial spokes + 45° emerald growth arrow.
+ * Rendered inline directly in DOM HTML for zero-delay display and 100% cache immunity.
+ */
 export function Logo({ className = 'w-8 h-8', variant = 'symbol' }: LogoProps) {
   if (variant === 'tile') {
     return (
@@ -19,43 +24,30 @@ export function Logo({ className = 'w-8 h-8', variant = 'symbol' }: LogoProps) {
         <title>My Budget</title>
         <rect width="512" height="512" rx="112" className="fill-zinc-950 dark:fill-zinc-900" />
         <g transform="translate(128, 128)">
+          {/* Heavy Chamfered Vault Plate */}
           <path
-            fill="#ffffff"
-            fillRule="evenodd"
-            d="
-              M 56 36
-              L 144 36
-              A 44 44 0 0 1 188 80
-              A 44 44 0 0 1 150 124
-              L 56 124
-              Z
-              M 92 68
-              L 140 68
-              A 16 16 0 0 1 156 84
-              A 16 16 0 0 1 140 100
-              L 92 100
-              Z
-            "
+            d="M 72 36 L 184 36 L 220 72 L 220 184 L 184 220 L 72 220 L 36 184 L 36 72 Z"
+            fill="#18181b"
+            stroke="#27272a"
+            strokeWidth="4"
           />
+          {/* Dial Outer Ring */}
+          <circle cx="128" cy="128" r="64" stroke="#52525b" strokeWidth="6" strokeDasharray="12 6" />
+          {/* Heavy Vault Spokes */}
+          <line x1="128" y1="76" x2="128" y2="180" stroke="#ffffff" strokeWidth="8" strokeLinecap="round" />
+          <line x1="76" y1="128" x2="180" y2="128" stroke="#ffffff" strokeWidth="8" strokeLinecap="round" />
+          {/* Central Heavy Locking Core */}
+          <circle cx="128" cy="128" r="26" fill="#ffffff" />
+          <circle cx="128" cy="128" r="12" fill="#18181b" />
+          {/* 45-degree Emerald Growth Vector */}
           <path
-            fill="#10b981"
-            fillRule="evenodd"
-            d="
-              M 56 124
-              L 150 124
-              A 48 48 0 0 1 200 172
-              A 48 48 0 0 1 152 220
-              L 56 220
-              Z
-              M 92 148
-              L 144 148
-              A 20 20 0 0 1 164 168
-              L 164 176
-              L 144 196
-              L 92 196
-              Z
-            "
+            d="M 154 102 L 204 52 M 204 52 H 174 M 204 52 V 82"
+            stroke="#10b981"
+            strokeWidth="12"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
+          <circle cx="204" cy="52" r="6" fill="#10b981" />
         </g>
       </svg>
     );
@@ -71,45 +63,30 @@ export function Logo({ className = 'w-8 h-8', variant = 'symbol' }: LogoProps) {
       aria-label="My Budget Logo"
     >
       <title>My Budget</title>
-      {/* Top Vault & Spine: dark in light mode, crisp white in dark mode */}
+      {/* Heavy Chamfered Vault Plate */}
       <path
-        className="fill-zinc-900 dark:fill-white transition-colors"
-        fillRule="evenodd"
-        d="
-          M 56 36
-          L 144 36
-          A 44 44 0 0 1 188 80
-          A 44 44 0 0 1 150 124
-          L 56 124
-          Z
-          M 92 68
-          L 140 68
-          A 16 16 0 0 1 156 84
-          A 16 16 0 0 1 140 100
-          L 92 100
-          Z
-        "
+        d="M 72 36 L 184 36 L 220 72 L 220 184 L 184 220 L 72 220 L 36 184 L 36 72 Z"
+        className="fill-zinc-950 dark:fill-zinc-900 transition-colors"
+        stroke="#27272a"
+        strokeWidth="4"
       />
-      {/* Lower Growth Vault in Emerald Green */}
+      {/* Dial Outer Ring */}
+      <circle cx="128" cy="128" r="64" stroke="#52525b" strokeWidth="6" strokeDasharray="12 6" />
+      {/* Heavy Vault Spokes */}
+      <line x1="128" y1="76" x2="128" y2="180" stroke="#ffffff" strokeWidth="8" strokeLinecap="round" />
+      <line x1="76" y1="128" x2="180" y2="128" stroke="#ffffff" strokeWidth="8" strokeLinecap="round" />
+      {/* Central Heavy Locking Core */}
+      <circle cx="128" cy="128" r="26" fill="#ffffff" />
+      <circle cx="128" cy="128" r="12" className="fill-zinc-950 dark:fill-zinc-900 transition-colors" />
+      {/* 45-degree Emerald Growth Vector */}
       <path
-        className="fill-emerald-600 dark:fill-emerald-500"
-        fillRule="evenodd"
-        d="
-          M 56 124
-          L 150 124
-          A 48 48 0 0 1 200 172
-          A 48 48 0 0 1 152 220
-          L 56 220
-          Z
-          M 92 148
-          L 144 148
-          A 20 20 0 0 1 164 168
-          L 164 176
-          L 144 196
-          L 92 196
-          Z
-        "
+        d="M 154 102 L 204 52 M 204 52 H 174 M 204 52 V 82"
+        stroke="#10b981"
+        strokeWidth="12"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
+      <circle cx="204" cy="52" r="6" fill="#10b981" />
     </svg>
   );
 }
