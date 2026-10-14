@@ -3,9 +3,9 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { loginAction } from '@/actions/auth';
+import { Logo } from '@/components/Logo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,12 +36,7 @@ export default function LoginPage() {
         {/* Brand */}
         <div className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="w-14 h-14 relative">
-              <Image src="/logo-v4-light.png" alt="My Budget" width={512} height={512}
-                className="w-full h-full object-contain block dark:hidden" unoptimized priority />
-              <Image src="/logo-v4-dark.png" alt="My Budget" width={512} height={512}
-                className="w-full h-full object-contain hidden dark:block" unoptimized priority />
-            </div>
+            <Logo className="w-14 h-14" />
           </div>
           <div className="space-y-1.5">
             <h1 className="font-bold text-[1.6rem] text-zinc-900 dark:text-white tracking-tight">

@@ -3,9 +3,9 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Eye, EyeOff, Loader2, CheckCircle2 } from 'lucide-react';
 import { registerAction } from '@/actions/auth';
+import { Logo } from '@/components/Logo';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -62,10 +62,7 @@ export default function RegisterPage() {
         {/* Brand Header */}
         <div className="text-center space-y-3">
           <div className="flex items-center justify-center">
-            <div className="w-12 h-12 relative flex items-center justify-center">
-              <Image src="/logo-v4-light.png" alt="My Budget" width={512} height={512} className="w-full h-full object-contain block dark:hidden" unoptimized priority />
-              <Image src="/logo-v4-dark.png" alt="My Budget" width={512} height={512} className="w-full h-full object-contain hidden dark:block" unoptimized priority />
-            </div>
+            <Logo className="w-12 h-12" />
           </div>
           <div className="space-y-1">
             <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 dark:text-white tracking-tight">

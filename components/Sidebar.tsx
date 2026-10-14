@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import { Logo } from '@/components/Logo';
 import { usePathname } from 'next/navigation';
 import {
   Home,
@@ -54,26 +54,7 @@ export function Sidebar({ userName, userRole }: SidebarProps) {
       {/* Brand */}
       <div className="h-16 px-5 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800">
         <Link href="/" className="flex items-center gap-2.5 min-w-0 group">
-          <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 group-hover:opacity-80 transition-opacity">
-            <Image
-              src="/logo-v4-light.png"
-              alt="My Budget"
-              width={512}
-              height={512}
-              className="w-full h-full object-contain block dark:hidden"
-              unoptimized
-              priority
-            />
-            <Image
-              src="/logo-v4-dark.png"
-              alt="My Budget"
-              width={512}
-              height={512}
-              className="w-full h-full object-contain hidden dark:block"
-              unoptimized
-              priority
-            />
-          </div>
+          <Logo className="w-8 h-8 group-hover:opacity-85 transition-opacity" />
           <span className="font-bold text-[15px] tracking-tight text-zinc-900 dark:text-white truncate">
             My Budget
           </span>

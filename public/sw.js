@@ -1,12 +1,10 @@
-const CACHE_NAME = 'mybudget-v6';
+const CACHE_NAME = 'mybudget-v7';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/logo.png',
-  '/logo-v4-light.png',
-  '/logo-v4-dark.png',
-  '/logo-light.png',
-  '/logo-dark.png',
+  '/brand/mybudget-symbol-light.svg',
+  '/brand/mybudget-symbol-dark.svg',
+  '/brand/mybudget-app-tile.svg',
   '/favicon.png',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
