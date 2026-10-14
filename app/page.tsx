@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { db } from '@/db';
-import { getPayrollCycle, formatMonth, getCurrentMonth, calculateProratedSalary } from '@/lib/dates';
+import { getPayrollCycle, formatMonth, getCurrentMonth, calculateProratedSalary, getCalendarMonthCycle } from '@/lib/dates';
 import { calculateSavingRate } from '@/lib/calculations';
 import { getUserId } from '@/lib/auth';
 import { getOrInitializeBudgets } from '@/lib/budget-utils';
@@ -105,9 +105,15 @@ export default async function DashboardPage() {
     );
   }
 
-  // 1. User cycle configuration (Disiplin siklus gaji)
+  // 1. User cycle configuration — otomatis pilih mode berdasarkan salary
+  // Mahasiswa/kiriman (salary=0): pakai bulan kalender biasa (1 s/d akhir bulan)
+  // Karyawan (salary>0): pakai siklus tanggal gajian (misal 25 Sep - 24 Okt)
+  const salary = userSettings?.salary || 0;
   const salaryDate = userSettings?.salaryDate || 25;
-  const payrollCycle = getPayrollCycle(salaryDate, new Date());
+  const isStudentMode = salary === 0;
+  const payrollCycle = isStudentMode
+    ? getCalendarMonthCycle(new Date())
+    : getPayrollCycle(salaryDate, new Date());
 
   // 2. Real Available Balance across all user wallets / bank accounts
   const totalWalletsBalance = userAccounts.reduce((sum, a) => sum + (a.balance || 0), 0);
@@ -141,17 +147,25 @@ export default async function DashboardPage() {
   // 4. Total savings across all goals
   const totalSavings = savingsGoalsList.reduce((sum, g) => sum + (g.currentAmount || 0), 0);
 
-  // 5. Effective income calculation (with prorate if applicable)
-  let effectiveIncome = userSettings?.salary || 0;
-  if (userSettings?.salaryProrateEnabled && userSettings.startWorkDate) {
-    const sDate = userSettings.startWorkDate;
-    const [sy, sm] = sDate.split('-').map(Number);
-    if (sm === currentMonth && sy === currentYear) {
-      effectiveIncome = calculateProratedSalary(
-        effectiveIncome,
-        sDate,
-        (userSettings.salaryProrateMethod as 'calendar_days' | 'working_days') || 'calendar_days'
-      );
+  // 5. Effective income calculation
+  // - Karyawan: pakai gaji dari settings (dengan prorata jika aktif)
+  // - Mahasiswa/kiriman: pakai total pemasukan aktual dalam siklus bulan ini
+  let effectiveIncome: number;
+  if (isStudentMode) {
+    // Uang yang sudah masuk bulan ini (kiriman, freelance, dll)
+    effectiveIncome = cycleIncome;
+  } else {
+    effectiveIncome = userSettings?.salary || 0;
+    if (userSettings?.salaryProrateEnabled && userSettings.startWorkDate) {
+      const sDate = userSettings.startWorkDate;
+      const [sy, sm] = sDate.split('-').map(Number);
+      if (sm === currentMonth && sy === currentYear) {
+        effectiveIncome = calculateProratedSalary(
+          effectiveIncome,
+          sDate,
+          (userSettings.salaryProrateMethod as 'calendar_days' | 'working_days') || 'calendar_days'
+        );
+      }
     }
   }
 
@@ -237,7 +251,7 @@ export default async function DashboardPage() {
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-[0.12em] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               <Calendar className="w-3 h-3 flex-shrink-0" strokeWidth={2} />
-              Siklus {salaryDate} · {payrollCycle.daysRemaining} hari lagi
+              {isStudentMode ? `Bulan Kalender · ${payrollCycle.daysRemaining} hari tersisa` : `Siklus ${salaryDate} · ${payrollCycle.daysRemaining} hari lagi`}
             </span>
           </div>
 
@@ -256,6 +270,7 @@ export default async function DashboardPage() {
             initialSalaryDate={salaryDate}
             initialName={user?.name || ''}
             hasTransactions={allTransactions.length > 0}
+            isStudentMode={isStudentMode}
           />
           <Link
             href="/transactions?action=new"
@@ -294,6 +309,7 @@ export default async function DashboardPage() {
           foodBudgetTotal={foodBudgetTotal}
           foodSpent={foodSpent}
           salaryDate={salaryDate}
+          isStudentMode={isStudentMode}
         />
         <ForecastCard
           balance={realAvailableBalance}
@@ -302,6 +318,7 @@ export default async function DashboardPage() {
           elapsedDays={payrollCycle.elapsedDays}
           daysRemaining={payrollCycle.daysRemaining}
           salaryDate={salaryDate}
+          isStudentMode={isStudentMode}
         />
       </div>
 

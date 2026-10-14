@@ -13,6 +13,7 @@ interface ForecastCardProps {
   elapsedDays: number;
   daysRemaining: number;
   salaryDate: number;
+  isStudentMode?: boolean;
 }
 
 export function ForecastCard({
@@ -22,6 +23,7 @@ export function ForecastCard({
   elapsedDays,
   daysRemaining,
   salaryDate,
+  isStudentMode = false,
 }: ForecastCardProps) {
   const { showBalance, formatMasked } = useBalanceVisibility();
   const calculation = useMemo(() => {
@@ -78,10 +80,10 @@ export function ForecastCard({
           </div>
           <div>
             <h3 className="font-semibold text-[13.5px] sm:text-[14.5px] text-zinc-900 dark:text-white leading-none">
-              Prediksi Saldo Gajian
+              {isStudentMode ? 'Prediksi Saldo Akhir Bulan' : 'Prediksi Saldo Gajian'}
             </h3>
             <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1 leading-snug">
-              Estimasi sisa uang di tanggal {salaryDate}
+              {isStudentMode ? 'Estimasi sisa uang di akhir bulan ini' : `Estimasi sisa uang di tanggal ${salaryDate}`}
             </p>
           </div>
         </div>
@@ -106,9 +108,9 @@ export function ForecastCard({
           valueClass="text-green-600 dark:text-green-500"
         />
         <Metric
-          label="Est. saldo gajian"
+          label={isStudentMode ? 'Est. saldo akhir' : 'Est. saldo gajian'}
           value={formatMasked(calculation.projectedEndingBalance)}
-          sub={`Tgl ${salaryDate} mendatang`}
+          sub={isStudentMode ? 'Akhir bulan ini' : `Tgl ${salaryDate} mendatang`}
           valueClass={calculation.projectedEndingBalance >= 0 ? 'text-zinc-900 dark:text-white' : 'text-red-600 dark:text-red-500'}
         />
       </div>
@@ -122,10 +124,10 @@ export function ForecastCard({
           : <Lightning size={14} weight="fill" className="text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />}
         <p>
           {calculation.status === 'deficit'
-            ? `Sisa saldo habis sebelum gajian jika pola belanja berlanjut. Batasi maksimal ${formatCurrency(calculation.safeDailyCeiling)}/hari.`
+            ? `Sisa saldo habis sebelum ${isStudentMode ? 'akhir bulan' : 'gajian'} jika pola belanja berlanjut. Batasi maksimal ${formatCurrency(calculation.safeDailyCeiling)}/hari.`
             : calculation.status === 'warning'
-            ? `Saldo mulai menipis. Usahakan di bawah ${formatCurrency(calculation.safeDailyCeiling)}/hari agar ada sisa di tanggal ${salaryDate}.`
-            : `Ritme belanja terkendali. Proyeksi sisa ${formatCurrency(calculation.projectedEndingBalance)} di tanggal gajian.`}
+            ? `Saldo mulai menipis. Usahakan di bawah ${formatCurrency(calculation.safeDailyCeiling)}/hari agar ada sisa di ${isStudentMode ? 'akhir bulan' : `tanggal ${salaryDate}`}.`
+            : `Ritme belanja terkendali. Proyeksi sisa ${formatCurrency(calculation.projectedEndingBalance)} di ${isStudentMode ? 'akhir bulan' : 'tanggal gajian'}.`}
         </p>
       </div>
     </div>

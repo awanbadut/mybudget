@@ -15,6 +15,7 @@ interface Props {
   initialSalaryDate?: number;
   initialName?: string;
   hasTransactions?: boolean;
+  isStudentMode?: boolean;
 }
 
 export function OnboardingModal({
@@ -22,6 +23,7 @@ export function OnboardingModal({
   initialSalaryDate = 25,
   initialName = '',
   hasTransactions = false,
+  isStudentMode = false,
 }: Props) {
   const { toast } = useToast();
   const router = useRouter();
@@ -32,7 +34,7 @@ export function OnboardingModal({
 
   // Step 1: Salary & Cycle
   const [name, setName] = useState(initialName || '');
-  const [salary, setSalary] = useState(initialSalary > 0 ? String(initialSalary) : '4000000');
+  const [salary, setSalary] = useState(initialSalary > 0 ? String(initialSalary) : isStudentMode ? '0' : '4000000');
   const [salaryDate, setSalaryDate] = useState(String(initialSalaryDate || 25));
 
   // Step 2: Budgets
@@ -46,13 +48,13 @@ export function OnboardingModal({
   const [goalName, setGoalName] = useState('Dana Darurat');
   const [goalTarget, setGoalTarget] = useState('12000000');
 
-  // Auto trigger for clean new users
+  // Auto trigger for clean new users (exclude intentional student mode)
   useEffect(() => {
     const dismissed = localStorage.getItem('mybudget_onboarded');
-    if (!dismissed && initialSalary === 0 && !hasTransactions) {
+    if (!dismissed && initialSalary === 0 && !hasTransactions && !isStudentMode) {
       setIsOpen(true);
     }
-  }, [initialSalary, hasTransactions]);
+  }, [initialSalary, hasTransactions, isStudentMode]);
 
   function applyPreset503020() {
     const sal = parseInt(salary.replace(/[^0-9]/g, ''), 10) || 4000000;

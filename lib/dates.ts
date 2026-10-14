@@ -51,6 +51,45 @@ export interface PayrollCycle {
   elapsedDays: number;
   daysRemaining: number;
   label: string;
+  isCalendarMonth: boolean; // true = mode mahasiswa/kiriman (1 s/d akhir bulan)
+}
+
+/**
+ * Mode mahasiswa / kiriman tidak tentu:
+ * Siklus = bulan kalender biasa (1 s/d akhir bulan).
+ * Tidak bergantung pada tanggal gajian.
+ */
+export function getCalendarMonthCycle(refDate: Date = new Date()): PayrollCycle {
+  const y = refDate.getFullYear();
+  const m = refDate.getMonth();
+
+  const startDate = new Date(y, m, 1);
+  const endDate = new Date(y, m + 1, 0); // hari terakhir bulan ini
+  const nextPayDate = new Date(y, m + 1, 1); // hari pertama bulan depan
+
+  const refMid = new Date(y, m, refDate.getDate());
+  const startMid = new Date(y, m, 1);
+  const nextMid = new Date(y, m + 1, 1);
+
+  const totalDays = Math.max(1, Math.round((nextMid.getTime() - startMid.getTime()) / (1000 * 60 * 60 * 24)));
+  const elapsedDays = Math.max(1, Math.min(totalDays, Math.round((refMid.getTime() - startMid.getTime()) / (1000 * 60 * 60 * 24)) + 1));
+  const daysRemaining = Math.max(0, Math.round((new Date(y, m + 1, 0).getTime() - refMid.getTime()) / (1000 * 60 * 60 * 24)));
+
+  const label = `${formatDateShort(startDate)} - ${formatDateShort(endDate)}`;
+
+  return {
+    startDate,
+    endDate,
+    nextPayDate,
+    startDateStr: toDateString(startDate),
+    endDateStr: toDateString(endDate),
+    nextPayDateStr: toDateString(nextPayDate),
+    totalDays,
+    elapsedDays,
+    daysRemaining,
+    label,
+    isCalendarMonth: true,
+  };
 }
 
 export function getPayrollCycle(salaryDate: number = 25, refDate: Date = new Date()): PayrollCycle {
@@ -109,6 +148,7 @@ export function getPayrollCycle(salaryDate: number = 25, refDate: Date = new Dat
     elapsedDays,
     daysRemaining,
     label,
+    isCalendarMonth: false,
   };
 }
 

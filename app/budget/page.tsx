@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { db } from '@/db';
 import { BudgetClient } from '@/components/BudgetClient';
-import { getCurrentMonth, getPayrollCycle } from '@/lib/dates';
+import { getCurrentMonth, getPayrollCycle, getCalendarMonthCycle } from '@/lib/dates';
 import { getOrInitializeBudgets } from '@/lib/budget-utils';
 import { getUserId } from '@/lib/auth';
 
@@ -14,8 +14,10 @@ export default async function BudgetPage() {
     where: (s, { eq }) => eq(s.userId, DEV_USER_ID),
   });
 
+  const salary = userSettings?.salary || 0;
   const salaryDate = userSettings?.salaryDate || 25;
-  const cycle = getPayrollCycle(salaryDate, new Date());
+  const isStudentMode = salary === 0;
+  const cycle = isStudentMode ? getCalendarMonthCycle(new Date()) : getPayrollCycle(salaryDate, new Date());
 
   const [budgets, categories, cycleTransactions] = await Promise.all([
     getOrInitializeBudgets(DEV_USER_ID, currentMonth, currentYear),

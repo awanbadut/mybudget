@@ -2,21 +2,23 @@
 
 import { formatCurrency } from '@/lib/currency';
 import { ForkKnife, Clock, Warning, CheckCircle } from '@phosphor-icons/react';
-import { getPayrollCycle } from '@/lib/dates';
+import { getPayrollCycle, getCalendarMonthCycle } from '@/lib/dates';
 import { cn } from '@/lib/utils';
 
 interface DailyBudgetProps {
   foodBudgetTotal: number;
   foodSpent: number;
   salaryDate?: number;
+  isStudentMode?: boolean;
 }
 
 export function DailyBudget({
   foodBudgetTotal,
   foodSpent,
   salaryDate = 25,
+  isStudentMode = false,
 }: DailyBudgetProps) {
-  const cycle = getPayrollCycle(salaryDate, new Date());
+  const cycle = isStudentMode ? getCalendarMonthCycle(new Date()) : getPayrollCycle(salaryDate, new Date());
   const { totalDays, elapsedDays, daysRemaining, label } = cycle;
 
   const budgetRemaining = foodBudgetTotal - foodSpent;
