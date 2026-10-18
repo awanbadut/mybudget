@@ -11,6 +11,7 @@ export const AccountSchema = z.object({
 });
 
 export const TransferSchema = z.object({
+  name: z.string().max(255).optional().nullable(),
   fromAccountId: z.string().uuid('Pilih dompet asal'),
   toAccountId: z.string().uuid('Pilih dompet tujuan'),
   amount: z.number().int().positive('Nominal transfer harus lebih dari 0'),

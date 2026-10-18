@@ -291,12 +291,14 @@ export async function transferBetweenAccounts(data: unknown) {
     }
 
     // Determine intuitive transaction name
-    let txName = `Transfer: ${fromAcc.name} → ${toAcc.name}`;
+    let defaultTxName = `Transfer: ${fromAcc.name} → ${toAcc.name}`;
     if (fromAcc.type === 'bank' && toAcc.type === 'cash') {
-      txName = `Tarik Tunai: ${fromAcc.name} → Tunai`;
+      defaultTxName = `Tarik Tunai: ${fromAcc.name} → Tunai`;
     } else if (fromAcc.type === 'cash' && toAcc.type === 'bank') {
-      txName = `Setor Tunai: Tunai → ${toAcc.name}`;
+      defaultTxName = `Setor Tunai: Tunai → ${toAcc.name}`;
     }
+
+    const txName = validated.name?.trim() || defaultTxName;
 
     // Insert inter-wallet transfer transaction
     const [tx] = await db.insert(transactions).values({
@@ -312,6 +314,7 @@ export async function transferBetweenAccounts(data: unknown) {
 
     safeRevalidate('/');
     safeRevalidate('/transactions');
+    safeRevalidate('/budget');
     safeRevalidate('/reports');
     safeRevalidate('/admin');
 

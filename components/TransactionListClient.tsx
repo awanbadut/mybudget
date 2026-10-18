@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useMemo, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { formatCurrency } from '@/lib/currency';
 import { formatDateShort, toDateString } from '@/lib/dates';
 import { createTransaction, updateTransaction, deleteTransaction } from '@/actions/transactions';
+import { transferBetweenAccounts, AccountWithBalance } from '@/actions/accounts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat, ArrowLeftRight } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat, ArrowLeftRight, ArrowDownToLine, Lightbulb } from 'lucide-react';
 import { RecurringManager, RecurringItem } from '@/components/RecurringManager';
 import { TransferModal } from '@/components/TransferModal';
-import { AccountWithBalance } from '@/actions/accounts';
 import { cn } from '@/lib/utils';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -58,7 +59,7 @@ interface Props {
   recurringList?: RecurringItem[];
   currentMonth?: number;
   currentYear?: number;
-  initialType?: 'income' | 'expense';
+  initialType?: 'income' | 'expense' | 'transfer';
   openForm?: boolean;
 }
 
@@ -72,9 +73,14 @@ export function TransactionListClient({
   initialType,
   openForm,
 }: Props) {
+  const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+
   const defaultAccount = accounts.find(a => a.isDefault) || accounts[0];
+  const cashAccount = accounts.find(a => a.type === 'cash') || accounts[0];
+  const bankAccounts = accounts.filter(a => a.type === 'bank');
+  const defaultBank = bankAccounts[0] || accounts.find(a => a.id !== cashAccount?.id) || accounts[0];
 
   const [showForm, setShowForm] = useState(openForm || false);
   const [showTransferModal, setShowTransferModal] = useState(false);
@@ -94,10 +100,12 @@ export function TransactionListClient({
   }, [recurringList, currentMonth, currentYear]);
 
   // Form states
-  const [formType, setFormType] = useState<'income' | 'expense'>(initialType || 'expense');
+  const [formType, setFormType] = useState<'income' | 'expense' | 'transfer'>(initialType || 'expense');
+  const [transferSubMode, setTransferSubMode] = useState<'withdraw' | 'deposit' | 'free'>('withdraw');
   const [formName, setFormName] = useState('');
   const [formCategory, setFormCategory] = useState('');
   const [formAccount, setFormAccount] = useState(defaultAccount?.id || '');
+  const [formToAccount, setFormToAccount] = useState('');
   const [formAmount, setFormAmount] = useState('');
   const [formDate, setFormDate] = useState(toDateString(new Date()));
   const [formNote, setFormNote] = useState('');
@@ -142,20 +150,69 @@ export function TransactionListClient({
     setFormName('');
     setFormCategory('');
     setFormAccount(defaultAccount?.id || '');
+    setFormToAccount('');
     setFormAmount('');
     setFormDate(toDateString(new Date()));
     setFormNote('');
     setFormError('');
     setEditingTx(null);
     setFormType(initialType || 'expense');
+    setTransferSubMode('withdraw');
+  }
+
+  function applyTransferPreset(sub: 'withdraw' | 'deposit' | 'free') {
+    setTransferSubMode(sub);
+    setFormError('');
+    if (sub === 'withdraw') {
+      const from = defaultBank?.id || accounts[0]?.id || '';
+      const to = cashAccount?.id || accounts.find(a => a.id !== from)?.id || '';
+      setFormAccount(from);
+      setFormToAccount(to);
+      if (!editingTx) {
+        const fromAcc = accounts.find(a => a.id === from);
+        setFormName(`Tarik Tunai: ${fromAcc?.name || 'ATM'} → Tunai`);
+      }
+    } else if (sub === 'deposit') {
+      const from = cashAccount?.id || accounts[0]?.id || '';
+      const to = defaultBank?.id || accounts.find(a => a.id !== from)?.id || '';
+      setFormAccount(from);
+      setFormToAccount(to);
+      if (!editingTx) {
+        const toAcc = accounts.find(a => a.id === to);
+        setFormName(`Setor Tunai: Tunai → ${toAcc?.name || 'Bank'}`);
+      }
+    } else {
+      const from = defaultAccount?.id || accounts[0]?.id || '';
+      const to = accounts.find(a => a.id !== from)?.id || '';
+      setFormAccount(from);
+      setFormToAccount(to);
+      if (!editingTx) {
+        const fromAcc = accounts.find(a => a.id === from);
+        const toAcc = accounts.find(a => a.id === to);
+        setFormName(`Transfer: ${fromAcc?.name || 'Dompet'} → ${toAcc?.name || 'Dompet'}`);
+      }
+    }
+  }
+
+  function handleFormTypeChange(newType: 'income' | 'expense' | 'transfer') {
+    setFormType(newType);
+    setFormError('');
+    if (newType === 'transfer') {
+      applyTransferPreset('withdraw');
+    } else {
+      if (!formAccount) setFormAccount(defaultAccount?.id || '');
+      setFormToAccount('');
+    }
   }
 
   function openEdit(tx: Transaction) {
     setEditingTx(tx);
-    setFormType((tx.type === 'income' ? 'income' : 'expense'));
+    const tType = (tx.type === 'income' ? 'income' : tx.type === 'transfer' ? 'transfer' : 'expense');
+    setFormType(tType);
     setFormName(tx.name);
     setFormCategory(tx.categoryId || '');
     setFormAccount(tx.accountId || defaultAccount?.id || '');
+    setFormToAccount(tx.toAccountId || '');
     setFormAmount(String(tx.amount));
     setFormDate(tx.transactionDate);
     setFormNote(tx.note || '');
@@ -167,11 +224,74 @@ export function TransactionListClient({
     e.preventDefault();
     setFormError('');
 
-    if (!formName.trim()) { setFormError('Nama transaksi harus diisi'); return; }
-    if (!formCategory) { setFormError('Pilih kategori'); return; }
     const amount = parseInt(formAmount.replace(/[^0-9]/g, ''), 10);
     if (!amount || amount <= 0) { setFormError('Nominal harus lebih dari 0'); return; }
     if (!formDate) { setFormError('Tanggal harus diisi'); return; }
+
+    if (formType === 'transfer') {
+      if (!formAccount || !formToAccount) {
+        setFormError('Pilih dompet asal dan dompet tujuan');
+        return;
+      }
+      if (formAccount === formToAccount) {
+        setFormError('Dompet asal dan tujuan tidak boleh sama');
+        return;
+      }
+
+      startTransition(async () => {
+        const fromAcc = accounts.find(a => a.id === formAccount);
+        const toAcc = accounts.find(a => a.id === formToAccount);
+        let defaultName = formName.trim();
+        if (!defaultName) {
+          if (fromAcc?.type === 'bank' && toAcc?.type === 'cash') {
+            defaultName = `Tarik Tunai: ${fromAcc.name} → Tunai`;
+          } else if (fromAcc?.type === 'cash' && toAcc?.type === 'bank') {
+            defaultName = `Setor Tunai: Tunai → ${toAcc.name}`;
+          } else {
+            defaultName = `Transfer: ${fromAcc?.name} → ${toAcc?.name}`;
+          }
+        }
+
+        let result;
+        if (editingTx) {
+          result = await updateTransaction(editingTx.id, {
+            type: 'transfer',
+            name: defaultName,
+            accountId: formAccount,
+            toAccountId: formToAccount,
+            amount,
+            transactionDate: formDate,
+            note: formNote.trim() || defaultName,
+          });
+        } else {
+          result = await transferBetweenAccounts({
+            name: defaultName,
+            fromAccountId: formAccount,
+            toAccountId: formToAccount,
+            amount,
+            transactionDate: formDate,
+            note: formNote.trim() || defaultName,
+          });
+        }
+
+        if (result.success) {
+          toast({
+            title: editingTx ? 'Transfer diperbarui' : 'Tarik Tunai / Transfer Berhasil! ✓',
+            description: `${formatCurrency(amount)} dipindahkan dari ${fromAcc?.name} ke ${toAcc?.name}`,
+          });
+          setShowForm(false);
+          resetForm();
+          router.refresh();
+        } else {
+          setFormError(result.error || 'Terjadi kesalahan saat memproses transfer');
+        }
+      });
+      return;
+    }
+
+    // Regular Income / Expense transaction
+    if (!formName.trim()) { setFormError('Nama transaksi harus diisi'); return; }
+    if (!formCategory) { setFormError('Pilih kategori'); return; }
 
     startTransition(async () => {
       const data = {
@@ -190,7 +310,9 @@ export function TransactionListClient({
 
       if (result.success) {
         toast({ title: editingTx ? 'Transaksi diperbarui' : 'Transaksi ditambahkan', description: `${formName} ${formatCurrency(amount)}` });
-        setShowForm(false); resetForm();
+        setShowForm(false);
+        resetForm();
+        router.refresh();
       } else {
         setFormError(result.error || 'Terjadi kesalahan');
       }
@@ -204,6 +326,7 @@ export function TransactionListClient({
       if (result.success) {
         toast({ title: 'Transaksi dihapus' });
         setDeleteId(null);
+        router.refresh();
       }
     });
   }
@@ -455,15 +578,13 @@ export function TransactionListClient({
                   </div>
 
                   <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
-                    {!isTransfer && (
-                      <button
-                        onClick={() => openEdit(tx)}
-                        className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-800 rounded-lg transition-colors touch-manipulation"
-                        title="Edit"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                    <button
+                      onClick={() => openEdit(tx)}
+                      className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-800 rounded-lg transition-colors touch-manipulation"
+                      title="Edit"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
                     <button
                       onClick={() => setDeleteId(tx.id)}
                       className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors touch-manipulation"
@@ -486,73 +607,225 @@ export function TransactionListClient({
         <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-5 sm:p-6 w-full">
           <DialogHeader>
             <DialogTitle className="font-bold text-base sm:text-lg text-zinc-900 dark:text-white">
-              {editingTx ? 'Ubah Catatan Transaksi' : 'Catat Transaksi Baru'}
+              {editingTx
+                ? (editingTx.type === 'transfer' ? 'Ubah Tarik / Transfer Saldo' : 'Ubah Catatan Transaksi')
+                : (formType === 'transfer' ? 'Tarik Tunai / Transfer Dompet' : 'Catat Transaksi Baru')}
             </DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4 text-xs pt-1 sm:pt-2">
             {/* Type toggle */}
-            <div className="flex gap-2 p-1 bg-stone-100 dark:bg-zinc-800 rounded-xl">
-              {(['expense', 'income'] as const).map(type => (
+            <div className="flex gap-1.5 p-1 bg-stone-100 dark:bg-zinc-800 rounded-xl">
+              {(['expense', 'income', 'transfer'] as const).map(type => (
                 <button
                   key={type}
                   type="button"
-                  onClick={() => { setFormType(type); setFormCategory(''); }}
+                  onClick={() => handleFormTypeChange(type)}
                   className={cn(
-                    'flex-1 py-1.5 rounded-lg font-semibold text-xs transition-all touch-manipulation',
+                    'flex-1 py-1.5 px-2 rounded-lg font-semibold text-xs transition-all touch-manipulation flex items-center justify-center gap-1.5',
                     formType === type
-                      ? (type === 'expense' ? 'bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 shadow-sm' : 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm')
+                      ? (type === 'expense'
+                          ? 'bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 shadow-sm'
+                          : type === 'income'
+                          ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                          : 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-sm')
                       : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
                   )}
                 >
-                  {type === 'expense' ? 'Pengeluaran' : 'Pemasukan'}
+                  {type === 'expense' ? (
+                    <>
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                      <span>Pengeluaran</span>
+                    </>
+                  ) : type === 'income' ? (
+                    <>
+                      <ArrowDownLeft className="w-3.5 h-3.5" />
+                      <span>Pemasukan</span>
+                    </>
+                  ) : (
+                    <>
+                      <ArrowLeftRight className="w-3.5 h-3.5" />
+                      <span>Tarik / Transfer</span>
+                    </>
+                  )}
                 </button>
               ))}
             </div>
 
-            <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nama Transaksi</label>
-              <input
-                placeholder="Contoh: Makan Siang / Gaji Bulanan"
-                value={formName}
-                onChange={e => setFormName(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
-              />
-            </div>
+            {/* Transfer-specific Mode Selector & Account Pickers */}
+            {formType === 'transfer' ? (
+              <div className="space-y-3 bg-blue-50/50 dark:bg-blue-950/20 p-3 rounded-2xl border border-blue-100 dark:border-blue-900/40">
+                {/* Submode presets */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => applyTransferPreset('withdraw')}
+                    className={cn(
+                      'flex-1 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all touch-manipulation flex items-center justify-center gap-1',
+                      transferSubMode === 'withdraw'
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-white/80 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-white'
+                    )}
+                  >
+                    <Banknote className="w-3.5 h-3.5" />
+                    <span>Tarik ATM</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyTransferPreset('deposit')}
+                    className={cn(
+                      'flex-1 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all touch-manipulation flex items-center justify-center gap-1',
+                      transferSubMode === 'deposit'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-white/80 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-white'
+                    )}
+                  >
+                    <ArrowDownToLine className="w-3.5 h-3.5" />
+                    <span>Setor Tunai</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyTransferPreset('free')}
+                    className={cn(
+                      'flex-1 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all touch-manipulation flex items-center justify-center gap-1',
+                      transferSubMode === 'free'
+                        ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-xs'
+                        : 'bg-white/80 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-white'
+                    )}
+                  >
+                    <ArrowLeftRight className="w-3.5 h-3.5" />
+                    <span>Pindah Bebas</span>
+                  </button>
+                </div>
 
-            <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Kategori</label>
-              <select
-                value={formCategory}
-                onChange={e => setFormCategory(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
-              >
-                <option value="">Pilih Kategori</option>
-                {filteredCategories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
+                {/* Source and Destination Wallets */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                      <span>Dari (Sumber Uang):</span>
+                    </label>
+                    <select
+                      value={formAccount}
+                      onChange={e => setFormAccount(e.target.value)}
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white font-medium focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                    >
+                      <option value="">Pilih Dompet Sumber</option>
+                      {accounts.map(acc => (
+                        <option key={acc.id} value={acc.id} disabled={acc.id === formToAccount}>
+                          {acc.name} ({formatCurrency(acc.balance)})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-            {accounts.length > 0 && (
-              <div className="space-y-1">
-                <label className="font-semibold text-zinc-700 dark:text-zinc-300">Sumber Dompet / Rekening</label>
-                <select
-                  value={formAccount}
-                  onChange={e => setFormAccount(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
-                >
-                  {accounts.map(acc => (
-                    <option key={acc.id} value={acc.id}>
-                      {acc.name} ({formatCurrency(acc.balance)})
-                    </option>
-                  ))}
-                </select>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span>Ke (Tujuan Masuk):</span>
+                    </label>
+                    <select
+                      value={formToAccount}
+                      onChange={e => setFormToAccount(e.target.value)}
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white font-medium focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                    >
+                      <option value="">Pilih Dompet Tujuan</option>
+                      {accounts.map(acc => (
+                        <option key={acc.id} value={acc.id} disabled={acc.id === formAccount}>
+                          {acc.name} ({formatCurrency(acc.balance)})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Name / Label */}
+                <div className="space-y-1">
+                  <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nama / Keterangan Transaksi</label>
+                  <input
+                    placeholder={transferSubMode === 'withdraw' ? 'Tarik tunai ATM...' : 'Nama transfer...'}
+                    value={formName}
+                    onChange={e => setFormName(e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                  />
+                </div>
               </div>
+            ) : (
+              <>
+                <div className="space-y-1">
+                  <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nama Transaksi</label>
+                  <input
+                    placeholder="Contoh: Makan Siang / Gaji Bulanan"
+                    value={formName}
+                    onChange={e => setFormName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                  />
+                </div>
+
+                {/* Smart tip if user types 'tarik' or 'atm' */}
+                {/\b(tarik|atm|penarikan|withdraw)\b/i.test(formName) && (
+                  <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-200 space-y-1.5 animate-in fade-in-50">
+                    <div className="flex items-start gap-2">
+                      <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                      <div className="text-[11px] leading-relaxed">
+                        <strong>Ingin mencatat tarik tunai ATM?</strong>
+                        <p className="text-zinc-600 dark:text-zinc-300 mt-0.5">
+                          {formType === 'income'
+                            ? 'Jika dicatat sebagai "Pemasukan", saldo rekening ATM tidak akan berkurang. Gunakan tab "Tarik / Transfer" agar saldo rekening ATM otomatis dipotong dan saldo tunai bertambah.'
+                            : 'Tarik tunai bukan belanja/pengeluaran. Gunakan tab "Tarik / Transfer" agar tidak memotong anggaran belanja bulanan Anda.'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleFormTypeChange('transfer')}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[10px] font-bold shadow-xs transition-colors touch-manipulation"
+                    >
+                      <ArrowLeftRight className="w-3 h-3" />
+                      <span>Beralih ke Tab Tarik / Transfer Saldo</span>
+                    </button>
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-zinc-700 dark:text-zinc-300">Kategori</label>
+                  <select
+                    value={formCategory}
+                    onChange={e => setFormCategory(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                  >
+                    <option value="">Pilih Kategori</option>
+                    {filteredCategories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {accounts.length > 0 && (
+                  <div className="space-y-1">
+                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">
+                      {formType === 'expense' ? 'Sumber Dompet (Saldo Berkurang)' : 'Dompet Penerima (Saldo Masuk)'}
+                    </label>
+                    <select
+                      value={formAccount}
+                      onChange={e => setFormAccount(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                    >
+                      {accounts.map(acc => (
+                        <option key={acc.id} value={acc.id}>
+                          {acc.name} ({formatCurrency(acc.balance)})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </>
             )}
 
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nominal (Rp)</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">
+                {formType === 'transfer' ? 'Nominal Tarik / Transfer (Rp)' : 'Nominal (Rp)'}
+              </label>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-zinc-500 dark:text-zinc-400 pointer-events-none">Rp</span>
                 <input
@@ -563,22 +836,56 @@ export function TransactionListClient({
                   className="w-full pl-9 pr-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-lg text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums"
                 />
               </div>
+
               {/* Quick Nominal Chips */}
               <div className="flex gap-1.5 overflow-x-auto pt-1 pb-1 w-full max-w-full">
-                {[10000, 25000, 50000, 100000, 500000].map(amt => (
+                {(formType === 'transfer' ? [50000, 100000, 200000, 500000, 1000000, 2000000] : [10000, 25000, 50000, 100000, 500000]).map(amt => (
                   <button
                     key={amt}
                     type="button"
                     onClick={() => {
-                      const cur = parseInt(formAmount || '0', 10);
-                      setFormAmount(String(cur + amt));
+                      if (formType === 'transfer') {
+                        setFormAmount(String(amt));
+                      } else {
+                        const cur = parseInt(formAmount || '0', 10);
+                        setFormAmount(String(cur + amt));
+                      }
                     }}
                     className="px-2.5 py-1 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg text-[11px] font-medium transition-colors flex-shrink-0 touch-manipulation"
                   >
-                    +{amt >= 1000000 ? `${amt / 1000000}jt` : `${amt / 1000}rb`}
+                    {formType === 'transfer'
+                      ? (amt >= 1000000 ? `${amt / 1000000} Juta` : `${amt / 1000}rb`)
+                      : `+${amt >= 1000000 ? `${amt / 1000000}jt` : `${amt / 1000}rb`}`}
                   </button>
                 ))}
               </div>
+
+              {/* Live Preview for Transfer */}
+              {formType === 'transfer' && Number(formAmount.replace(/[^0-9]/g, '')) > 0 && formAccount && formToAccount && (
+                (() => {
+                  const numAmt = parseInt(formAmount.replace(/[^0-9]/g, ''), 10) || 0;
+                  const fromAcc = accounts.find(a => a.id === formAccount);
+                  const toAcc = accounts.find(a => a.id === formToAccount);
+                  if (!fromAcc || !toAcc) return null;
+                  return (
+                    <div className="mt-2 p-2.5 rounded-xl bg-stone-50 dark:bg-zinc-800/80 border border-stone-200/80 dark:border-zinc-700 text-[11px] space-y-1">
+                      <div className="font-bold text-zinc-500 uppercase tracking-wider text-[10px]">Preview Dampak Saldo:</div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-600 dark:text-zinc-400">{fromAcc.name} (Berkurang):</span>
+                        <span className="font-semibold text-rose-600 dark:text-rose-400 tabular-nums">
+                          {formatCurrency(fromAcc.balance)} → {formatCurrency(fromAcc.balance - numAmt)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-600 dark:text-zinc-400">{toAcc.name} (Bertambah):</span>
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                          {formatCurrency(toAcc.balance)} → {formatCurrency(toAcc.balance + numAmt)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()
+              )}
             </div>
 
             <div className="space-y-1">
@@ -594,7 +901,7 @@ export function TransactionListClient({
             <div className="space-y-1">
               <label className="font-semibold text-zinc-700 dark:text-zinc-300">Catatan (opsional)</label>
               <textarea
-                placeholder="Catatan tambahan..."
+                placeholder={formType === 'transfer' ? 'Tarik tunai untuk belanja mingguan...' : 'Catatan tambahan...'}
                 value={formNote}
                 onChange={e => setFormNote(e.target.value)}
                 rows={2}
@@ -615,9 +922,18 @@ export function TransactionListClient({
               <button
                 type="submit"
                 disabled={isPending}
-                className="flex-1 sm:flex-initial px-4 py-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl font-medium shadow-sm touch-manipulation"
+                className={cn(
+                  'flex-1 sm:flex-initial px-4 py-2 text-white rounded-xl font-medium shadow-sm touch-manipulation transition-all',
+                  formType === 'transfer'
+                    ? 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900'
+                )}
               >
-                {isPending ? 'Menyimpan...' : 'Simpan Transaksi'}
+                {isPending
+                  ? 'Menyimpan...'
+                  : formType === 'transfer'
+                  ? 'Konfirmasi Tarik / Transfer'
+                  : 'Simpan Transaksi'}
               </button>
             </DialogFooter>
           </form>
@@ -658,6 +974,7 @@ export function TransactionListClient({
         open={showTransferModal}
         onOpenChange={setShowTransferModal}
         accounts={accounts}
+        onSuccess={() => router.refresh()}
       />
     </div>
   );

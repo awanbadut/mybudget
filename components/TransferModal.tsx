@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { formatCurrency } from '@/lib/currency';
 import { toDateString } from '@/lib/dates';
 import { transferBetweenAccounts, AccountWithBalance } from '@/actions/accounts';
@@ -37,6 +38,7 @@ export function TransferModal({
   initialFromAccountId,
   onSuccess,
 }: TransferModalProps) {
+  const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
@@ -161,6 +163,7 @@ export function TransferModal({
         setAmount('');
         setNote('');
         onOpenChange(false);
+        router.refresh();
         if (onSuccess) onSuccess();
       } else {
         setError(res.error || 'Gagal memproses transaksi.');
@@ -253,7 +256,7 @@ export function TransferModal({
                 Pilih Bank Penarikan (Sumber Uang)
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {accounts.filter(a => a.type === 'bank' || a.id !== cashAccount?.id).map((acc) => {
+                {accounts.filter(a => a.id !== toAccountId).map((acc) => {
                   const isSelected = fromAccountId === acc.id;
                   return (
                     <button
@@ -278,7 +281,7 @@ export function TransferModal({
               <div className="flex items-center gap-2 p-2 rounded-xl bg-stone-50 dark:bg-zinc-800/60 border border-stone-200/60 dark:border-zinc-700/60 text-zinc-600 dark:text-zinc-400">
                 <Coins className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                 <span className="text-[11px]">
-                  Tujuan otomatis: <strong className="text-zinc-900 dark:text-white">{cashAccount?.name || 'Kas Tunai'}</strong> (Saldo saat ini: {formatCurrency(cashAccount?.balance || 0)})
+                  Tujuan otomatis: <strong className="text-zinc-900 dark:text-white">{toAccount?.name || cashAccount?.name || 'Kas Tunai'}</strong> (Saldo: {formatCurrency(toAccount?.balance || cashAccount?.balance || 0)})
                 </span>
               </div>
             </div>
@@ -287,14 +290,14 @@ export function TransferModal({
               <div className="flex items-center gap-2 p-2 rounded-xl bg-stone-50 dark:bg-zinc-800/60 border border-stone-200/60 dark:border-zinc-700/60 text-zinc-600 dark:text-zinc-400">
                 <Coins className="w-4 h-4 text-blue-600 flex-shrink-0" />
                 <span className="text-[11px]">
-                  Sumber uang tunai: <strong className="text-zinc-900 dark:text-white">{cashAccount?.name || 'Kas Tunai'}</strong> (Saldo: {formatCurrency(cashAccount?.balance || 0)})
+                  Sumber uang tunai: <strong className="text-zinc-900 dark:text-white">{fromAccount?.name || cashAccount?.name || 'Kas Tunai'}</strong> (Saldo: {formatCurrency(fromAccount?.balance || cashAccount?.balance || 0)})
                 </span>
               </div>
               <label className="font-semibold text-zinc-700 dark:text-zinc-300">
                 Pilih Rekening Bank Tujuan Setoran
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {accounts.filter(a => a.type === 'bank' || a.id !== cashAccount?.id).map((acc) => {
+                {accounts.filter(a => a.id !== fromAccountId).map((acc) => {
                   const isSelected = toAccountId === acc.id;
                   return (
                     <button

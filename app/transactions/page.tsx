@@ -45,7 +45,7 @@ export default async function TransactionsPage({
       recurringList={recurringRes.data || []}
       currentMonth={currentMonth}
       currentYear={currentYear}
-      initialType={(params.type as 'income' | 'expense') || undefined}
+      initialType={(params.type as 'income' | 'expense' | 'transfer') || undefined}
       openForm={params.action === 'new'}
     />
   );

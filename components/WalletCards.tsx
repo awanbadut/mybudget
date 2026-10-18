@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { formatCurrency } from '@/lib/currency';
 import { AccountWithBalance } from '@/actions/accounts';
 import { TransferModal, TransferModalMode } from '@/components/TransferModal';
@@ -21,6 +22,7 @@ interface WalletCardsProps {
 }
 
 export function WalletCards({ accounts }: WalletCardsProps) {
+  const router = useRouter();
   const { showBalance, toggleBalance, formatMasked } = useBalanceVisibility();
 
   const [showTransfer, setShowTransfer] = useState(false);
@@ -234,12 +236,14 @@ export function WalletCards({ accounts }: WalletCardsProps) {
         accounts={accounts}
         initialMode={transferMode}
         initialFromAccountId={transferFromId}
+        onSuccess={() => router.refresh()}
       />
 
       <AccountModal
         open={showAddAccount}
         onOpenChange={setShowAddAccount}
         account={selectedAccount}
+        onSuccess={() => router.refresh()}
       />
     </div>
   );
