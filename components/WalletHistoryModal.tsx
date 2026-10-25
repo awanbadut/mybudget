@@ -1,13 +1,16 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatCurrency } from '@/lib/currency';
-import { formatDateShort } from '@/lib/dates';
+import { formatDateShort, toDateString } from '@/lib/dates';
 import { AccountWithBalance } from '@/actions/accounts';
+import { createTransaction } from '@/actions/transactions';
 import { CycleOption } from '@/components/CycleSelector';
 import { FilterBottomSheet } from '@/components/FilterBottomSheet';
 import { PaginationBar } from '@/components/PaginationBar';
+import { useToast } from '@/hooks/use-toast';
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -19,6 +22,7 @@ import {
   Smartphone,
   Coins,
   Filter,
+  Scale,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -68,6 +72,10 @@ export function WalletHistoryModal({
   initialCycleOffset = 'all',
   onEditAccount,
 }: WalletHistoryModalProps) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+
   const [selectedCycle, setSelectedCycle] = useState<string>(
     initialCycleOffset === 'all' ? 'all' : String(initialCycleOffset)
   );
@@ -76,6 +84,8 @@ export function WalletHistoryModal({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
+  const [showReconcile, setShowReconcile] = useState<boolean>(false);
+  const [actualBalanceInput, setActualBalanceInput] = useState<string>('');
 
   // Compute chronological running balance across all transactions for this account
   const ledgerWithRunningBalance = useMemo(() => {
@@ -242,20 +252,131 @@ export function WalletHistoryModal({
               </div>
             </div>
 
-            {onEditAccount && (
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <button
                 type="button"
                 onClick={() => {
-                  onOpenChange(false);
-                  onEditAccount(account);
+                  setShowReconcile(v => !v);
+                  if (!showReconcile) {
+                    setActualBalanceInput(String(Math.max(0, account.balance)));
+                  }
                 }}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-stone-100 dark:hover:bg-zinc-700 transition-colors flex-shrink-0"
+                className={cn(
+                  'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-colors touch-manipulation',
+                  showReconcile
+                    ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white'
+                    : 'bg-white dark:bg-zinc-800 border-stone-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-stone-100'
+                )}
+                title="Sesuaikan saldo aplikasi dengan uang nyata di dompet/ATM"
               >
-                <Pencil className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Edit Dompet</span>
+                <Scale className="w-3.5 h-3.5" />
+                <span>Sesuaikan Saldo</span>
               </button>
-            )}
+
+              {onEditAccount && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenChange(false);
+                    onEditAccount(account);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-stone-100 dark:hover:bg-zinc-700 transition-colors flex-shrink-0"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Edit</span>
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* 1-Click Balance Reconciliation Drawer ("Sesuaikan Saldo Nyata") */}
+          {showReconcile && (
+            <div className="mt-3 p-3.5 rounded-2xl bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/70 space-y-2.5 text-xs animate-in fade-in-50">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="font-bold text-zinc-900 dark:text-white">
+                    Opname / Sesuaikan Saldo Nyata {account.name}
+                  </p>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    Ketik jumlah uang nyata yang ada di {account.name} saat ini, sistem akan otomatis mencatat selisihnya.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">
+                    Rp
+                  </span>
+                  <input
+                    value={
+                      actualBalanceInput
+                        ? Number(actualBalanceInput.replace(/[^0-9]/g, '')).toLocaleString('id-ID')
+                        : ''
+                    }
+                    onChange={e => setActualBalanceInput(e.target.value.replace(/[^0-9]/g, ''))}
+                    inputMode="numeric"
+                    placeholder="Ketik saldo nyata..."
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-700 font-bold text-sm text-zinc-900 dark:text-white tabular-nums focus:outline-none"
+                  />
+                </div>
+
+                {(() => {
+                  const targetBal = parseInt(actualBalanceInput.replace(/[^0-9]/g, '') || '0', 10);
+                  const diff = targetBal - account.balance;
+                  return (
+                    <button
+                      type="button"
+                      disabled={isPending || diff === 0}
+                      onClick={() => {
+                        if (diff === 0) return;
+                        startTransition(async () => {
+                          const isIncome = diff > 0;
+                          const matchedCat =
+                            categories.find(
+                              c =>
+                                c.type === (isIncome ? 'income' : 'expense') &&
+                                (c.name.toLowerCase().includes('lain') || c.name.toLowerCase().includes('umum'))
+                            ) || categories.find(c => c.type === (isIncome ? 'income' : 'expense'));
+
+                          const res = await createTransaction({
+                            type: isIncome ? 'income' : 'expense',
+                            name: `Penyesuaian Saldo: ${account.name}`,
+                            categoryId: matchedCat?.id || null,
+                            accountId: account.id,
+                            amount: Math.abs(diff),
+                            transactionDate: toDateString(new Date()),
+                            note: `Penyesuaian saldo dari ${formatCurrency(account.balance)} menjadi ${formatCurrency(targetBal)}`,
+                          });
+
+                          if (res.success) {
+                            toast({
+                              title: 'Saldo Dompet Berhasil Disesuaikan! ✓',
+                              description: `${account.name} kini ${formatCurrency(targetBal)} (${diff > 0 ? '+' : '-'}${formatCurrency(Math.abs(diff))})`,
+                            });
+                            setShowReconcile(false);
+                            router.refresh();
+                          } else {
+                            toast({
+                              title: res.error || 'Gagal menyesuaikan saldo',
+                              variant: 'destructive',
+                            });
+                          }
+                        });
+                      }}
+                      className="px-4 py-2 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-xs disabled:opacity-40 active:scale-95 transition-all touch-manipulation whitespace-nowrap"
+                    >
+                      {isPending
+                        ? 'Menyimpan...'
+                        : diff === 0
+                        ? 'Saldo Sudah Sama'
+                        : `Sesuaikan (${diff > 0 ? '+' : '-'}${formatCurrency(Math.abs(diff))})`}
+                    </button>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
 
           {/* 4 Summary Strip */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3">

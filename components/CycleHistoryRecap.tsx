@@ -1,11 +1,16 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { formatCurrency } from '@/lib/currency';
-import { formatDateShort } from '@/lib/dates';
+import { formatDateShort, toDateString } from '@/lib/dates';
 import { useBalanceVisibility } from '@/context/BalanceVisibilityContext';
 import { FilterBottomSheet } from '@/components/FilterBottomSheet';
 import { PaginationBar } from '@/components/PaginationBar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { addSavings } from '@/actions/savings';
+import { useToast } from '@/hooks/use-toast';
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -19,6 +24,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Filter,
+  PiggyBank,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -73,6 +79,7 @@ interface CycleHistoryRecapProps {
   transactions: RecapTransactionItem[];
   accounts: RecapAccountItem[];
   categories: Array<{ id: string; name: string; type: string }>;
+  savingsGoals?: Array<{ id: string; name: string; currentAmount?: number; targetAmount?: number }>;
 }
 
 export function CycleHistoryRecap({
@@ -90,10 +97,20 @@ export function CycleHistoryRecap({
   transactions,
   accounts,
   categories,
+  savingsGoals = [],
 }: CycleHistoryRecapProps) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
   const { showBalance } = useBalanceVisibility();
   const mask = '••••••';
   const display = (val: number) => (showBalance ? formatCurrency(val) : mask);
+
+  // Surplus sweep modal state
+  const [showSweepModal, setShowSweepModal] = useState(false);
+  const [sweepGoalId, setSweepGoalId] = useState(savingsGoals[0]?.id || '');
+  const [sweepAmount, setSweepAmount] = useState('');
+  const [sweepAccountId, setSweepAccountId] = useState(accounts[0]?.id || '');
 
   // Filter states for transactions in this cycle
   const [filterType, setFilterType] = useState<'all' | 'expense' | 'income' | 'transfer'>('all');
@@ -315,6 +332,23 @@ export function CycleHistoryRecap({
               </div>
             )}
           </div>
+
+          {/* 1-Click Sweep Surplus to Savings Button */}
+          {cycleRemainingCash > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setSweepAmount(String(cycleRemainingCash));
+                if (!sweepGoalId && savingsGoals[0]) setSweepGoalId(savingsGoals[0].id);
+                if (!sweepAccountId && accounts[0]) setSweepAccountId(accounts[0].id);
+                setShowSweepModal(true);
+              }}
+              className="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs active:scale-95 transition-all touch-manipulation"
+            >
+              <PiggyBank className="w-3.5 h-3.5" />
+              <span>Tabungkan Sisa Uang Siklus</span>
+            </button>
+          )}
         </div>
 
         {/* Card B: Sisa Uang dari Pos-pos Budgeting */}
@@ -772,6 +806,161 @@ export function CycleHistoryRecap({
           </div>
         )}
       </div>
+
+      {/* Bottom Sheet: Tabungkan Sisa Uang Siklus (Sweeping Surplus) */}
+      <Dialog open={showSweepModal} onOpenChange={setShowSweepModal}>
+        <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 p-5 sm:p-6">
+          <DialogHeader>
+            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white flex items-center gap-2">
+              <PiggyBank className="w-4 h-4 text-emerald-600" />
+              <span>Tabungkan Sisa Uang Siklus ({cycleLabel})</span>
+            </DialogTitle>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Amankan surplus <strong>{formatCurrency(cycleRemainingCash)}</strong> langsung ke Target Tabungan Anda
+            </p>
+          </DialogHeader>
+
+          {savingsGoals.length === 0 ? (
+            <div className="py-5 text-center space-y-3 text-xs">
+              <p className="text-zinc-600 dark:text-zinc-300 font-medium">
+                Anda belum membuat Target Tabungan. Buat target tabungan terlebih dahulu untuk menyimpan surplus siklus ini.
+              </p>
+              <Link
+                href="/savings"
+                onClick={() => setShowSweepModal(false)}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold"
+              >
+                <PiggyBank className="w-4 h-4" />
+                <span>Buka Halaman Tabungan</span>
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3.5 text-xs pt-2">
+              <div className="space-y-1.5">
+                <label className="font-semibold text-zinc-700 dark:text-zinc-300 block">
+                  Pilih Target Tabungan Tujuan
+                </label>
+                <div className="grid grid-cols-1 gap-1.5">
+                  {savingsGoals.map(goal => (
+                    <button
+                      key={goal.id}
+                      type="button"
+                      onClick={() => setSweepGoalId(goal.id)}
+                      className={cn(
+                        'p-2.5 rounded-xl border text-left flex items-center justify-between transition-all touch-manipulation',
+                        sweepGoalId === goal.id
+                          ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white font-bold'
+                          : 'bg-stone-50 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border-stone-200 dark:border-zinc-700'
+                      )}
+                    >
+                      <span className="truncate">{goal.name}</span>
+                      {goal.currentAmount !== undefined && (
+                        <span className="text-[11px] opacity-80 tabular-nums">
+                          Terkumpul: {formatCurrency(goal.currentAmount)}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-semibold text-zinc-700 dark:text-zinc-300 block">
+                  Nominal Sisa yang Ditabungkan (Rp)
+                </label>
+                <input
+                  value={sweepAmount ? Number(sweepAmount.replace(/[^0-9]/g, '')).toLocaleString('id-ID') : ''}
+                  onChange={e => setSweepAmount(e.target.value.replace(/[^0-9]/g, ''))}
+                  inputMode="numeric"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 font-bold text-sm text-zinc-900 dark:text-white tabular-nums"
+                />
+                <div className="flex gap-1.5 pt-0.5">
+                  {[
+                    { label: '25% Sisa', val: Math.round(cycleRemainingCash * 0.25) },
+                    { label: '50% Sisa', val: Math.round(cycleRemainingCash * 0.5) },
+                    { label: '100% Semua Sisa', val: cycleRemainingCash },
+                  ].map(preset => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => setSweepAmount(String(preset.val))}
+                      className="flex-1 py-1.5 px-2 rounded-lg bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 text-zinc-700 dark:text-zinc-300 text-[11px] font-bold touch-manipulation"
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {accounts.length > 0 && (
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-zinc-700 dark:text-zinc-300 block">
+                    Potong dari Saldo Dompet / Bank
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {accounts.map(acc => (
+                      <button
+                        key={acc.id}
+                        type="button"
+                        onClick={() => setSweepAccountId(acc.id)}
+                        className={cn(
+                          'p-2 rounded-xl border text-left text-[11px] font-bold truncate transition-all touch-manipulation',
+                          sweepAccountId === acc.id
+                            ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white'
+                            : 'bg-stone-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-stone-200 dark:border-zinc-700'
+                        )}
+                      >
+                        {acc.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <DialogFooter className="pt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSweepModal(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-zinc-700 font-bold text-zinc-600 dark:text-zinc-300"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  disabled={isPending || !sweepGoalId || !parseInt(sweepAmount || '0', 10)}
+                  onClick={() => {
+                    const amt = parseInt(sweepAmount.replace(/[^0-9]/g, '') || '0', 10);
+                    if (!amt || !sweepGoalId) return;
+                    startTransition(async () => {
+                      const res = await addSavings({
+                        savingsGoalId: sweepGoalId,
+                        amount: amt,
+                        transactionDate: toDateString(new Date()),
+                        note: `Sweeping Sisa Uang Siklus (${cycleLabel})`,
+                        deductFromCash: Boolean(sweepAccountId),
+                        accountId: sweepAccountId || null,
+                      });
+                      if (res.success) {
+                        toast({
+                          title: 'Sisa Siklus Berhasil Ditabungkan! ✓',
+                          description: `${formatCurrency(amt)} telah diamankan ke Target Tabungan.`,
+                        });
+                        setShowSweepModal(false);
+                        router.refresh();
+                      } else {
+                        toast({ title: res.error || 'Gagal menyimpan tabungan', variant: 'destructive' });
+                      }
+                    });
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-xs disabled:opacity-40"
+                >
+                  {isPending ? 'Menyimpan...' : 'Tabungkan Sekarang'}
+                </button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

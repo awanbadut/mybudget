@@ -7,9 +7,10 @@ import {
   markInstallmentPaid, markInstallmentUnpaid,
   createInstallment, updateInstallment, deleteInstallment
 } from '@/actions/debts';
+import { AccountWithBalance } from '@/actions/accounts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { CheckSquare, Square, Plus, CreditCard, Pencil, Trash2 } from 'lucide-react';
+import { CheckSquare, Square, Plus, CreditCard, Pencil, Trash2, Wallet } from 'lucide-react';
 import { PaginationBar } from '@/components/PaginationBar';
 import { cn } from '@/lib/utils';
 
@@ -30,9 +31,17 @@ interface Debt {
   installments: Installment[];
 }
 
-export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
+export function DebtTrackerClient({
+  debts,
+  accounts = [],
+}: {
+  debts: Debt[];
+  accounts?: AccountWithBalance[];
+}) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const defaultAcc = accounts.find(a => a.isDefault) || accounts[0];
+  const [selectedAccountId, setSelectedAccountId] = useState<string>(defaultAcc?.id || 'none');
   const [showAddInstallment, setShowAddInstallment] = useState<string | null>(null);
   const [editInstallment, setEditInstallment] = useState<Installment | null>(null);
   const [deleteInstallmentId, setDeleteInstallmentId] = useState<string | null>(null);
@@ -53,11 +62,16 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
 
   async function handleMarkPaid(id: string, currentStatus: string) {
     startTransition(async () => {
+      const accIdToUse = selectedAccountId !== 'none' ? selectedAccountId : null;
       const result = currentStatus === 'paid'
         ? await markInstallmentUnpaid(id)
-        : await markInstallmentPaid(id);
+        : await markInstallmentPaid(id, accIdToUse);
       if (result.success) {
-        toast({ title: currentStatus === 'paid' ? 'Cicilan dibatalkan' : 'Cicilan ditandai lunas! ✓' });
+        const accName = accounts.find(a => a.id === accIdToUse)?.name;
+        toast({
+          title: currentStatus === 'paid' ? 'Cicilan dibatalkan & saldo dikembalikan' : 'Cicilan ditandai lunas! ✓',
+          description: currentStatus !== 'paid' && accName ? `Otomatis memotong saldo ${accName}` : undefined,
+        });
       }
     });
   }
@@ -112,13 +126,55 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 tracking-tight">
-            Cicilan & Utang
+          <h1 className="font-bold text-2xl sm:text-3xl text-zinc-900 dark:text-white tracking-tight">
+            Cicilan &amp; Utang
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">
-            Jadwal pembayaran dan pelunasan kewajiban
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+            Jadwal pembayaran dan pelunasan kewajiban terhubung dengan saldo dompet
           </p>
         </div>
+
+        {accounts.length > 0 && (
+          <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl p-2 shadow-2xs">
+            <div className="w-7 h-7 rounded-lg bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center flex-shrink-0">
+              <Wallet className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 block leading-none">
+                Sumber Bayar Cicilan:
+              </span>
+              <div className="flex items-center gap-1 flex-wrap mt-1">
+                {accounts.map(acc => (
+                  <button
+                    key={acc.id}
+                    type="button"
+                    onClick={() => setSelectedAccountId(acc.id)}
+                    className={cn(
+                      'px-2 py-0.5 rounded-lg text-[11px] font-bold transition-all touch-manipulation',
+                      selectedAccountId === acc.id
+                        ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900'
+                        : 'bg-stone-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300'
+                    )}
+                  >
+                    {acc.name}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setSelectedAccountId('none')}
+                  className={cn(
+                    'px-2 py-0.5 rounded-lg text-[11px] font-bold transition-all touch-manipulation',
+                    selectedAccountId === 'none'
+                      ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900'
+                      : 'bg-stone-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300'
+                  )}
+                >
+                  Tanpa Potong Kas
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {debts.length === 0 ? (

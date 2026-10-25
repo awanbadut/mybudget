@@ -1,9 +1,10 @@
 'use server';
 
 import { db } from '@/db';
-import { debts, debtInstallments } from '@/db/schema';
+import { debts, debtInstallments, transactions, categories } from '@/db/schema';
 import { DebtSchema, InstallmentSchema } from '@/lib/validation';
 import { safeRevalidate, getUserId } from '@/lib/server-utils';
+import { toDateString } from '@/lib/dates';
 import { eq, and } from 'drizzle-orm';
 
 
@@ -129,14 +130,45 @@ export async function deleteInstallment(id: string) {
   }
 }
 
-export async function markInstallmentPaid(id: string) {
+export async function markInstallmentPaid(id: string, accountId?: string | null) {
   try {
+    const userId = await getUserId();
     const [updated] = await db.update(debtInstallments)
       .set({ status: 'paid', paidAt: new Date(), updatedAt: new Date() })
       .where(eq(debtInstallments.id, id))
       .returning();
 
     if (updated) {
+      const debtObj = await db.query.debts.findFirst({
+        where: (d, { eq: eqFn }) => eqFn(d.id, updated.debtId),
+      });
+
+      // Record expense transaction in selected Bank/Cash wallet if accountId is provided
+      if (accountId) {
+        const userCats = await db.query.categories.findMany({
+          where: (c, { and: andFn, eq: eqFn }) =>
+            andFn(eqFn(c.userId, userId), eqFn(c.type, 'expense')),
+        });
+        const debtCat =
+          userCats.find(
+            c =>
+              c.name.toLowerCase().includes('cicil') ||
+              c.name.toLowerCase().includes('utang') ||
+              c.name.toLowerCase().includes('tagih')
+          ) || userCats[0];
+
+        await db.insert(transactions).values({
+          userId,
+          categoryId: debtCat?.id || null,
+          accountId,
+          type: 'expense',
+          name: `Cicilan #${updated.installmentNumber}: ${debtObj?.name || 'Utang'}`,
+          amount: updated.amount,
+          transactionDate: toDateString(new Date()),
+          note: `InstallmentRef:${updated.id}`,
+        });
+      }
+
       const allInst = await db.query.debtInstallments.findMany({
         where: (di, { eq: eqFn }) => eqFn(di.debtId, updated.debtId),
       });
@@ -148,6 +180,7 @@ export async function markInstallmentPaid(id: string) {
       }
     }
     safeRevalidate('/debts');
+    safeRevalidate('/transactions');
     safeRevalidate('/');
     safeRevalidate('/reports');
     return { success: true };
@@ -159,17 +192,29 @@ export async function markInstallmentPaid(id: string) {
 
 export async function markInstallmentUnpaid(id: string) {
   try {
+    const userId = await getUserId();
     const [updated] = await db.update(debtInstallments)
       .set({ status: 'pending', paidAt: null, updatedAt: new Date() })
       .where(eq(debtInstallments.id, id))
       .returning();
 
     if (updated) {
+      // Remove linked expense transaction if it was recorded from a wallet
+      await db
+        .delete(transactions)
+        .where(
+          and(
+            eq(transactions.userId, userId),
+            eq(transactions.note, `InstallmentRef:${updated.id}`)
+          )
+        );
+
       await db.update(debts)
         .set({ status: 'active', updatedAt: new Date() })
         .where(eq(debts.id, updated.debtId));
     }
     safeRevalidate('/debts');
+    safeRevalidate('/transactions');
     safeRevalidate('/');
     safeRevalidate('/reports');
     return { success: true };

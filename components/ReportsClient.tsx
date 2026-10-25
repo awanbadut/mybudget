@@ -722,6 +722,7 @@ export function ReportsClient({
               transactions={dateFiltered}
               accounts={accounts}
               categories={categories}
+              savingsGoals={savingsGoals}
             />
           )}
         </>

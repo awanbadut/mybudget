@@ -21,6 +21,7 @@ import { WalletCards } from '@/components/WalletCards';
 import { CycleSelector } from '@/components/CycleSelector';
 import { CycleHistoryRecap } from '@/components/CycleHistoryRecap';
 import { DashboardTabsClient } from '@/components/DashboardTabsClient';
+import { CycleCalendarHeatmap } from '@/components/CycleCalendarHeatmap';
 import { getAccounts } from '@/actions/accounts';
 import { postRecurringTransactions } from '@/actions/recurring';
 import Link from 'next/link';
@@ -407,6 +408,7 @@ export default async function DashboardPage({
               transactions={cycleTransactions}
               accounts={userAccounts}
               categories={userCategories}
+              savingsGoals={savingsGoalsList}
             />
 
             {/* Cicilan Jatuh Tempo di Siklus Ini */}
@@ -457,7 +459,20 @@ export default async function DashboardPage({
               />
             </div>
 
-            {/* 2. Kekayaan Bersih */}
+            {/* 2. Kalender Disiplin Harian & No-Spend Day Tracker */}
+            <CycleCalendarHeatmap
+              startDateStr={payrollCycle.startDateStr}
+              endDateStr={payrollCycle.endDateStr}
+              cycleLabel={payrollCycle.label}
+              transactions={cycleTransactions}
+              dailyIdealBudget={
+                payrollCycle.totalDays > 0 && effectiveIncome > 0
+                  ? Math.round((effectiveIncome * 0.7) / payrollCycle.totalDays)
+                  : 100000
+              }
+            />
+
+            {/* 3. Kekayaan Bersih */}
             <NetWorthCard
               totalSavings={totalSavings}
               currentBalance={realAvailableBalance}

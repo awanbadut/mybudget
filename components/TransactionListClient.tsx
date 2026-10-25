@@ -8,7 +8,7 @@ import { createTransaction, updateTransaction, deleteTransaction } from '@/actio
 import { transferBetweenAccounts, AccountWithBalance } from '@/actions/accounts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat, ArrowLeftRight, ArrowDownToLine, Lightbulb } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat, ArrowLeftRight, ArrowDownToLine, Lightbulb, Calculator, Sparkles } from 'lucide-react';
 import { RecurringManager, RecurringItem } from '@/components/RecurringManager';
 import { TransferModal } from '@/components/TransferModal';
 import { CycleOption } from '@/components/CycleSelector';
@@ -118,6 +118,47 @@ export function TransactionListClient({
   const [formDate, setFormDate] = useState(toDateString(new Date()));
   const [formNote, setFormNote] = useState('');
   const [formError, setFormError] = useState('');
+  const [showCalc, setShowCalc] = useState(false);
+  const [calcExpr, setCalcExpr] = useState('');
+
+  function evaluateMathExpression(expr: string): number | null {
+    const cleaned = expr.replace(/\./g, '').replace(/,/g, '').replace(/[x×]/gi, '*').replace(/[^0-9+\-*]/g, '');
+    if (!cleaned) return null;
+    try {
+      const addParts = cleaned.split('+');
+      let total = 0;
+      for (const addPart of addParts) {
+        if (!addPart) continue;
+        const subParts = addPart.split('-');
+        let subVal = 0;
+        subParts.forEach((mulPart, idx) => {
+          if (!mulPart) return;
+          const factors = mulPart.split('*').filter(Boolean).map(Number);
+          const prod = factors.length > 0 ? factors.reduce((a, b) => a * b, 1) : 0;
+          if (idx === 0) subVal += prod;
+          else subVal -= prod;
+        });
+        total += subVal;
+      }
+      return Number.isFinite(total) && total >= 0 ? Math.round(total) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function applyQuickPreset(preset: { name: string; amount: number; categoryKeywords: string[] }) {
+    setFormName(preset.name);
+    if (preset.amount > 0) {
+      setFormAmount(String(preset.amount));
+      setCalcExpr(String(preset.amount));
+    }
+    const matchedCat = filteredCategories.find(c =>
+      preset.categoryKeywords.some(kw => c.name.toLowerCase().includes(kw.toLowerCase()))
+    ) || filteredCategories[0];
+    if (matchedCat) {
+      setFormCategory(matchedCat.id);
+    }
+  }
 
   // Months list from data
   const months = useMemo(() => {
@@ -177,6 +218,8 @@ export function TransactionListClient({
     setEditingTx(null);
     setFormType(initialType || 'expense');
     setTransferSubMode('withdraw');
+    setShowCalc(false);
+    setCalcExpr('');
   }
 
   function applyTransferPreset(sub: 'withdraw' | 'deposit' | 'free') {
@@ -764,6 +807,44 @@ export function TransactionListClient({
               </div>
             ) : (
               <>
+                {/* 1-Tap Quick Presets for Fast Mobile Entry */}
+                {!editingTx && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-amber-500" />
+                        <span>Isi Cepat 1-Ketuk:</span>
+                      </span>
+                    </div>
+                    <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                      {(formType === 'expense'
+                        ? [
+                            { name: 'Makan Siang', amount: 25000, categoryKeywords: ['makan', 'konsumsi'] },
+                            { name: 'Sarapan / Kopi', amount: 15000, categoryKeywords: ['makan', 'hiburan'] },
+                            { name: 'Bensin / Transport', amount: 25000, categoryKeywords: ['transport', 'bensin'] },
+                            { name: 'Belanja Harian', amount: 50000, categoryKeywords: ['belanja', 'kebutuhan', 'toilet'] },
+                            { name: 'Parkir', amount: 2000, categoryKeywords: ['transport', 'lain'] },
+                          ]
+                        : [
+                            { name: 'Gaji Bulanan', amount: 0, categoryKeywords: ['gaji', 'utama'] },
+                            { name: 'Kiriman Orang Tua', amount: 500000, categoryKeywords: ['kiriman', 'saku', 'ortu', 'gaji'] },
+                            { name: 'Bonus / Freelance', amount: 250000, categoryKeywords: ['bonus', 'freelance', 'lain'] },
+                          ]
+                      ).map(preset => (
+                        <button
+                          key={preset.name}
+                          type="button"
+                          onClick={() => applyQuickPreset(preset)}
+                          className="px-2.5 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-[11px] font-semibold whitespace-nowrap flex-shrink-0 active:scale-95 transition-all touch-manipulation border border-stone-200/60 dark:border-zinc-700"
+                        >
+                          {preset.name}
+                          {preset.amount > 0 ? ` · ${preset.amount / 1000}rb` : ''}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-1">
                   <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nama Transaksi</label>
                   <input
@@ -834,16 +915,89 @@ export function TransactionListClient({
               </>
             )}
 
-            <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">
-                {formType === 'transfer' ? 'Nominal Tarik / Transfer (Rp)' : 'Nominal (Rp)'}
-              </label>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="font-semibold text-zinc-700 dark:text-zinc-300">
+                  {formType === 'transfer' ? 'Nominal Tarik / Transfer (Rp)' : 'Nominal (Rp)'}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCalc(v => !v);
+                    if (!showCalc && !calcExpr && formAmount) {
+                      setCalcExpr(formAmount);
+                    }
+                  }}
+                  className={cn(
+                    'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold transition-colors touch-manipulation',
+                    showCalc
+                      ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900'
+                      : 'bg-stone-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-stone-200'
+                  )}
+                >
+                  <Calculator className="w-3 h-3" />
+                  <span>{showCalc ? 'Tutup Kalkulator' : 'Kalkulator (+ - ×)'}</span>
+                </button>
+              </div>
+
+              {/* Built-in Mini Expression Calculator */}
+              {showCalc && (
+                <div className="p-2.5 rounded-xl bg-stone-50 dark:bg-zinc-800/80 border border-stone-200 dark:border-zinc-700 space-y-2 animate-in fade-in-50">
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      value={calcExpr}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setCalcExpr(val);
+                        const evaluated = evaluateMathExpression(val);
+                        if (evaluated !== null) {
+                          setFormAmount(String(evaluated));
+                        }
+                      }}
+                      placeholder="Contoh: 18000 + 5000 + 2000"
+                      className="flex-1 px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-700 text-xs font-mono font-bold text-zinc-900 dark:text-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {['+', '-', '×', '000'].map(op => (
+                      <button
+                        key={op}
+                        type="button"
+                        onClick={() => {
+                          const next = op === '000' ? `${calcExpr}000` : `${calcExpr} ${op} `;
+                          setCalcExpr(next);
+                          const evaluated = evaluateMathExpression(next);
+                          if (evaluated !== null) setFormAmount(String(evaluated));
+                        }}
+                        className="px-3 py-1 rounded-lg bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-700 text-xs font-extrabold text-zinc-800 dark:text-zinc-200 active:scale-95 touch-manipulation"
+                      >
+                        {op}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCalcExpr('');
+                        setFormAmount('');
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-[11px] font-bold ml-auto"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-zinc-500 dark:text-zinc-400 pointer-events-none">Rp</span>
                 <input
                   placeholder="0"
                   value={formAmount ? Number(formAmount.replace(/[^0-9]/g, '')).toLocaleString('id-ID') : ''}
-                  onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
+                  onChange={e => {
+                    const digits = e.target.value.replace(/[^0-9]/g, '');
+                    setFormAmount(digits);
+                    setCalcExpr(digits);
+                  }}
                   inputMode="numeric"
                   className="w-full pl-9 pr-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-lg text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums"
                 />
