@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, PieChart } from 'lucide-react';
 import { CycleSelector, CycleOption } from '@/components/CycleSelector';
+import { PaginationBar } from '@/components/PaginationBar';
 import { cn } from '@/lib/utils';
 
 interface Category {
@@ -57,6 +58,8 @@ export function BudgetClient({
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [formCategory, setFormCategory] = useState('');
   const [formAmount, setFormAmount] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const totalBudget = budgets.reduce((s, b) => s + b.amount, 0);
   const totalSpent = budgets.reduce((s, b) => s + b.spent, 0);
@@ -196,8 +199,11 @@ export function BudgetClient({
           </button>
         </div>
       ) : (
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] divide-y divide-stone-100 dark:divide-zinc-800 overflow-hidden transition-colors">
-          {budgets.map(budget => {
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden transition-colors">
+          <div className="divide-y divide-stone-100 dark:divide-zinc-800">
+          {budgets
+            .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+            .map(budget => {
             const pct = Math.min(budget.percentage, 100);
             const isDanger = budget.percentage > 90;
             const isWarning = budget.percentage >= 70 && budget.percentage <= 90;
@@ -249,6 +255,17 @@ export function BudgetClient({
               </div>
             );
           })}
+          </div>
+
+          <PaginationBar
+            currentPage={currentPage}
+            totalItems={budgets.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+            pageSizeOptions={[10, 20, 50]}
+            itemLabel="pos anggaran"
+          />
         </div>
       )}
 

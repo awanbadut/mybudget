@@ -5,6 +5,7 @@ import { formatCurrency } from '@/lib/currency';
 import { formatDateShort } from '@/lib/dates';
 import { useBalanceVisibility } from '@/context/BalanceVisibilityContext';
 import { FilterBottomSheet } from '@/components/FilterBottomSheet';
+import { PaginationBar } from '@/components/PaginationBar';
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -99,7 +100,10 @@ export function CycleHistoryRecap({
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterAccount, setFilterAccount] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [showAllTx, setShowAllTx] = useState<boolean>(false);
+  const [txPage, setTxPage] = useState<number>(1);
+  const [txPageSize, setTxPageSize] = useState<number>(10);
+  const [budgetPage, setBudgetPage] = useState<number>(1);
+  const [budgetPageSize, setBudgetPageSize] = useState<number>(6);
 
   // 1. Sisa Uang Siklus (Pemasukan - Pengeluaran di siklus ini, BUKAN saldo dompet keseluruhan)
   const baseIncomeForSurplus = cycleIncome > 0 ? cycleIncome : effectiveIncome;
@@ -208,9 +212,15 @@ export function CycleHistoryRecap({
     filterAccount !== 'all' ||
     searchQuery.trim() !== '';
 
-  const visibleTransactions = showAllTx
-    ? filteredTransactions
-    : filteredTransactions.slice(0, 12);
+  const visibleTransactions = filteredTransactions.slice(
+    (txPage - 1) * txPageSize,
+    txPage * txPageSize
+  );
+
+  const visibleBudgets = combinedBudgets.slice(
+    (budgetPage - 1) * budgetPageSize,
+    budgetPage * budgetPageSize
+  );
 
   function handleExportCycleCSV() {
     if (filteredTransactions.length === 0) return;
@@ -461,7 +471,7 @@ export function CycleHistoryRecap({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {combinedBudgets.map(b => {
+            {visibleBudgets.map(b => {
               const isOver = b.remaining < 0;
               const pct = Math.min(100, Math.max(0, b.percentage));
               return (
@@ -543,6 +553,17 @@ export function CycleHistoryRecap({
               );
             })}
           </div>
+
+          <PaginationBar
+            currentPage={budgetPage}
+            totalItems={combinedBudgets.length}
+            pageSize={budgetPageSize}
+            onPageChange={setBudgetPage}
+            onPageSizeChange={setBudgetPageSize}
+            pageSizeOptions={[6, 12, 24]}
+            itemLabel="pos anggaran"
+            className="rounded-xl border border-stone-100 dark:border-zinc-800"
+          />
         </div>
       )}
 
@@ -575,16 +596,28 @@ export function CycleHistoryRecap({
         {/* Filter Controls: Bottom Sheet Mobile-First (No Native Select, No Emoji) */}
         <FilterBottomSheet
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={q => {
+            setSearchQuery(q);
+            setTxPage(1);
+          }}
           searchPlaceholder="Cari nama transaksi atau catatan..."
           filterType={filterType}
-          onFilterTypeChange={setFilterType}
+          onFilterTypeChange={t => {
+            setFilterType(t);
+            setTxPage(1);
+          }}
           categories={categories}
           filterCategory={filterCategory}
-          onFilterCategoryChange={setFilterCategory}
+          onFilterCategoryChange={c => {
+            setFilterCategory(c);
+            setTxPage(1);
+          }}
           accounts={accounts}
           filterAccount={filterAccount}
-          onFilterAccountChange={setFilterAccount}
+          onFilterAccountChange={a => {
+            setFilterAccount(a);
+            setTxPage(1);
+          }}
         />
 
         {/* Dynamic Sub-total Strip when Filtered (or always visible for quick insight) */}
@@ -726,20 +759,16 @@ export function CycleHistoryRecap({
                 </div>
               );
             })}
-          </div>
-        )}
 
-        {filteredTransactions.length > 12 && (
-          <div className="text-center pt-1">
-            <button
-              type="button"
-              onClick={() => setShowAllTx(!showAllTx)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 transition-colors"
-            >
-              {showAllTx
-                ? 'Tampilkan Lebih Sedikit'
-                : `Lihat Semua ${filteredTransactions.length} Transaksi di Siklus Ini`}
-            </button>
+            <PaginationBar
+              currentPage={txPage}
+              totalItems={filteredTransactions.length}
+              pageSize={txPageSize}
+              onPageChange={setTxPage}
+              onPageSizeChange={setTxPageSize}
+              pageSizeOptions={[10, 20, 50]}
+              itemLabel="transaksi"
+            />
           </div>
         )}
       </div>

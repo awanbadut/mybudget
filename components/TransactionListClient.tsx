@@ -13,6 +13,7 @@ import { RecurringManager, RecurringItem } from '@/components/RecurringManager';
 import { TransferModal } from '@/components/TransferModal';
 import { CycleOption } from '@/components/CycleSelector';
 import { FilterBottomSheet } from '@/components/FilterBottomSheet';
+import { PaginationBar } from '@/components/PaginationBar';
 import { cn } from '@/lib/utils';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -97,6 +98,8 @@ export function TransactionListClient({
   const [filterAccount, setFilterAccount] = useState<string>('all');
   const [filterCycle, setFilterCycle] = useState<string>('all');
   const [filterMonth, setFilterMonth] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const dueRecurringCount = useMemo(() => {
     return recurringList.filter(
@@ -462,25 +465,38 @@ export function TransactionListClient({
       {/* Mobile-First Bottom Sheet Filters */}
       <FilterBottomSheet
         searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        onSearchChange={q => {
+          setSearchQuery(q);
+          setCurrentPage(1);
+        }}
         searchPlaceholder="Cari transaksi, pos belanja, atau catatan..."
         filterType={filterType}
-        onFilterTypeChange={setFilterType}
+        onFilterTypeChange={t => {
+          setFilterType(t);
+          setCurrentPage(1);
+        }}
         categories={categories}
         filterCategory={filterCategory}
-        onFilterCategoryChange={setFilterCategory}
+        onFilterCategoryChange={c => {
+          setFilterCategory(c);
+          setCurrentPage(1);
+        }}
         accounts={accounts}
         filterAccount={filterAccount}
-        onFilterAccountChange={setFilterAccount}
+        onFilterAccountChange={a => {
+          setFilterAccount(a);
+          setCurrentPage(1);
+        }}
         cycles={cycles}
         filterCycle={filterCycle}
         onFilterCycleChange={val => {
           setFilterCycle(val);
           if (val !== 'all') setFilterMonth('all');
+          setCurrentPage(1);
         }}
       />
 
-      {/* Transaction List */}
+      {/* Transaction List (Paginated per 20 by default) */}
       {filtered.length === 0 ? (
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2.5 transition-colors">
           <p className="font-semibold text-sm text-zinc-900 dark:text-white">Belum Ada Transaksi</p>
@@ -493,8 +509,11 @@ export function TransactionListClient({
           </button>
         </div>
       ) : (
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] divide-y divide-stone-100 dark:divide-zinc-800 overflow-hidden w-full min-w-0 transition-colors">
-          {filtered.map(tx => {
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden w-full min-w-0 transition-colors">
+          <div className="divide-y divide-stone-100 dark:divide-zinc-800">
+          {filtered
+            .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+            .map(tx => {
             const isIncome = tx.type === 'income';
             const isTransfer = tx.type === 'transfer';
             const iconName = tx.category?.icon || 'MoreHorizontal';
@@ -579,6 +598,17 @@ export function TransactionListClient({
               </div>
             );
           })}
+          </div>
+
+          <PaginationBar
+            currentPage={currentPage}
+            totalItems={filtered.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+            pageSizeOptions={[10, 20, 50]}
+            itemLabel="transaksi"
+          />
         </div>
       )}
         </>

@@ -7,6 +7,7 @@ import { formatDateShort } from '@/lib/dates';
 import { AccountWithBalance } from '@/actions/accounts';
 import { CycleOption } from '@/components/CycleSelector';
 import { FilterBottomSheet } from '@/components/FilterBottomSheet';
+import { PaginationBar } from '@/components/PaginationBar';
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -73,6 +74,8 @@ export function WalletHistoryModal({
   const [directionFilter, setDirectionFilter] = useState<'all' | 'out' | 'in' | 'transfer'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   // Compute chronological running balance across all transactions for this account
   const ledgerWithRunningBalance = useMemo(() => {
@@ -298,10 +301,16 @@ export function WalletHistoryModal({
         <div className="p-3.5 sm:px-5 border-b border-stone-100 dark:border-zinc-800 bg-white dark:bg-zinc-900">
           <FilterBottomSheet
             searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
+            onSearchChange={q => {
+              setSearchQuery(q);
+              setCurrentPage(1);
+            }}
             searchPlaceholder={`Cari transaksi di ${account.name}...`}
             filterType={directionFilter}
-            onFilterTypeChange={setDirectionFilter}
+            onFilterTypeChange={t => {
+              setDirectionFilter(t);
+              setCurrentPage(1);
+            }}
             typeOptions={[
               { id: 'all', label: 'Semua' },
               { id: 'out', label: 'Berkurang', icon: 'out' },
@@ -310,14 +319,20 @@ export function WalletHistoryModal({
             ]}
             categories={availableCategories}
             filterCategory={categoryFilter}
-            onFilterCategoryChange={setCategoryFilter}
+            onFilterCategoryChange={c => {
+              setCategoryFilter(c);
+              setCurrentPage(1);
+            }}
             cycles={cycles}
             filterCycle={selectedCycle}
-            onFilterCycleChange={setSelectedCycle}
+            onFilterCycleChange={cyc => {
+              setSelectedCycle(cyc);
+              setCurrentPage(1);
+            }}
           />
         </div>
 
-        {/* Scrollable Mutation List */}
+        {/* Scrollable Mutation List (Paginated per 10 items by default) */}
         <div className="flex-1 overflow-y-auto divide-y divide-stone-100 dark:divide-zinc-800/80 p-2 sm:p-3">
           {filteredLedger.length === 0 ? (
             <div className="py-12 text-center space-y-2">
@@ -330,7 +345,9 @@ export function WalletHistoryModal({
               </p>
             </div>
           ) : (
-            filteredLedger.map(item => {
+            filteredLedger
+              .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+              .map(item => {
               const isOut = item.delta < 0;
               const isTransfer = item.type === 'transfer';
 
@@ -421,6 +438,17 @@ export function WalletHistoryModal({
             })
           )}
         </div>
+
+        {/* Sticky Pagination Footer */}
+        <PaginationBar
+          currentPage={currentPage}
+          totalItems={filteredLedger.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[10, 20, 50]}
+          itemLabel="mutasi"
+        />
       </DialogContent>
     </Dialog>
   );

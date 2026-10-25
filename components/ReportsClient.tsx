@@ -24,6 +24,7 @@ import { NetWorthCard } from '@/components/NetWorthCard';
 import { CycleSelector, CycleOption } from '@/components/CycleSelector';
 import { CycleHistoryRecap } from '@/components/CycleHistoryRecap';
 import { FilterBottomSheet } from '@/components/FilterBottomSheet';
+import { PaginationBar } from '@/components/PaginationBar';
 import { useToast } from '@/hooks/use-toast';
 
 const FILTERS = [
@@ -105,6 +106,8 @@ export function ReportsClient({
   const [filterDays, setFilterDays] = useState(30);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterAccount, setFilterAccount] = useState<string>('all');
+  const [trendPage, setTrendPage] = useState(1);
+  const [trendPageSize, setTrendPageSize] = useState(10);
 
   const activeCycle = useMemo(
     () => cycles.find(c => c.offset === selectedCycleOffset) || cycles[0],
@@ -890,7 +893,9 @@ export function ReportsClient({
           </div>
 
           <div className="divide-y divide-stone-100 dark:divide-zinc-800">
-            {categoryTrends.map(cat => {
+            {categoryTrends
+              .slice((trendPage - 1) * trendPageSize, trendPage * trendPageSize)
+              .map(cat => {
               const isUp = cat.diff > 0;
               const isDown = cat.diff < 0;
 
@@ -929,6 +934,17 @@ export function ReportsClient({
               );
             })}
           </div>
+
+          <PaginationBar
+            currentPage={trendPage}
+            totalItems={categoryTrends.length}
+            pageSize={trendPageSize}
+            onPageChange={setTrendPage}
+            onPageSizeChange={setTrendPageSize}
+            pageSizeOptions={[10, 20, 50]}
+            itemLabel="kategori"
+            className="rounded-xl border border-stone-100 dark:border-zinc-800"
+          />
         </div>
       )}
     </div>

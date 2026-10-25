@@ -10,6 +10,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { CheckSquare, Square, Plus, CreditCard, Pencil, Trash2 } from 'lucide-react';
+import { PaginationBar } from '@/components/PaginationBar';
 import { cn } from '@/lib/utils';
 
 interface Installment {
@@ -39,6 +40,8 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
   // Form state
   const [formAmount, setFormAmount] = useState('');
   const [formDate, setFormDate] = useState('');
+  const [pageByDebt, setPageByDebt] = useState<Record<string, number>>({});
+  const [instPageSize, setInstPageSize] = useState(10);
 
   function getStats(debt: Debt) {
     const total = debt.installments.reduce((s, i) => s + i.amount, 0);
@@ -184,9 +187,14 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
                 </div>
               </div>
 
-              {/* Installments List */}
-              <div className="divide-y divide-stone-100 px-4 pb-2">
-                {debt.installments.map(installment => (
+              {/* Installments List (Paginated per 10 items) */}
+              <div className="divide-y divide-stone-100 dark:divide-zinc-800 px-4 pb-2">
+                {debt.installments
+                  .slice(
+                    ((pageByDebt[debt.id] || 1) - 1) * instPageSize,
+                    (pageByDebt[debt.id] || 1) * instPageSize
+                  )
+                  .map(installment => (
                   <div key={installment.id} className="flex items-center gap-3 py-3">
                     <button
                       onClick={() => handleMarkPaid(installment.id, installment.status)}
@@ -242,6 +250,16 @@ export function DebtTrackerClient({ debts }: { debts: Debt[] }) {
                   </div>
                 ))}
               </div>
+
+              <PaginationBar
+                currentPage={pageByDebt[debt.id] || 1}
+                totalItems={debt.installments.length}
+                pageSize={instPageSize}
+                onPageChange={p => setPageByDebt(prev => ({ ...prev, [debt.id]: p }))}
+                onPageSizeChange={setInstPageSize}
+                pageSizeOptions={[10, 20, 50]}
+                itemLabel="angsuran"
+              />
             </div>
           );
         })

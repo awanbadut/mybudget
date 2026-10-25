@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useToast } from '@/hooks/use-toast';
 import { Target, Plus, Pencil, Trash2, PiggyBank, ChevronDown, ChevronUp, Wallet } from 'lucide-react';
 import { calculateProgress } from '@/lib/calculations';
+import { PaginationBar } from '@/components/PaginationBar';
 import { cn } from '@/lib/utils';
 
 interface SavingsTransaction {
@@ -45,6 +46,8 @@ export function SavingsClient({
   const [deleteGoalId, setDeleteGoalId] = useState<string | null>(null);
   const [addSavingsGoalId, setAddSavingsGoalId] = useState<string | null>(null);
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
+  const [txPage, setTxPage] = useState(1);
+  const [txPageSize, setTxPageSize] = useState(10);
 
   // Goal form
   const [goalName, setGoalName] = useState('');
@@ -252,7 +255,10 @@ export function SavingsClient({
                     </button>
                     {goal.transactions.length > 0 && (
                       <button
-                        onClick={() => setExpandedGoal(isExpanded ? null : goal.id)}
+                        onClick={() => {
+                          setExpandedGoal(isExpanded ? null : goal.id);
+                          setTxPage(1);
+                        }}
                         className="px-3 py-2 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center"
                         title="Riwayat Setoran"
                       >
@@ -261,10 +267,13 @@ export function SavingsClient({
                     )}
                   </div>
 
-                  {/* Expanded history */}
+                  {/* Expanded history (Paginated per 10 items) */}
                   {isExpanded && goal.transactions.length > 0 && (
-                    <div className="rounded-xl border border-stone-200/80 dark:border-zinc-800 bg-stone-50/50 dark:bg-zinc-800/50 divide-y divide-stone-100 dark:divide-zinc-800 p-2 text-xs">
-                      {goal.transactions.slice(0, 8).map(tx => {
+                    <div className="rounded-xl border border-stone-200/80 dark:border-zinc-800 bg-stone-50/50 dark:bg-zinc-800/50 overflow-hidden text-xs">
+                      <div className="divide-y divide-stone-100 dark:divide-zinc-800 p-2">
+                      {goal.transactions
+                        .slice((txPage - 1) * txPageSize, txPage * txPageSize)
+                        .map(tx => {
                         const acc = tx.accountId ? accounts.find(a => a.id === tx.accountId) : null;
                         return (
                           <div key={tx.id} className="flex justify-between items-center py-2 px-2.5">
@@ -292,6 +301,17 @@ export function SavingsClient({
                           </div>
                         );
                       })}
+                      </div>
+
+                      <PaginationBar
+                        currentPage={txPage}
+                        totalItems={goal.transactions.length}
+                        pageSize={txPageSize}
+                        onPageChange={setTxPage}
+                        onPageSizeChange={setTxPageSize}
+                        pageSizeOptions={[10, 20, 50]}
+                        itemLabel="setoran"
+                      />
                     </div>
                   )}
                 </div>
