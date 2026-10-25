@@ -4,11 +4,11 @@ import { db } from '@/db';
 import { TransactionListClient } from '@/components/TransactionListClient';
 import { getUserId } from '@/lib/auth';
 import { getRecurringTransactions } from '@/actions/recurring';
-import { getCurrentMonth } from '@/lib/dates';
+import { getCurrentMonth, getRecentCycles } from '@/lib/dates';
 
 import { getAccounts } from '@/actions/accounts';
 
-const PAGE_SIZE = 100; // load max 100 terbaru, filter di client
+const PAGE_SIZE = 1000; // load riwayat transaksi lengkap lintas siklus
 
 export default async function TransactionsPage({
   searchParams,
@@ -19,7 +19,7 @@ export default async function TransactionsPage({
   const userId = await getUserId();
   const { month: currentMonth, year: currentYear } = getCurrentMonth();
 
-  const [allCategories, allTransactions, recurringRes, accountsRes] = await Promise.all([
+  const [allCategories, allTransactions, recurringRes, accountsRes, userSettings] = await Promise.all([
     db.query.categories.findMany({
       where: (c, { eq: eqFn }) => eqFn(c.userId, userId),
     }),
@@ -35,7 +35,21 @@ export default async function TransactionsPage({
     }),
     getRecurringTransactions(),
     getAccounts(),
+    db.query.settings.findFirst({
+      where: (s, { eq: eqFn }) => eqFn(s.userId, userId),
+    }),
   ]);
+
+  const salary = userSettings?.salary || 0;
+  const salaryDate = userSettings?.salaryDate || 25;
+  const isStudentMode = salary === 0;
+  const cycles = getRecentCycles(salaryDate, isStudentMode, 12).map(c => ({
+    offset: c.offset || 0,
+    label: c.label,
+    startDateStr: c.startDateStr,
+    endDateStr: c.endDateStr,
+    isHistorical: c.isHistorical,
+  }));
 
   return (
     <TransactionListClient
@@ -43,6 +57,7 @@ export default async function TransactionsPage({
       categories={allCategories}
       accounts={accountsRes.data || []}
       recurringList={recurringRes.data || []}
+      cycles={cycles}
       currentMonth={currentMonth}
       currentYear={currentYear}
       initialType={(params.type as 'income' | 'expense' | 'transfer') || undefined}

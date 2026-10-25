@@ -2,7 +2,7 @@
 
 import { formatCurrency } from '@/lib/currency';
 import { ForkKnife, Clock, Warning, CheckCircle } from '@phosphor-icons/react';
-import { getPayrollCycle, getCalendarMonthCycle } from '@/lib/dates';
+import { getCycleByOffset } from '@/lib/dates';
 import { cn } from '@/lib/utils';
 
 interface DailyBudgetProps {
@@ -10,6 +10,7 @@ interface DailyBudgetProps {
   foodSpent: number;
   salaryDate?: number;
   isStudentMode?: boolean;
+  cycleOffset?: number;
 }
 
 export function DailyBudget({
@@ -17,9 +18,10 @@ export function DailyBudget({
   foodSpent,
   salaryDate = 25,
   isStudentMode = false,
+  cycleOffset = 0,
 }: DailyBudgetProps) {
-  const cycle = isStudentMode ? getCalendarMonthCycle(new Date()) : getPayrollCycle(salaryDate, new Date());
-  const { totalDays, elapsedDays, daysRemaining, label } = cycle;
+  const cycle = getCycleByOffset(salaryDate, isStudentMode, cycleOffset);
+  const { totalDays, elapsedDays, daysRemaining, label, isHistorical } = cycle;
 
   const budgetRemaining = foodBudgetTotal - foodSpent;
   const dailyTarget = foodBudgetTotal > 0 ? Math.round(foodBudgetTotal / totalDays) : 0;
@@ -41,7 +43,7 @@ export function DailyBudget({
           </div>
           <div className="min-w-0">
             <h3 className="font-semibold text-[13.5px] sm:text-[14.5px] text-zinc-900 dark:text-white leading-none">
-              Jatah Makan Harian
+              {isHistorical ? 'Evaluasi Jatah Makan' : 'Jatah Makan Harian'}
             </h3>
             <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1 truncate">{label}</p>
           </div>
@@ -49,19 +51,29 @@ export function DailyBudget({
         {/* Solid badge — no washed-out pastel */}
         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex-shrink-0">
           <Clock size={11} weight="regular" />
-          <span>{daysRemaining}h lagi</span>
+          <span>{isHistorical ? `${totalDays} hari (Selesai)` : `${daysRemaining}h lagi`}</span>
         </div>
       </div>
 
       {/* Main allowance block */}
       <div className="bg-zinc-50 dark:bg-zinc-800 rounded-xl p-4 border border-zinc-100 dark:border-zinc-700 flex items-center justify-between gap-3 min-w-0">
         <div className="min-w-0">
-          <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 block mb-1">Jatah hari ini</span>
+          <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 block mb-1">
+            {isHistorical
+              ? budgetRemaining >= 0
+                ? 'Sisa Uang Makan di Akhir Siklus'
+                : 'Melebihi Jatah Makan Siklus'
+              : 'Jatah hari ini'}
+          </span>
           <div className="flex items-baseline gap-1.5">
             <span className="font-bold text-[1.9rem] sm:text-[2.2rem] text-zinc-900 dark:text-white tabular-nums leading-none">
-              {formatCurrency(dailyAllowance)}
+              {isHistorical
+                ? `${budgetRemaining < 0 ? '-' : ''}${formatCurrency(Math.abs(budgetRemaining))}`
+                : formatCurrency(dailyAllowance)}
             </span>
-            <span className="text-[12px] text-zinc-400 dark:text-zinc-500 font-medium">/hari</span>
+            {!isHistorical && (
+              <span className="text-[12px] text-zinc-400 dark:text-zinc-500 font-medium">/hari</span>
+            )}
           </div>
           <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1.5">
             Target ideal: <strong className="text-zinc-700 dark:text-zinc-300 font-semibold">{formatCurrency(dailyTarget)}/hari</strong>
@@ -75,7 +87,7 @@ export function DailyBudget({
             : 'bg-green-600 text-white'
         )}>
           {isOverBudget
-            ? <><Warning size={11} weight="fill" /><span>Hemat</span></>
+            ? <><Warning size={11} weight="fill" /><span>{isHistorical ? 'Lewat' : 'Hemat'}</span></>
             : <><CheckCircle size={11} weight="fill" /><span>Aman</span></>}
         </span>
       </div>

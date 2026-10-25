@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { db } from '@/db';
-import { getPayrollCycle, formatMonth, getCurrentMonth, calculateProratedSalary, getCalendarMonthCycle } from '@/lib/dates';
+import { getCycleByOffset, getRecentCycles, formatMonth, getCurrentMonth, calculateProratedSalary } from '@/lib/dates';
 import { calculateSavingRate } from '@/lib/calculations';
 import { getUserId } from '@/lib/auth';
 import { getOrInitializeBudgets } from '@/lib/budget-utils';
@@ -19,12 +19,22 @@ import { FinancialHealthScore } from '@/components/FinancialHealthScore';
 import { NetWorthCard } from '@/components/NetWorthCard';
 import { ForecastCard } from '@/components/ForecastCard';
 import { WalletCards } from '@/components/WalletCards';
+import { CycleSelector } from '@/components/CycleSelector';
+import { CycleHistoryRecap } from '@/components/CycleHistoryRecap';
 import { getAccounts } from '@/actions/accounts';
 import { postRecurringTransactions } from '@/actions/recurring';
 import Link from 'next/link';
 import { Plus, ChevronRight, AlertTriangle, Calendar } from 'lucide-react';
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ cycle?: string }>;
+}) {
+  const params = searchParams ? await searchParams : {};
+  const rawOffset = parseInt(params?.cycle || '0', 10);
+  const cycleOffset = Number.isNaN(rawOffset) ? 0 : Math.min(0, rawOffset);
+
   const DEV_USER_ID = await getUserId();
   const { month: currentMonth, year: currentYear } = getCurrentMonth();
 
@@ -41,6 +51,7 @@ export default async function DashboardPage() {
   let userSettings: UserSettingsType | null | undefined = null;
   let user: UserType | null | undefined = null;
   let allTransactions: Array<any> = [];
+  let userCategories: Array<any> = [];
   let monthBudgets: Array<any> = [];
   let savingsGoalsList: Array<any> = [];
   let activeDebts: Array<any> = [];
@@ -57,10 +68,12 @@ export default async function DashboardPage() {
       }),
       db.query.transactions.findMany({
         where: (t, { eq: eqFn }) => eqFn(t.userId, DEV_USER_ID),
-        with: { category: true },
+        with: { category: true, account: true, toAccount: true },
         orderBy: (t, { desc }) => [desc(t.transactionDate), desc(t.createdAt)],
       }),
-      getOrInitializeBudgets(DEV_USER_ID, currentMonth, currentYear),
+      db.query.categories.findMany({
+        where: (c, { eq: eqFn }) => eqFn(c.userId, DEV_USER_ID),
+      }),
       db.query.savingsGoals.findMany({
         where: (g, { eq: eqFn }) => eqFn(g.userId, DEV_USER_ID),
         with: { transactions: true },
@@ -72,11 +85,11 @@ export default async function DashboardPage() {
       }),
       getAccounts(),
     ]);
-    const [s, u, tx, b, g, d, accRes] = data;
+    const [s, u, tx, cats, g, d, accRes] = data;
     userSettings = s;
     user = u;
     allTransactions = tx;
-    monthBudgets = b;
+    userCategories = cats;
     savingsGoalsList = g;
     activeDebts = d;
     userAccounts = accRes.data || [];
@@ -111,9 +124,24 @@ export default async function DashboardPage() {
   const salary = userSettings?.salary || 0;
   const salaryDate = userSettings?.salaryDate || 25;
   const isStudentMode = salary === 0;
-  const payrollCycle = isStudentMode
-    ? getCalendarMonthCycle(new Date())
-    : getPayrollCycle(salaryDate, new Date());
+
+  const payrollCycle = getCycleByOffset(salaryDate, isStudentMode, cycleOffset);
+  const prevPayrollCycle = getCycleByOffset(salaryDate, isStudentMode, cycleOffset - 1);
+  const recentCycles = getRecentCycles(salaryDate, isStudentMode, 12).map(c => ({
+    offset: c.offset || 0,
+    label: c.label,
+    startDateStr: c.startDateStr,
+    endDateStr: c.endDateStr,
+    isHistorical: c.isHistorical,
+  }));
+
+  const targetBudgetMonth = payrollCycle.budgetMonth || currentMonth;
+  const targetBudgetYear = payrollCycle.budgetYear || currentYear;
+  try {
+    monthBudgets = await getOrInitializeBudgets(DEV_USER_ID, targetBudgetMonth, targetBudgetYear);
+  } catch (err) {
+    console.error('Error loading cycle budgets:', err);
+  }
 
   // 2. Real Available Balance across all user wallets / bank accounts
   const totalWalletsBalance = userAccounts.reduce((sum, a) => sum + (a.balance || 0), 0);
@@ -128,9 +156,13 @@ export default async function DashboardPage() {
   // Total balance matches sum of all individual wallets (BCA, BNI, Cash, etc.)
   const realAvailableBalance = userAccounts.length > 0 ? totalWalletsBalance : (totalLifetimeIncome - totalLifetimeExpense);
 
-  // 3. Transactions inside active payroll cycle (25 Sep - 25 Okt)
+  // 3. Transactions inside selected payroll cycle (e.g., 25 Sep - 24 Okt) & previous cycle for comparison
   const cycleTransactions = allTransactions.filter(
     t => t.transactionDate >= payrollCycle.startDateStr && t.transactionDate <= payrollCycle.endDateStr
+  );
+
+  const prevCycleTransactions = allTransactions.filter(
+    t => t.transactionDate >= prevPayrollCycle.startDateStr && t.transactionDate <= prevPayrollCycle.endDateStr
   );
 
   const cycleIncome = cycleTransactions
@@ -138,6 +170,14 @@ export default async function DashboardPage() {
     .reduce((sum, t) => sum + t.amount, 0);
 
   const cycleExpense = cycleTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const prevCycleIncome = prevCycleTransactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const prevCycleExpense = prevCycleTransactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
@@ -159,7 +199,7 @@ export default async function DashboardPage() {
     if (userSettings?.salaryProrateEnabled && userSettings.startWorkDate) {
       const sDate = userSettings.startWorkDate;
       const [sy, sm] = sDate.split('-').map(Number);
-      if (sm === currentMonth && sy === currentYear) {
+      if (sm === targetBudgetMonth && sy === targetBudgetYear) {
         effectiveIncome = calculateProratedSalary(
           effectiveIncome,
           sDate,
@@ -178,7 +218,7 @@ export default async function DashboardPage() {
       return acc;
     }, {} as Record<string, number>);
 
-  // 7. Budget with spending (spent during active cycle)
+  // 7. Budget with spending (spent during selected cycle)
   const budgetWithSpending = monthBudgets.map(budget => {
     const spent = cycleTransactions
       .filter(t => t.categoryId === budget.categoryId && t.type === 'expense')
@@ -191,14 +231,21 @@ export default async function DashboardPage() {
     };
   });
 
-  // 8. Recent transactions (always top 6 latest across all transactions)
-  const recentTransactions = allTransactions.slice(0, 6);
+  // 8. Recent transactions (top 6 inside selected cycle, or overall if active cycle has none yet)
+  const recentTransactions = cycleTransactions.slice(0, 6);
 
-  // 9. Food budget for daily widget (spent in active cycle)
+  // 9. Food budget for daily widget (spent in selected cycle)
   const foodBudgetTotal = userSettings?.foodBudget || 0;
   const foodSpent = cycleTransactions
     .filter(t => t.type === 'expense' && t.category?.name === 'Makan')
     .reduce((sum, t) => sum + t.amount, 0);
+
+  const hasFoodInBudgets = budgetWithSpending.some(
+    b => b.category?.name?.toLowerCase() === 'makan' || b.category?.name?.toLowerCase() === 'makanan'
+  );
+  const totalBudgetRemaining =
+    budgetWithSpending.reduce((sum, b) => sum + b.remaining, 0) +
+    (!hasFoodInBudgets && foodBudgetTotal > 0 ? foodBudgetTotal - foodSpent : 0);
 
   // 10. Pending installments in active cycle
   const pendingInstallments = activeDebts.flatMap(d =>
@@ -247,11 +294,15 @@ export default async function DashboardPage() {
           <div className="flex flex-wrap items-center gap-2 min-w-0">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-[0.18em] bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
               <span className="w-1.5 h-1.5 rounded-full bg-green-600 flex-shrink-0" />
-              {formatMonth(currentMonth, currentYear)}
+              {payrollCycle.label}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-[0.12em] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               <Calendar className="w-3 h-3 flex-shrink-0" strokeWidth={2} />
-              {isStudentMode ? `Bulan Kalender · ${payrollCycle.daysRemaining} hari tersisa` : `Siklus ${salaryDate} · ${payrollCycle.daysRemaining} hari lagi`}
+              {payrollCycle.isHistorical
+                ? `Riwayat Siklus Selesai (${payrollCycle.totalDays} hari)`
+                : isStudentMode
+                ? `Bulan Kalender · ${payrollCycle.daysRemaining} hari tersisa`
+                : `Siklus ${salaryDate} · ${payrollCycle.daysRemaining} hari lagi`}
             </span>
           </div>
 
@@ -259,7 +310,9 @@ export default async function DashboardPage() {
             Halo, {user?.name || 'Pengguna'}
           </h1>
           <p className="text-[13.5px] text-zinc-400 dark:text-zinc-500 leading-relaxed max-w-sm">
-            Berikut ringkasan keuangan pribadimu hari ini.
+            {payrollCycle.isHistorical
+              ? `Menampilkan evaluasi lengkap untuk siklus ${payrollCycle.label}.`
+              : 'Berikut ringkasan keuangan pribadimu hari ini.'}
           </p>
         </div>
 
@@ -285,6 +338,16 @@ export default async function DashboardPage() {
         </div>
       </header>
 
+      {/* ═══════════ Pemilih Siklus (25 ke 25 / Riwayat Bulan Lalu) ═══════════ */}
+      <div className="reveal-up reveal-up-1">
+        <CycleSelector
+          cycles={recentCycles}
+          currentOffset={cycleOffset}
+          salaryDate={salaryDate}
+          isStudentMode={isStudentMode}
+        />
+      </div>
+
       {/* ═══════════ Saldo Utama (Dashboard Summary) ═══════════ */}
       <div className="reveal-up reveal-up-2">
         <DashboardSummary
@@ -295,12 +358,40 @@ export default async function DashboardPage() {
           savingRate={savingRate}
           effectiveIncome={effectiveIncome}
           cycleLabel={payrollCycle.label}
+          isHistorical={payrollCycle.isHistorical}
+          budgetRemainingTotal={totalBudgetRemaining}
         />
       </div>
 
-      {/* ═══════════ Dompet & Rekening (Multi-Wallets) ═══════════ */}
+      {/* ═══════════ Dompet & Rekening (Multi-Wallets + Klik untuk Riwayat Saldo) ═══════════ */}
       <div className="reveal-up reveal-up-2">
-        <WalletCards accounts={userAccounts} />
+        <WalletCards
+          accounts={userAccounts}
+          transactions={allTransactions}
+          categories={userCategories}
+          cycles={recentCycles}
+          currentCycleOffset={cycleOffset}
+        />
+      </div>
+
+      {/* ═══════════ Rekap Lengkap Siklus (Uang Sisa, Sisa Pos Budget, Vs Siklus Lalu, Filter Kategori & Bank/Tunai) ═══════════ */}
+      <div className="reveal-up reveal-up-2">
+        <CycleHistoryRecap
+          cycleLabel={payrollCycle.label}
+          isHistorical={Boolean(payrollCycle.isHistorical)}
+          cycleIncome={cycleIncome}
+          cycleExpense={cycleExpense}
+          effectiveIncome={effectiveIncome}
+          prevCycleLabel={prevPayrollCycle.label}
+          prevCycleIncome={prevCycleIncome}
+          prevCycleExpense={prevCycleExpense}
+          budgets={budgetWithSpending}
+          foodBudgetTotal={foodBudgetTotal}
+          foodSpent={foodSpent}
+          transactions={cycleTransactions}
+          accounts={userAccounts}
+          categories={userCategories}
+        />
       </div>
 
       {/* ═══════════ Jatah Makan Harian & Prediksi Saldo ═══════════ */}
@@ -310,6 +401,7 @@ export default async function DashboardPage() {
           foodSpent={foodSpent}
           salaryDate={salaryDate}
           isStudentMode={isStudentMode}
+          cycleOffset={cycleOffset}
         />
         <ForecastCard
           balance={realAvailableBalance}

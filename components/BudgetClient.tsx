@@ -7,6 +7,7 @@ import { upsertBudget, deleteBudget } from '@/actions/budgets';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, PieChart } from 'lucide-react';
+import { CycleSelector, CycleOption } from '@/components/CycleSelector';
 import { cn } from '@/lib/utils';
 
 interface Category {
@@ -31,9 +32,24 @@ interface BudgetClientProps {
   categories: Category[];
   month: number;
   year: number;
+  cycleLabel?: string;
+  cycles?: CycleOption[];
+  currentCycleOffset?: number;
+  salaryDate?: number;
+  isStudentMode?: boolean;
 }
 
-export function BudgetClient({ budgets, categories, month, year }: BudgetClientProps) {
+export function BudgetClient({
+  budgets,
+  categories,
+  month,
+  year,
+  cycleLabel,
+  cycles = [],
+  currentCycleOffset = 0,
+  salaryDate = 25,
+  isStudentMode = false,
+}: BudgetClientProps) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [showForm, setShowForm] = useState(false);
@@ -44,6 +60,7 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
 
   const totalBudget = budgets.reduce((s, b) => s + b.amount, 0);
   const totalSpent = budgets.reduce((s, b) => s + b.spent, 0);
+  const totalRemaining = totalBudget - totalSpent;
   const overallPct = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
 
   // Categories not yet in budget
@@ -95,7 +112,7 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
             Anggaran Bulanan
           </h1>
           <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-            Batas pengeluaran operasional {formatMonth(month, year)}
+            Batas pengeluaran &amp; sisa uang pos budgeting siklus {cycleLabel || formatMonth(month, year)}
           </p>
         </div>
 
@@ -108,10 +125,22 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
         </button>
       </div>
 
+      {/* Cycle Selector */}
+      {cycles.length > 0 && (
+        <CycleSelector
+          cycles={cycles}
+          currentOffset={currentCycleOffset}
+          salaryDate={salaryDate}
+          isStudentMode={isStudentMode}
+        />
+      )}
+
       {/* Overview Card */}
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-3 transition-colors">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-3.5 transition-colors">
         <div className="flex justify-between items-baseline text-xs">
-          <span className="font-medium text-zinc-500 dark:text-zinc-400">Pemakaian Anggaran</span>
+          <span className="font-medium text-zinc-500 dark:text-zinc-400">
+            Pemakaian Anggaran ({cycleLabel || formatMonth(month, year)})
+          </span>
           <span className="font-bold text-zinc-900 dark:text-white tabular-nums">{overallPct}% Terpakai</span>
         </div>
 
@@ -123,9 +152,33 @@ export function BudgetClient({ budgets, categories, month, year }: BudgetClientP
           />
         </div>
 
-        <div className="flex justify-between text-xs pt-1 text-zinc-500 dark:text-zinc-400">
-          <span className="tabular-nums">{formatCurrency(totalSpent)} terpakai</span>
-          <span className="font-semibold text-zinc-900 dark:text-white tabular-nums">Batas: {formatCurrency(totalBudget)}</span>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-xs">
+          <div className="p-2.5 rounded-xl bg-stone-50 dark:bg-zinc-800/70 border border-stone-200/60 dark:border-zinc-700/60">
+            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block">Total Jatah Anggaran</span>
+            <span className="font-bold text-sm text-zinc-900 dark:text-white tabular-nums">
+              {formatCurrency(totalBudget)}
+            </span>
+          </div>
+          <div className="p-2.5 rounded-xl bg-stone-50 dark:bg-zinc-800/70 border border-stone-200/60 dark:border-zinc-700/60">
+            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block">Total Terpakai Siklus Ini</span>
+            <span className="font-bold text-sm text-rose-600 dark:text-rose-400 tabular-nums">
+              -{formatCurrency(totalSpent)}
+            </span>
+          </div>
+          <div className="p-2.5 rounded-xl bg-stone-50 dark:bg-zinc-800/70 border border-stone-200/60 dark:border-zinc-700/60">
+            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block">
+              {totalRemaining >= 0 ? 'Sisa Uang Pos Budgeting' : 'Lewat Batas (Overbudget)'}
+            </span>
+            <span
+              className={cn(
+                'font-extrabold text-sm tabular-nums',
+                totalRemaining >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+              )}
+            >
+              {totalRemaining < 0 ? '-' : '+'}
+              {formatCurrency(Math.abs(totalRemaining))}
+            </span>
+          </div>
         </div>
       </div>
 

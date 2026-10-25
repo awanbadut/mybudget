@@ -2,11 +2,19 @@ export const dynamic = 'force-dynamic';
 
 import { db } from '@/db';
 import { BudgetClient } from '@/components/BudgetClient';
-import { getCurrentMonth, getPayrollCycle, getCalendarMonthCycle } from '@/lib/dates';
+import { getCurrentMonth, getCycleByOffset, getRecentCycles } from '@/lib/dates';
 import { getOrInitializeBudgets } from '@/lib/budget-utils';
 import { getUserId } from '@/lib/auth';
 
-export default async function BudgetPage() {
+export default async function BudgetPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ cycle?: string }>;
+}) {
+  const params = searchParams ? await searchParams : {};
+  const rawOffset = parseInt(params?.cycle || '0', 10);
+  const cycleOffset = Number.isNaN(rawOffset) ? 0 : Math.min(0, rawOffset);
+
   const DEV_USER_ID = await getUserId();
   const { month: currentMonth, year: currentYear } = getCurrentMonth();
 
@@ -17,10 +25,21 @@ export default async function BudgetPage() {
   const salary = userSettings?.salary || 0;
   const salaryDate = userSettings?.salaryDate || 25;
   const isStudentMode = salary === 0;
-  const cycle = isStudentMode ? getCalendarMonthCycle(new Date()) : getPayrollCycle(salaryDate, new Date());
+
+  const cycle = getCycleByOffset(salaryDate, isStudentMode, cycleOffset);
+  const recentCycles = getRecentCycles(salaryDate, isStudentMode, 12).map(c => ({
+    offset: c.offset || 0,
+    label: c.label,
+    startDateStr: c.startDateStr,
+    endDateStr: c.endDateStr,
+    isHistorical: c.isHistorical,
+  }));
+
+  const targetMonth = cycle.budgetMonth || currentMonth;
+  const targetYear = cycle.budgetYear || currentYear;
 
   const [budgets, categories, cycleTransactions] = await Promise.all([
-    getOrInitializeBudgets(DEV_USER_ID, currentMonth, currentYear),
+    getOrInitializeBudgets(DEV_USER_ID, targetMonth, targetYear),
     db.query.categories.findMany({
       where: (c, { and: andFn, eq: eqFn }) => andFn(
         eqFn(c.userId, DEV_USER_ID),
@@ -53,8 +72,13 @@ export default async function BudgetPage() {
     <BudgetClient
       budgets={budgetsWithSpending}
       categories={categories}
-      month={currentMonth}
-      year={currentYear}
+      month={targetMonth}
+      year={targetYear}
+      cycleLabel={cycle.label}
+      cycles={recentCycles}
+      currentCycleOffset={cycleOffset}
+      salaryDate={salaryDate}
+      isStudentMode={isStudentMode}
     />
   );
 }

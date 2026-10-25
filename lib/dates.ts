@@ -52,6 +52,10 @@ export interface PayrollCycle {
   daysRemaining: number;
   label: string;
   isCalendarMonth: boolean; // true = mode mahasiswa/kiriman (1 s/d akhir bulan)
+  offset?: number;          // 0 = siklus saat ini, -1 = 1 siklus lalu, dst.
+  isHistorical?: boolean;   // true jika offset < 0
+  budgetMonth?: number;     // 1-12 (bulan referensi untuk tabel budgets)
+  budgetYear?: number;      // tahun referensi untuk tabel budgets
 }
 
 /**
@@ -149,7 +153,126 @@ export function getPayrollCycle(salaryDate: number = 25, refDate: Date = new Dat
     daysRemaining,
     label,
     isCalendarMonth: false,
+    offset: 0,
+    isHistorical: false,
+    budgetMonth: refDate.getMonth() + 1,
+    budgetYear: refDate.getFullYear(),
   };
+}
+
+/**
+ * Menghitung siklus berdasarkan offset relatif terhadap siklus saat ini:
+ * - offset = 0  -> siklus berjalan saat ini
+ * - offset = -1 -> 1 siklus sebelumnya (misal 25 Sep - 24 Okt)
+ * - offset = -2 -> 2 siklus sebelumnya (misal 25 Agu - 24 Sep), dst.
+ */
+export function getCycleByOffset(
+  salaryDate: number = 25,
+  isStudentMode: boolean = false,
+  offset: number = 0,
+  refDate: Date = new Date()
+): PayrollCycle {
+  const safeOffset = Math.min(0, Math.trunc(offset || 0));
+  const safeSalaryDate = Math.min(Math.max(1, salaryDate), 31);
+  const budgetRef = new Date(refDate.getFullYear(), refDate.getMonth() + safeOffset, 1);
+  const budgetMonth = budgetRef.getMonth() + 1;
+  const budgetYear = budgetRef.getFullYear();
+
+  if (safeOffset === 0) {
+    const active = isStudentMode
+      ? getCalendarMonthCycle(refDate)
+      : getPayrollCycle(safeSalaryDate, refDate);
+    return {
+      ...active,
+      offset: 0,
+      isHistorical: false,
+      budgetMonth,
+      budgetYear,
+    };
+  }
+
+  // Untuk siklus historis (safeOffset < 0)
+  if (isStudentMode || safeSalaryDate <= 1) {
+    const base = getCalendarMonthCycle(refDate);
+    const startDate = new Date(base.startDate.getFullYear(), base.startDate.getMonth() + safeOffset, 1);
+    const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+    const nextPayDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 1);
+
+    const startMid = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    const nextMid = new Date(nextPayDate.getFullYear(), nextPayDate.getMonth(), 1);
+    const totalDays = Math.max(1, Math.round((nextMid.getTime() - startMid.getTime()) / (1000 * 60 * 60 * 24)));
+    const label = `${formatDateShort(startDate)} - ${formatDateShort(endDate)}`;
+
+    return {
+      startDate,
+      endDate,
+      nextPayDate,
+      startDateStr: toDateString(startDate),
+      endDateStr: toDateString(endDate),
+      nextPayDateStr: toDateString(nextPayDate),
+      totalDays,
+      elapsedDays: totalDays,
+      daysRemaining: 0,
+      label,
+      isCalendarMonth: isStudentMode,
+      offset: safeOffset,
+      isHistorical: true,
+      budgetMonth,
+      budgetYear,
+    };
+  }
+
+  const base = getPayrollCycle(safeSalaryDate, refDate);
+  const startDate = createClampedDate(
+    base.startDate.getFullYear(),
+    base.startDate.getMonth() + safeOffset,
+    safeSalaryDate
+  );
+  const nextPayDate = createClampedDate(
+    base.startDate.getFullYear(),
+    base.startDate.getMonth() + safeOffset + 1,
+    safeSalaryDate
+  );
+  const endDate = new Date(nextPayDate.getFullYear(), nextPayDate.getMonth(), nextPayDate.getDate() - 1);
+
+  const startMid = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  const nextMid = new Date(nextPayDate.getFullYear(), nextPayDate.getMonth(), nextPayDate.getDate());
+  const totalDays = Math.max(1, Math.round((nextMid.getTime() - startMid.getTime()) / (1000 * 60 * 60 * 24)));
+  const label = `${formatDateShort(startDate)} - ${formatDateShort(endDate)}`;
+
+  return {
+    startDate,
+    endDate,
+    nextPayDate,
+    startDateStr: toDateString(startDate),
+    endDateStr: toDateString(endDate),
+    nextPayDateStr: toDateString(nextPayDate),
+    totalDays,
+    elapsedDays: totalDays,
+    daysRemaining: 0,
+    label,
+    isCalendarMonth: false,
+    offset: safeOffset,
+    isHistorical: true,
+    budgetMonth,
+    budgetYear,
+  };
+}
+
+/**
+ * Menghasilkan daftar N siklus terakhir (dari offset 0 hingga -(count - 1))
+ */
+export function getRecentCycles(
+  salaryDate: number = 25,
+  isStudentMode: boolean = false,
+  count: number = 12,
+  refDate: Date = new Date()
+): PayrollCycle[] {
+  const list: PayrollCycle[] = [];
+  for (let i = 0; i < count; i++) {
+    list.push(getCycleByOffset(salaryDate, isStudentMode, -i, refDate));
+  }
+  return list;
 }
 
 export function toJakartaDate(dateString: string): Date {

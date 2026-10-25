@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat, ArrowLeftRight, ArrowDownToLine, Lightbulb } from 'lucide-react';
 import { RecurringManager, RecurringItem } from '@/components/RecurringManager';
 import { TransferModal } from '@/components/TransferModal';
+import { CycleOption } from '@/components/CycleSelector';
 import { cn } from '@/lib/utils';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -57,6 +58,7 @@ interface Props {
   categories: Category[];
   accounts?: AccountWithBalance[];
   recurringList?: RecurringItem[];
+  cycles?: CycleOption[];
   currentMonth?: number;
   currentYear?: number;
   initialType?: 'income' | 'expense' | 'transfer';
@@ -68,6 +70,7 @@ export function TransactionListClient({
   categories,
   accounts = [],
   recurringList = [],
+  cycles = [],
   currentMonth = new Date().getMonth() + 1,
   currentYear = new Date().getFullYear(),
   initialType,
@@ -91,6 +94,7 @@ export function TransactionListClient({
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense' | 'transfer'>(initialType || 'all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterAccount, setFilterAccount] = useState<string>('all');
+  const [filterCycle, setFilterCycle] = useState<string>('all');
   const [filterMonth, setFilterMonth] = useState<string>('all');
 
   const dueRecurringCount = useMemo(() => {
@@ -123,6 +127,9 @@ export function TransactionListClient({
 
   // Filtered transactions
   const filtered = useMemo(() => {
+    const activeCycleObj =
+      filterCycle !== 'all' ? cycles.find(c => String(c.offset) === filterCycle) : undefined;
+
     return transactions.filter(t => {
       if (filterType !== 'all' && t.type !== filterType) return false;
       if (filterCategory !== 'all' && t.categoryId !== filterCategory) return false;
@@ -130,6 +137,14 @@ export function TransactionListClient({
         const isFrom = t.accountId === filterAccount;
         const isTo = t.toAccountId === filterAccount;
         if (!isFrom && !isTo) return false;
+      }
+      if (activeCycleObj) {
+        if (
+          t.transactionDate < activeCycleObj.startDateStr ||
+          t.transactionDate > activeCycleObj.endDateStr
+        ) {
+          return false;
+        }
       }
       if (filterMonth !== 'all' && !t.transactionDate.startsWith(filterMonth)) return false;
       if (searchQuery.trim()) {
@@ -142,7 +157,7 @@ export function TransactionListClient({
       }
       return true;
     });
-  }, [transactions, filterType, filterCategory, filterAccount, filterMonth, searchQuery]);
+  }, [transactions, filterType, filterCategory, filterAccount, filterCycle, cycles, filterMonth, searchQuery]);
 
   const filteredCategories = categories.filter(c => c.type === formType);
 
@@ -471,25 +486,59 @@ export function TransactionListClient({
             </button>
           ))}
 
+          {categories.length > 0 && (
+            <select
+              value={filterCategory}
+              onChange={e => setFilterCategory(e.target.value)}
+              className="px-3 py-1.5 rounded-xl text-base sm:text-xs font-medium bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-stone-200/80 dark:border-zinc-800 outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white flex-shrink-0 transition-colors"
+            >
+              <option value="all">Semua Kategori</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.id}>Kategori: {c.name}</option>
+              ))}
+            </select>
+          )}
+
           {accounts.length > 0 && (
             <select
               value={filterAccount}
               onChange={e => setFilterAccount(e.target.value)}
               className="px-3 py-1.5 rounded-xl text-base sm:text-xs font-medium bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-stone-200/80 dark:border-zinc-800 outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white flex-shrink-0 transition-colors"
             >
-              <option value="all">Semua Dompet</option>
+              <option value="all">Semua Bank &amp; Tunai</option>
               {accounts.map(a => (
-                <option key={a.id} value={a.id}>{a.name}</option>
+                <option key={a.id} value={a.id}>Dompet: {a.name}</option>
+              ))}
+            </select>
+          )}
+
+          {cycles.length > 0 && (
+            <select
+              value={filterCycle}
+              onChange={e => {
+                setFilterCycle(e.target.value);
+                if (e.target.value !== 'all') setFilterMonth('all');
+              }}
+              className="px-3 py-1.5 rounded-xl text-base sm:text-xs font-medium bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-stone-200/80 dark:border-zinc-800 outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white flex-shrink-0 transition-colors"
+            >
+              <option value="all">Semua Siklus (25-24)</option>
+              {cycles.map(c => (
+                <option key={c.offset} value={String(c.offset)}>
+                  {c.offset === 0 ? `Siklus Ini (${c.label})` : `Siklus ${c.label}`}
+                </option>
               ))}
             </select>
           )}
 
           <select
             value={filterMonth}
-            onChange={e => setFilterMonth(e.target.value)}
+            onChange={e => {
+              setFilterMonth(e.target.value);
+              if (e.target.value !== 'all') setFilterCycle('all');
+            }}
             className="px-3 py-1.5 rounded-xl text-base sm:text-xs font-medium bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-stone-200/80 dark:border-zinc-800 outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white flex-shrink-0 transition-colors"
           >
-            <option value="all">Semua Bulan</option>
+            <option value="all">Semua Bulan Kalender</option>
             {months.map(m => {
               const [y, mo] = m.split('-').map(Number);
               return <option key={m} value={m}>{MONTH_NAMES[mo-1]} {y}</option>;

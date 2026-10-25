@@ -20,6 +20,8 @@ interface DashboardSummaryProps {
   savingRate: number;
   effectiveIncome: number;
   cycleLabel?: string;
+  isHistorical?: boolean;
+  budgetRemainingTotal?: number;
 }
 
 export function DashboardSummary({
@@ -30,6 +32,8 @@ export function DashboardSummary({
   savingRate,
   effectiveIncome,
   cycleLabel,
+  isHistorical = false,
+  budgetRemainingTotal = 0,
 }: DashboardSummaryProps) {
   const { showBalance: showAmount, toggleBalance } = useBalanceVisibility();
 
@@ -39,7 +43,9 @@ export function DashboardSummary({
     return formatCurrency(Math.abs(val));
   };
 
-  const isPositive = balance >= 0;
+  const cycleNetCash = totalIncome - totalExpense;
+  const heroValue = isHistorical ? cycleNetCash : balance;
+  const isPositive = heroValue >= 0;
 
   return (
     /* Double-Bezel outer shell */
@@ -52,7 +58,9 @@ export function DashboardSummary({
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <span className="text-[10.5px] font-semibold tracking-[0.14em] uppercase text-zinc-400 dark:text-zinc-500 select-none">
-            Saldo Tersedia
+            {isHistorical
+              ? `Uang Sisa Siklus (${cycleLabel})`
+              : 'Saldo Tersedia (Semua Dompet)'}
           </span>
           <button
             type="button"
@@ -71,8 +79,8 @@ export function DashboardSummary({
         <div className="mb-6 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-end gap-3 min-w-0">
             <p className="font-bold text-[clamp(2.2rem,6.5vw,3.8rem)] text-zinc-900 dark:text-white tracking-[-0.04em] tabular-nums leading-none break-all min-w-0">
-              {balance < 0 && showAmount && <span className="text-red-600 dark:text-red-500">-</span>}
-              {display(balance)}
+              {heroValue < 0 && showAmount && <span className="text-red-600 dark:text-red-500">-</span>}
+              {display(heroValue)}
             </p>
             {/* Status badge — solid, no washed-out pastels */}
             <span className={`self-start sm:self-auto mb-0.5 inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full ${
@@ -81,43 +89,49 @@ export function DashboardSummary({
                 : 'bg-red-600 text-white'
             }`}>
               <span className="w-1.5 h-1.5 rounded-full bg-white/60 flex-shrink-0" />
-              {isPositive ? 'Kas Sehat' : 'Defisit'}
+              {isHistorical
+                ? (isPositive ? 'Surplus Siklus' : 'Defisit Siklus')
+                : (isPositive ? 'Kas Sehat' : 'Defisit')}
             </span>
           </div>
           <p className="text-[12px] text-zinc-400 dark:text-zinc-500 mt-2 leading-snug">
-            {isPositive ? 'Total kas bersih yang tersedia' : 'Pengeluaran melebihi pemasukan tercatat'}
+            {isHistorical
+              ? 'Sisa uang murni dari Pemasukan dikurangi Pengeluaran pada siklus ini (bukan saldo gabungan semua waktu)'
+              : isPositive
+              ? 'Total kas bersih yang tersedia di dompet & rekening saat ini'
+              : 'Pengeluaran melebihi pemasukan tercatat'}
           </p>
         </div>
 
         {/* 4-metric strip — solid icon backgrounds */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-zinc-100 dark:bg-zinc-800 rounded-xl overflow-hidden border border-zinc-100 dark:border-zinc-800">
           <MetricCell
-            label="Pemasukan"
+            label="Pemasukan Siklus"
             value={display(totalIncome)}
             sub={effectiveIncome > 0 && effectiveIncome !== totalIncome ? `Est. ${display(effectiveIncome)}` : (cycleLabel ?? 'Siklus ini')}
             icon={<ArrowDown size={13} weight="bold" className="text-white" />}
             iconBg="bg-green-600"
           />
           <MetricCell
-            label="Pengeluaran"
+            label="Pengeluaran Siklus"
             value={display(totalExpense)}
             sub={cycleLabel ?? 'Siklus ini'}
             icon={<ArrowUp size={13} weight="bold" className="text-white" />}
             iconBg="bg-red-600"
           />
           <MetricCell
-            label="Tabungan"
-            value={display(totalSavings)}
-            sub="Total terkumpul"
+            label="Sisa Uang Siklus"
+            value={`${cycleNetCash < 0 && showAmount ? '-' : ''}${display(cycleNetCash)}`}
+            sub="Masuk − Keluar siklus ini"
             icon={<PiggyBank size={13} weight="fill" className="text-white" />}
-            iconBg="bg-blue-600"
+            iconBg={cycleNetCash >= 0 ? 'bg-emerald-600' : 'bg-rose-600'}
           />
           <MetricCell
-            label="Porsi Simpanan"
-            value={showAmount ? `${savingRate}%` : mask}
-            sub="Target ≥ 20%"
+            label="Sisa Pos Budgeting"
+            value={`${budgetRemainingTotal < 0 && showAmount ? '-' : ''}${display(budgetRemainingTotal)}`}
+            sub={`Saving rate: ${showAmount ? `${savingRate}%` : mask}`}
             icon={<TrendUp size={13} weight="bold" className="text-white" />}
-            iconBg="bg-zinc-700 dark:bg-zinc-600"
+            iconBg={budgetRemainingTotal >= 0 ? 'bg-blue-600' : 'bg-amber-600'}
           />
         </div>
       </div>

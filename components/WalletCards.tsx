@@ -6,8 +6,10 @@ import { formatCurrency } from '@/lib/currency';
 import { AccountWithBalance } from '@/actions/accounts';
 import { TransferModal, TransferModalMode } from '@/components/TransferModal';
 import { AccountModal } from '@/components/AccountModal';
+import { WalletHistoryModal, WalletTxItem } from '@/components/WalletHistoryModal';
+import { CycleOption } from '@/components/CycleSelector';
 import { useBalanceVisibility } from '@/context/BalanceVisibilityContext';
-import { Building2, Smartphone, Coins, Wallet, ArrowLeftRight, Plus, Pencil, Banknote, ArrowDownToLine, Eye, EyeOff } from 'lucide-react';
+import { Building2, Smartphone, Coins, Wallet, ArrowLeftRight, Plus, Pencil, Banknote, ArrowDownToLine, Eye, EyeOff, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -19,9 +21,19 @@ const ICON_MAP: Record<string, React.ElementType> = {
 
 interface WalletCardsProps {
   accounts: AccountWithBalance[];
+  transactions?: WalletTxItem[];
+  categories?: Array<{ id: string; name: string; type: string }>;
+  cycles?: CycleOption[];
+  currentCycleOffset?: number;
 }
 
-export function WalletCards({ accounts }: WalletCardsProps) {
+export function WalletCards({
+  accounts,
+  transactions = [],
+  categories = [],
+  cycles = [],
+  currentCycleOffset = 0,
+}: WalletCardsProps) {
   const router = useRouter();
   const { showBalance, toggleBalance, formatMasked } = useBalanceVisibility();
 
@@ -31,6 +43,9 @@ export function WalletCards({ accounts }: WalletCardsProps) {
 
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<AccountWithBalance | null>(null);
+
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyAccount, setHistoryAccount] = useState<AccountWithBalance | null>(null);
 
   const totalBalance = accounts.reduce((sum, a) => sum + a.balance, 0);
 
@@ -122,8 +137,9 @@ export function WalletCards({ accounts }: WalletCardsProps) {
           return (
             <div
               key={acc.id}
-              onClick={() => { setSelectedAccount(acc); setShowAddAccount(true); }}
+              onClick={() => { setHistoryAccount(acc); setShowHistory(true); }}
               className="group relative bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-4 shadow-sm hover:border-zinc-400 dark:hover:border-zinc-600 transition-all cursor-pointer touch-manipulation"
+              title="Klik untuk melihat riwayat penambahan & pengurangan saldo"
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2.5">
@@ -151,8 +167,23 @@ export function WalletCards({ accounts }: WalletCardsProps) {
                   </div>
                 </div>
 
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
-                  <Pencil className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-1">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-stone-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-950/50 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <History className="w-3 h-3" />
+                    <span>Mutasi</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedAccount(acc);
+                      setShowAddAccount(true);
+                    }}
+                    className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-800 transition-colors"
+                    title="Edit Dompet"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
 
@@ -230,6 +261,21 @@ export function WalletCards({ accounts }: WalletCardsProps) {
       </div>
 
       {/* Modals */}
+      <WalletHistoryModal
+        open={showHistory}
+        onOpenChange={setShowHistory}
+        account={historyAccount}
+        allAccounts={accounts}
+        transactions={transactions}
+        categories={categories}
+        cycles={cycles}
+        initialCycleOffset={currentCycleOffset < 0 ? currentCycleOffset : 'all'}
+        onEditAccount={(acc) => {
+          setSelectedAccount(acc);
+          setShowAddAccount(true);
+        }}
+      />
+
       <TransferModal
         open={showTransfer}
         onOpenChange={setShowTransfer}
