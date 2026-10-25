@@ -1,13 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { db } from '@/db';
-import { getCycleByOffset, getRecentCycles, formatMonth, getCurrentMonth, calculateProratedSalary } from '@/lib/dates';
+import { getCycleByOffset, getRecentCycles, getCurrentMonth, calculateProratedSalary } from '@/lib/dates';
 import { calculateSavingRate } from '@/lib/calculations';
 import { getUserId } from '@/lib/auth';
 import { getOrInitializeBudgets } from '@/lib/budget-utils';
 import { formatCurrency } from '@/lib/currency';
 import { DashboardSummary } from '@/components/DashboardSummary';
-import { BudgetProgress } from '@/components/BudgetProgress';
 import { RecentTransactions } from '@/components/RecentTransactions';
 import { QuickActions } from '@/components/QuickActions';
 import { InsightCard } from '@/components/InsightCard';

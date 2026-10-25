@@ -465,16 +465,16 @@ export function TransactionListClient({
         onSearchChange={setSearchQuery}
         searchPlaceholder="Cari transaksi, pos belanja, atau catatan..."
         filterType={filterType}
-        onTypeChange={setFilterType}
+        onFilterTypeChange={setFilterType}
         categories={categories}
         filterCategory={filterCategory}
-        onCategoryChange={setFilterCategory}
+        onFilterCategoryChange={setFilterCategory}
         accounts={accounts}
         filterAccount={filterAccount}
-        onAccountChange={setFilterAccount}
+        onFilterAccountChange={setFilterAccount}
         cycles={cycles}
         filterCycle={filterCycle}
-        onCycleChange={val => {
+        onFilterCycleChange={val => {
           setFilterCycle(val);
           if (val !== 'all') setFilterMonth('all');
         }}

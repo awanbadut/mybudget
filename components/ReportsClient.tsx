@@ -477,10 +477,10 @@ export function ReportsClient({
               showTypeBar={false}
               categories={categories}
               filterCategory={filterCategory}
-              onCategoryChange={setFilterCategory}
+              onFilterCategoryChange={setFilterCategory}
               accounts={accounts}
               filterAccount={filterAccount}
-              onAccountChange={setFilterAccount}
+              onFilterAccountChange={setFilterAccount}
             />
           </div>
         </div>

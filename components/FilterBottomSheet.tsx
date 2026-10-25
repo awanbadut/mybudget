@@ -39,26 +39,31 @@ interface FilterBottomSheetProps {
   onSearchChange?: (q: string) => void;
   searchPlaceholder?: string;
   showSearch?: boolean;
+  showTypeBar?: boolean;
 
   // Type filter ('all' | 'expense' | 'income' | 'transfer' | 'out' | 'in')
   filterType?: string;
   onFilterTypeChange?: (t: any) => void;
+  onTypeChange?: (t: any) => void;
   typeOptions?: Array<{ id: string; label: string; icon?: 'out' | 'in' | 'transfer' }>;
 
   // Category filter
   categories?: FilterCategoryOption[];
   filterCategory: string;
-  onFilterCategoryChange: (catId: string) => void;
+  onFilterCategoryChange?: (catId: string) => void;
+  onCategoryChange?: (catId: string) => void;
 
   // Account / Bank / Cash filter
   accounts?: FilterAccountOption[];
   filterAccount?: string;
   onFilterAccountChange?: (accId: string) => void;
+  onAccountChange?: (accId: string) => void;
 
   // Optional Cycle filter
   cycles?: CycleOption[];
   filterCycle?: string;
   onFilterCycleChange?: (cycOffset: string) => void;
+  onCycleChange?: (cycOffset: string) => void;
 
   // Optional Month filter
   months?: Array<{ value: string; label: string }>;
@@ -81,24 +86,34 @@ export function FilterBottomSheet({
   onSearchChange,
   searchPlaceholder = 'Cari nama transaksi atau catatan...',
   showSearch = true,
+  showTypeBar = true,
   filterType,
-  onFilterTypeChange,
+  onFilterTypeChange: onFilterTypeChangeProp,
+  onTypeChange,
   typeOptions = DEFAULT_TYPE_OPTIONS,
   categories = [],
   filterCategory,
-  onFilterCategoryChange,
+  onFilterCategoryChange: onFilterCategoryChangeProp,
+  onCategoryChange,
   accounts = [],
   filterAccount = 'all',
-  onFilterAccountChange,
+  onFilterAccountChange: onFilterAccountChangeProp,
+  onAccountChange,
   cycles = [],
   filterCycle = 'all',
-  onFilterCycleChange,
+  onFilterCycleChange: onFilterCycleChangeProp,
+  onCycleChange,
   months = [],
   filterMonth = 'all',
   onFilterMonthChange,
   rightSlot,
 }: FilterBottomSheetProps) {
   const [open, setOpen] = useState(false);
+
+  const onFilterTypeChange = onFilterTypeChangeProp || onTypeChange;
+  const onFilterCategoryChange = onFilterCategoryChangeProp || onCategoryChange || (() => {});
+  const onFilterAccountChange = onFilterAccountChangeProp || onAccountChange;
+  const onFilterCycleChange = onFilterCycleChangeProp || onCycleChange;
 
   // Count active sheet filters
   let activeCount = 0;
@@ -139,7 +154,7 @@ export function FilterBottomSheet({
   return (
     <div className="space-y-2.5 w-full min-w-0">
       {/* Row 1: Segmented Type Control (No emojis, fits 100% width cleanly on mobile) */}
-      {onFilterTypeChange && (
+      {showTypeBar && onFilterTypeChange && (
         <div className="grid grid-cols-4 gap-1 p-1 bg-stone-100 dark:bg-zinc-800/90 rounded-2xl w-full">
           {typeOptions.map(opt => {
             const isActive = filterType === opt.id;
