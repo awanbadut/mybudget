@@ -6,12 +6,12 @@ import { formatCurrency } from '@/lib/currency';
 import { formatDateShort } from '@/lib/dates';
 import { AccountWithBalance } from '@/actions/accounts';
 import { CycleOption } from '@/components/CycleSelector';
+import { FilterBottomSheet } from '@/components/FilterBottomSheet';
 import {
   ArrowDownLeft,
   ArrowUpRight,
   ArrowLeftRight,
   ArrowRight,
-  Search,
   Pencil,
   Wallet,
   Building2,
@@ -294,74 +294,27 @@ export function WalletHistoryModal({
           </div>
         </DialogHeader>
 
-        {/* Filter Bar */}
-        <div className="p-3.5 sm:px-5 border-b border-stone-100 dark:border-zinc-800 space-y-2.5 bg-white dark:bg-zinc-900">
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Direction pills */}
-            {([
-              { id: 'all', label: 'Semua Mutasi' },
-              { id: 'out', label: 'Saldo Berkurang (-)' },
-              { id: 'in', label: 'Saldo Bertambah (+)' },
-              { id: 'transfer', label: 'Tarik / Transfer' },
-            ] as const).map(tab => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setDirectionFilter(tab.id)}
-                className={cn(
-                  'px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all touch-manipulation',
-                  directionFilter === tab.id
-                    ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-xs'
-                    : 'bg-stone-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {/* Cycle Filter */}
-            {cycles.length > 0 && (
-              <select
-                value={selectedCycle}
-                onChange={e => setSelectedCycle(e.target.value)}
-                className="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-stone-50 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-stone-200 dark:border-zinc-700 focus:outline-none"
-              >
-                <option value="all">Semua Waktu ({ledgerWithRunningBalance.length} mutasi)</option>
-                {cycles.map(c => (
-                  <option key={c.offset} value={String(c.offset)}>
-                    {c.offset === 0 ? `Siklus Ini (${c.label})` : `Siklus ${c.label}`}
-                  </option>
-                ))}
-              </select>
-            )}
-
-            {/* Category Filter */}
-            <select
-              value={categoryFilter}
-              onChange={e => setCategoryFilter(e.target.value)}
-              className="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-stone-50 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-stone-200 dark:border-zinc-700 focus:outline-none"
-            >
-              <option value="all">Semua Kategori</option>
-              {availableCategories.map(cat => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-
-            {/* Search Input */}
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Cari transaksi di dompet ini..."
-                className="w-full pl-8 pr-3 py-1.5 rounded-xl text-xs bg-stone-50 dark:bg-zinc-800 text-zinc-900 dark:text-white border border-stone-200 dark:border-zinc-700 focus:outline-none"
-              />
-            </div>
-          </div>
+        {/* Filter Bar (Bottom Sheet Mobile-First, No Native Select) */}
+        <div className="p-3.5 sm:px-5 border-b border-stone-100 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+          <FilterBottomSheet
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            searchPlaceholder={`Cari transaksi di ${account.name}...`}
+            filterType={directionFilter}
+            onFilterTypeChange={setDirectionFilter}
+            typeOptions={[
+              { id: 'all', label: 'Semua' },
+              { id: 'out', label: 'Berkurang', icon: 'out' },
+              { id: 'in', label: 'Bertambah', icon: 'in' },
+              { id: 'transfer', label: 'Transfer', icon: 'transfer' },
+            ]}
+            categories={availableCategories}
+            filterCategory={categoryFilter}
+            onFilterCategoryChange={setCategoryFilter}
+            cycles={cycles}
+            filterCycle={selectedCycle}
+            onFilterCycleChange={setSelectedCycle}
+          />
         </div>
 
         {/* Scrollable Mutation List */}

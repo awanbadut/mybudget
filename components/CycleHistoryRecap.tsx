@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { formatCurrency } from '@/lib/currency';
 import { formatDateShort } from '@/lib/dates';
 import { useBalanceVisibility } from '@/context/BalanceVisibilityContext';
+import { FilterBottomSheet } from '@/components/FilterBottomSheet';
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -11,7 +12,6 @@ import {
   TrendingDown,
   TrendingUp,
   Minus,
-  Search,
   Download,
   PieChart,
   Wallet,
@@ -572,59 +572,20 @@ export function CycleHistoryRecap({
           </button>
         </div>
 
-        {/* Filter Controls: Tipe + Kategori + Bank/Tunai + Search */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-          {/* Filter Tipe */}
-          <select
-            value={filterType}
-            onChange={e => setFilterType(e.target.value as any)}
-            className="px-3 py-2 rounded-xl text-xs font-semibold bg-stone-50 dark:bg-zinc-800 text-zinc-900 dark:text-white border border-stone-200 dark:border-zinc-700 focus:outline-none"
-          >
-            <option value="all">Semua Tipe ({transactions.length})</option>
-            <option value="expense">Pengeluaran (-)</option>
-            <option value="income">Pemasukan (+)</option>
-            <option value="transfer">Tarik Tunai / Transfer (⇄)</option>
-          </select>
-
-          {/* Filter Kategori */}
-          <select
-            value={filterCategory}
-            onChange={e => setFilterCategory(e.target.value)}
-            className="px-3 py-2 rounded-xl text-xs font-semibold bg-stone-50 dark:bg-zinc-800 text-zinc-900 dark:text-white border border-stone-200 dark:border-zinc-700 focus:outline-none"
-          >
-            <option value="all">Semua Kategori</option>
-            {categories.map(cat => (
-              <option key={cat.id} value={cat.id}>
-                Kategori: {cat.name}
-              </option>
-            ))}
-          </select>
-
-          {/* Filter Bank / Tunai */}
-          <select
-            value={filterAccount}
-            onChange={e => setFilterAccount(e.target.value)}
-            className="px-3 py-2 rounded-xl text-xs font-semibold bg-stone-50 dark:bg-zinc-800 text-zinc-900 dark:text-white border border-stone-200 dark:border-zinc-700 focus:outline-none"
-          >
-            <option value="all">Semua Bank &amp; Tunai</option>
-            {accounts.map(acc => (
-              <option key={acc.id} value={acc.id}>
-                Dompet: {acc.name}
-              </option>
-            ))}
-          </select>
-
-          {/* Search */}
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Cari nama / catatan..."
-              className="w-full pl-8 pr-3 py-2 rounded-xl text-xs bg-stone-50 dark:bg-zinc-800 text-zinc-900 dark:text-white border border-stone-200 dark:border-zinc-700 focus:outline-none"
-            />
-          </div>
-        </div>
+        {/* Filter Controls: Bottom Sheet Mobile-First (No Native Select, No Emoji) */}
+        <FilterBottomSheet
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          searchPlaceholder="Cari nama transaksi atau catatan..."
+          filterType={filterType}
+          onFilterTypeChange={setFilterType}
+          categories={categories}
+          filterCategory={filterCategory}
+          onFilterCategoryChange={setFilterCategory}
+          accounts={accounts}
+          filterAccount={filterAccount}
+          onFilterAccountChange={setFilterAccount}
+        />
 
         {/* Dynamic Sub-total Strip when Filtered (or always visible for quick insight) */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 rounded-xl bg-stone-50 dark:bg-zinc-800/60 border border-stone-200/60 dark:border-zinc-800 text-xs">
@@ -758,7 +719,7 @@ export function CycleHistoryRecap({
                           : 'text-zinc-900 dark:text-white'
                       )}
                     >
-                      {isTransfer ? '⇄ ' : isIncome ? '+' : '-'}
+                      {isTransfer ? '' : isIncome ? '+' : '-'}
                       {display(tx.amount)}
                     </span>
                   </div>

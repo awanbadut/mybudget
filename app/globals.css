@@ -251,3 +251,12 @@ h1, h2, h3, h4 {
   transform: scale(0.97);
   transition-duration: 80ms;
 }
+
+/* ─── Hide scrollbars for horizontal mobile swipe carousels ─── */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

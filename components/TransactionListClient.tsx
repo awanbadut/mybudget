@@ -12,6 +12,7 @@ import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music,
 import { RecurringManager, RecurringItem } from '@/components/RecurringManager';
 import { TransferModal } from '@/components/TransferModal';
 import { CycleOption } from '@/components/CycleSelector';
+import { FilterBottomSheet } from '@/components/FilterBottomSheet';
 import { cn } from '@/lib/utils';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -458,94 +459,26 @@ export function TransactionListClient({
             </div>
           </div>
 
-      {/* Filters */}
-      <div className="space-y-2.5 w-full min-w-0">
-        <div className="relative w-full min-w-0">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-          <input
-            placeholder="Cari transaksi berdasarkan nama, pos belanja, atau catatan..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-colors"
-          />
-        </div>
-
-        <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 text-xs w-full min-w-0 max-w-full">
-          {(['all', 'expense', 'income', 'transfer'] as const).map(type => (
-            <button
-              key={type}
-              onClick={() => setFilterType(type)}
-              className={cn(
-                'px-3 sm:px-3.5 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap border flex-shrink-0',
-                filterType === type
-                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-sm'
-                  : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border-stone-200/80 dark:border-zinc-800 hover:bg-stone-50 dark:hover:bg-zinc-800/60'
-              )}
-            >
-              {type === 'all' ? 'Semua' : type === 'expense' ? 'Pengeluaran' : type === 'income' ? 'Pemasukan' : 'Transfer Antar Dompet'}
-            </button>
-          ))}
-
-          {categories.length > 0 && (
-            <select
-              value={filterCategory}
-              onChange={e => setFilterCategory(e.target.value)}
-              className="px-3 py-1.5 rounded-xl text-base sm:text-xs font-medium bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-stone-200/80 dark:border-zinc-800 outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white flex-shrink-0 transition-colors"
-            >
-              <option value="all">Semua Kategori</option>
-              {categories.map(c => (
-                <option key={c.id} value={c.id}>Kategori: {c.name}</option>
-              ))}
-            </select>
-          )}
-
-          {accounts.length > 0 && (
-            <select
-              value={filterAccount}
-              onChange={e => setFilterAccount(e.target.value)}
-              className="px-3 py-1.5 rounded-xl text-base sm:text-xs font-medium bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-stone-200/80 dark:border-zinc-800 outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white flex-shrink-0 transition-colors"
-            >
-              <option value="all">Semua Bank &amp; Tunai</option>
-              {accounts.map(a => (
-                <option key={a.id} value={a.id}>Dompet: {a.name}</option>
-              ))}
-            </select>
-          )}
-
-          {cycles.length > 0 && (
-            <select
-              value={filterCycle}
-              onChange={e => {
-                setFilterCycle(e.target.value);
-                if (e.target.value !== 'all') setFilterMonth('all');
-              }}
-              className="px-3 py-1.5 rounded-xl text-base sm:text-xs font-medium bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-stone-200/80 dark:border-zinc-800 outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white flex-shrink-0 transition-colors"
-            >
-              <option value="all">Semua Siklus (25-24)</option>
-              {cycles.map(c => (
-                <option key={c.offset} value={String(c.offset)}>
-                  {c.offset === 0 ? `Siklus Ini (${c.label})` : `Siklus ${c.label}`}
-                </option>
-              ))}
-            </select>
-          )}
-
-          <select
-            value={filterMonth}
-            onChange={e => {
-              setFilterMonth(e.target.value);
-              if (e.target.value !== 'all') setFilterCycle('all');
-            }}
-            className="px-3 py-1.5 rounded-xl text-base sm:text-xs font-medium bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-stone-200/80 dark:border-zinc-800 outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white flex-shrink-0 transition-colors"
-          >
-            <option value="all">Semua Bulan Kalender</option>
-            {months.map(m => {
-              const [y, mo] = m.split('-').map(Number);
-              return <option key={m} value={m}>{MONTH_NAMES[mo-1]} {y}</option>;
-            })}
-          </select>
-        </div>
-      </div>
+      {/* Mobile-First Bottom Sheet Filters */}
+      <FilterBottomSheet
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Cari transaksi, pos belanja, atau catatan..."
+        filterType={filterType}
+        onTypeChange={setFilterType}
+        categories={categories}
+        filterCategory={filterCategory}
+        onCategoryChange={setFilterCategory}
+        accounts={accounts}
+        filterAccount={filterAccount}
+        onAccountChange={setFilterAccount}
+        cycles={cycles}
+        filterCycle={filterCycle}
+        onCycleChange={val => {
+          setFilterCycle(val);
+          if (val !== 'all') setFilterMonth('all');
+        }}
+      />
 
       {/* Transaction List */}
       {filtered.length === 0 ? (
@@ -622,7 +555,7 @@ export function TransactionListClient({
                       'font-sans font-semibold text-xs sm:text-sm md:text-base tabular-nums',
                       isTransfer ? 'text-blue-600 dark:text-blue-400' : isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-900 dark:text-white'
                     )}>
-                      {isTransfer ? '⇄ ' : isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
+                      {isTransfer ? '' : isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
                     </p>
                   </div>
 

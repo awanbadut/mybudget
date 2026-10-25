@@ -128,8 +128,16 @@ export function WalletCards({
         </div>
       </div>
 
-      {/* Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      {/* Mobile Swipe Hint */}
+      {accounts.length > 1 && (
+        <div className="flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500 sm:hidden px-0.5">
+          <span>Ketuk kartu untuk buka riwayat saldo</span>
+          <span className="font-semibold text-zinc-500 dark:text-zinc-400">Geser ({accounts.length}) →</span>
+        </div>
+      )}
+
+      {/* Cards Carousel on Mobile / Grid on Tablet & Desktop */}
+      <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1.5 -mx-4 px-4 no-scrollbar sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:mx-0 sm:px-0 sm:overflow-visible">
         {accounts.map((acc) => {
           const Icon = ICON_MAP[acc.icon || 'Wallet'] || (acc.type === 'bank' ? Building2 : acc.type === 'ewallet' ? Smartphone : Coins);
           const accentColor = acc.color || '#2563eb';
@@ -138,7 +146,7 @@ export function WalletCards({
             <div
               key={acc.id}
               onClick={() => { setHistoryAccount(acc); setShowHistory(true); }}
-              className="group relative bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-4 shadow-sm hover:border-zinc-400 dark:hover:border-zinc-600 transition-all cursor-pointer touch-manipulation"
+              className="w-[84vw] max-w-[305px] sm:w-auto sm:max-w-none snap-center flex-shrink-0 group relative bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-4 shadow-sm hover:border-zinc-400 dark:hover:border-zinc-600 transition-all cursor-pointer active:scale-[0.99] touch-manipulation"
               title="Klik untuk melihat riwayat penambahan & pengurangan saldo"
             >
               <div className="flex items-start justify-between">

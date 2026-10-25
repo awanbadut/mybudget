@@ -21,6 +21,7 @@ import { ForecastCard } from '@/components/ForecastCard';
 import { WalletCards } from '@/components/WalletCards';
 import { CycleSelector } from '@/components/CycleSelector';
 import { CycleHistoryRecap } from '@/components/CycleHistoryRecap';
+import { DashboardTabsClient } from '@/components/DashboardTabsClient';
 import { getAccounts } from '@/actions/accounts';
 import { postRecurringTransactions } from '@/actions/recurring';
 import Link from 'next/link';
@@ -286,38 +287,27 @@ export default async function DashboardPage({
   });
 
   return (
-    <div className="space-y-5 sm:space-y-6 w-full max-w-full min-w-0 overflow-x-hidden">
-      {/* ═══════════ Header ═══════════ */}
-      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-6 min-w-0 pt-2 reveal-up reveal-up-1">
-        <div className="min-w-0 space-y-3">
-          {/* Eyebrow tag */}
-          <div className="flex flex-wrap items-center gap-2 min-w-0">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-[0.18em] bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-600 flex-shrink-0" />
-              {payrollCycle.label}
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-[0.12em] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
-              <Calendar className="w-3 h-3 flex-shrink-0" strokeWidth={2} />
+    <div className="space-y-3.5 sm:space-y-5 w-full max-w-full min-w-0 overflow-x-hidden">
+      {/* ═══════════ Compact Mobile-First Header ═══════════ */}
+      <header className="flex items-center justify-between gap-3 min-w-0 pt-1 reveal-up reveal-up-1">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
+            <span className="truncate">
               {payrollCycle.isHistorical
-                ? `Riwayat Siklus Selesai (${payrollCycle.totalDays} hari)`
+                ? `Riwayat Selesai (${payrollCycle.totalDays} hari)`
                 : isStudentMode
-                ? `Bulan Kalender · ${payrollCycle.daysRemaining} hari tersisa`
-                : `Siklus ${salaryDate} · ${payrollCycle.daysRemaining} hari lagi`}
+                ? `Bulan Kalender · ${payrollCycle.daysRemaining}h lagi`
+                : `Siklus Tgl ${salaryDate} · ${payrollCycle.daysRemaining}h lagi`}
             </span>
           </div>
-
-          <h1 className="font-extrabold text-[2rem] sm:text-[2.6rem] text-zinc-900 dark:text-white tracking-[-0.04em] leading-[1.08]">
+          <h1 className="font-extrabold text-xl sm:text-2xl text-zinc-900 dark:text-white tracking-tight truncate mt-0.5">
             Halo, {user?.name || 'Pengguna'}
           </h1>
-          <p className="text-[13.5px] text-zinc-400 dark:text-zinc-500 leading-relaxed max-w-sm">
-            {payrollCycle.isHistorical
-              ? `Menampilkan evaluasi lengkap untuk siklus ${payrollCycle.label}.`
-              : 'Berikut ringkasan keuangan pribadimu hari ini.'}
-          </p>
         </div>
 
-        {/* Button-in-Button CTA */}
-        <div className="flex items-center gap-2 w-full sm:w-auto flex-shrink-0 sm:pt-1">
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 flex-shrink-0">
           <OnboardingModal
             initialSalary={userSettings?.salary || 0}
             initialSalaryDate={salaryDate}
@@ -327,18 +317,17 @@ export default async function DashboardPage({
           />
           <Link
             href="/transactions?action=new"
-            className="press flex-1 sm:flex-initial group inline-flex items-center justify-center gap-2.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 pl-5 pr-2 py-2.5 rounded-full text-[13px] font-semibold shadow-md transition-all duration-200 whitespace-nowrap"
+            className="press group inline-flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 pl-3.5 pr-1.5 py-1.5 sm:pl-4 sm:pr-2 sm:py-2 rounded-full text-xs font-semibold shadow-sm transition-all duration-200 whitespace-nowrap"
           >
-            <span>Catat Transaksi</span>
-            {/* Trailing icon circle — Button-in-Button */}
-            <span className="w-7 h-7 rounded-full bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+            <span>Catat</span>
+            <span className="w-6 h-6 rounded-full bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center flex-shrink-0">
               <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
             </span>
           </Link>
         </div>
       </header>
 
-      {/* ═══════════ Pemilih Siklus (25 ke 25 / Riwayat Bulan Lalu) ═══════════ */}
+      {/* ═══════════ Pemilih Siklus (Bottom Sheet Mobile Picker) ═══════════ */}
       <div className="reveal-up reveal-up-1">
         <CycleSelector
           cycles={recentCycles}
@@ -348,166 +337,173 @@ export default async function DashboardPage({
         />
       </div>
 
-      {/* ═══════════ Saldo Utama (Dashboard Summary) ═══════════ */}
-      <div className="reveal-up reveal-up-2">
-        <DashboardSummary
-          balance={realAvailableBalance}
-          totalIncome={cycleIncome}
-          totalExpense={cycleExpense}
-          totalSavings={totalSavings}
-          savingRate={savingRate}
-          effectiveIncome={effectiveIncome}
-          cycleLabel={payrollCycle.label}
-          isHistorical={payrollCycle.isHistorical}
-          budgetRemainingTotal={totalBudgetRemaining}
-        />
-      </div>
+      {/* ═══════════ 3-Tab Mobile-First Dashboard ═══════════ */}
+      <DashboardTabsClient
+        isHistorical={Boolean(payrollCycle.isHistorical)}
+        cycleLabel={payrollCycle.label}
+        txCount={cycleTransactions.length}
+        summaryContent={
+          <div className="space-y-4">
+            {/* 1. Saldo Utama / Uang Sisa Siklus */}
+            <DashboardSummary
+              balance={realAvailableBalance}
+              totalIncome={cycleIncome}
+              totalExpense={cycleExpense}
+              totalSavings={totalSavings}
+              savingRate={savingRate}
+              effectiveIncome={effectiveIncome}
+              cycleLabel={payrollCycle.label}
+              isHistorical={payrollCycle.isHistorical}
+              budgetRemainingTotal={totalBudgetRemaining}
+            />
 
-      {/* ═══════════ Dompet & Rekening (Multi-Wallets + Klik untuk Riwayat Saldo) ═══════════ */}
-      <div className="reveal-up reveal-up-2">
-        <WalletCards
-          accounts={userAccounts}
-          transactions={allTransactions}
-          categories={userCategories}
-          cycles={recentCycles}
-          currentCycleOffset={cycleOffset}
-        />
-      </div>
+            {/* 2. Dompet & Rekening (Horizontal Swipe Carousel di HP + Ketuk untuk Mutasi Saldo) */}
+            <WalletCards
+              accounts={userAccounts}
+              transactions={allTransactions}
+              categories={userCategories}
+              cycles={recentCycles}
+              currentCycleOffset={cycleOffset}
+            />
 
-      {/* ═══════════ Rekap Lengkap Siklus (Uang Sisa, Sisa Pos Budget, Vs Siklus Lalu, Filter Kategori & Bank/Tunai) ═══════════ */}
-      <div className="reveal-up reveal-up-2">
-        <CycleHistoryRecap
-          cycleLabel={payrollCycle.label}
-          isHistorical={Boolean(payrollCycle.isHistorical)}
-          cycleIncome={cycleIncome}
-          cycleExpense={cycleExpense}
-          effectiveIncome={effectiveIncome}
-          prevCycleLabel={prevPayrollCycle.label}
-          prevCycleIncome={prevCycleIncome}
-          prevCycleExpense={prevCycleExpense}
-          budgets={budgetWithSpending}
-          foodBudgetTotal={foodBudgetTotal}
-          foodSpent={foodSpent}
-          transactions={cycleTransactions}
-          accounts={userAccounts}
-          categories={userCategories}
-        />
-      </div>
+            {/* 3. Jatah Makan Harian */}
+            <DailyBudget
+              foodBudgetTotal={foodBudgetTotal}
+              foodSpent={foodSpent}
+              salaryDate={salaryDate}
+              isStudentMode={isStudentMode}
+              cycleOffset={cycleOffset}
+            />
 
-      {/* ═══════════ Jatah Makan Harian & Prediksi Saldo ═══════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4 w-full min-w-0 reveal-up reveal-up-3">
-        <DailyBudget
-          foodBudgetTotal={foodBudgetTotal}
-          foodSpent={foodSpent}
-          salaryDate={salaryDate}
-          isStudentMode={isStudentMode}
-          cycleOffset={cycleOffset}
-        />
-        <ForecastCard
-          balance={realAvailableBalance}
-          totalExpense={cycleExpense}
-          effectiveIncome={effectiveIncome}
-          elapsedDays={payrollCycle.elapsedDays}
-          daysRemaining={payrollCycle.daysRemaining}
-          salaryDate={salaryDate}
-          isStudentMode={isStudentMode}
-        />
-      </div>
+            {/* 4. Aksi Cepat */}
+            <QuickActions />
 
-      {/* ═══════════ Analisis Kekayaan & Skor Kesehatan ═══════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4 w-full min-w-0 reveal-up reveal-up-4">
-        <NetWorthCard
-          totalSavings={totalSavings}
-          currentBalance={realAvailableBalance}
-          totalPendingDebt={totalPendingDebtAmount}
-        />
-        <FinancialHealthScore
-          savingRate={savingRate}
-          totalIncome={cycleIncome}
-          totalExpense={cycleExpense}
-          monthlyDebtAmount={monthlyDebtAmount}
-          budgets={budgetWithSpending}
-          balance={realAvailableBalance}
-          daysRemaining={payrollCycle.daysRemaining}
-        />
-      </div>
+            {/* 5. Transaksi Terbaru di Siklus Ini */}
+            <section className="space-y-2.5 w-full min-w-0">
+              <SectionHeader
+                title="Transaksi Siklus Ini"
+                desc={`5 aktivitas terakhir pada ${payrollCycle.label}`}
+                href="/transactions"
+                linkLabel="Semua"
+              />
+              <RecentTransactions transactions={recentTransactions} />
+            </section>
+          </div>
+        }
+        cycleContent={
+          <div className="space-y-4">
+            {/* Evaluasi Lengkap Siklus: Uang Sisa, Sisa Pos Budget, Vs Siklus Lalu, & Filter Transaksi */}
+            <CycleHistoryRecap
+              cycleLabel={payrollCycle.label}
+              isHistorical={Boolean(payrollCycle.isHistorical)}
+              cycleIncome={cycleIncome}
+              cycleExpense={cycleExpense}
+              effectiveIncome={effectiveIncome}
+              prevCycleLabel={prevPayrollCycle.label}
+              prevCycleIncome={prevCycleIncome}
+              prevCycleExpense={prevCycleExpense}
+              budgets={budgetWithSpending}
+              foodBudgetTotal={foodBudgetTotal}
+              foodSpent={foodSpent}
+              transactions={cycleTransactions}
+              accounts={userAccounts}
+              categories={userCategories}
+            />
 
-      {/* ═══════════ Aksi Cepat ═══════════ */}
-      <div className="reveal-up reveal-up-5">
-        <QuickActions />
-      </div>
-
-      {/* ═══════════ Cicilan Jatuh Tempo ═══════════ */}
-      {pendingInstallments.length > 0 && (
-        <section className="space-y-3 w-full min-w-0">
-          <SectionHeader title="Cicilan Bulan Ini" desc="Tagihan jatuh tempo siklus ini" href="/debts" linkLabel="Kelola" />
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-amber-300 dark:border-amber-800 shadow-[0_1px_4px_rgba(0,0,0,0.03)] overflow-hidden transition-colors">
-            {pendingInstallments.map((inst: any, i: number) => (
-              <div key={inst.id} className={`flex items-center justify-between px-4 sm:px-5 py-3.5 ${i > 0 ? 'border-t border-zinc-100 dark:border-zinc-800' : ''}`}>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0">
-                    <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
-                  </div>
-                  <div>
-                    <p className="text-[13.5px] font-semibold text-zinc-900 dark:text-white">Cicilan ke-{inst.installmentNumber}</p>
-                    <p className="text-[11.5px] text-zinc-400 dark:text-zinc-500">Jatuh tempo: {inst.dueDate}</p>
-                  </div>
+            {/* Cicilan Jatuh Tempo di Siklus Ini */}
+            {pendingInstallments.length > 0 && (
+              <section className="space-y-2.5 w-full min-w-0">
+                <SectionHeader title="Cicilan Siklus Ini" desc="Tagihan jatuh tempo" href="/debts" linkLabel="Kelola" />
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-amber-300 dark:border-amber-800 shadow-[0_1px_4px_rgba(0,0,0,0.03)] overflow-hidden transition-colors">
+                  {pendingInstallments.map((inst: any, i: number) => (
+                    <div key={inst.id} className={`flex items-center justify-between px-4 py-3 ${i > 0 ? 'border-t border-zinc-100 dark:border-zinc-800' : ''}`}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0">
+                          <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
+                        </div>
+                        <div>
+                          <p className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-white">Cicilan ke-{inst.installmentNumber}</p>
+                          <p className="text-[11px] text-zinc-400 dark:text-zinc-500">Jatuh tempo: {inst.dueDate}</p>
+                        </div>
+                      </div>
+                      <span className="font-bold text-xs sm:text-sm tabular-nums text-amber-600 dark:text-amber-400">{formatCurrency(inst.amount)}</span>
+                    </div>
+                  ))}
                 </div>
-                <span className="font-bold text-[13.5px] tabular-nums text-amber-600 dark:text-amber-400">{formatCurrency(inst.amount)}</span>
-              </div>
-            ))}
+              </section>
+            )}
           </div>
-        </section>
-      )}
+        }
+        analyticsContent={
+          <div className="space-y-4">
+            {/* 1. Skor Kesehatan & Prediksi Saldo */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 w-full min-w-0">
+              <FinancialHealthScore
+                savingRate={savingRate}
+                totalIncome={cycleIncome}
+                totalExpense={cycleExpense}
+                monthlyDebtAmount={monthlyDebtAmount}
+                budgets={budgetWithSpending}
+                balance={realAvailableBalance}
+                daysRemaining={payrollCycle.daysRemaining}
+              />
+              <ForecastCard
+                balance={realAvailableBalance}
+                totalExpense={cycleExpense}
+                effectiveIncome={effectiveIncome}
+                elapsedDays={payrollCycle.elapsedDays}
+                daysRemaining={payrollCycle.daysRemaining}
+                salaryDate={salaryDate}
+                isStudentMode={isStudentMode}
+              />
+            </div>
 
-      {/* ═══════════ Anggaran Bulanan Kategori ═══════════ */}
-      <section className="space-y-3 w-full min-w-0">
-        <SectionHeader title="Anggaran" desc="Batas belanja per pos siklus ini" href="/budget" linkLabel="Kelola" />
-        <BudgetProgress budgets={budgetWithSpending} />
-      </section>
+            {/* 2. Kekayaan Bersih */}
+            <NetWorthCard
+              totalSavings={totalSavings}
+              currentBalance={realAvailableBalance}
+              totalPendingDebt={totalPendingDebtAmount}
+            />
 
-      {/* ═══════════ Visualisations (Charts) ═══════════ */}
-      <DashboardCharts
-        expenseByCategory={expenseByCategory}
-        totalExpense={cycleExpense}
-        savingsChartData={savingsChartData}
-      />
+            {/* 3. Grafik Pengeluaran & Tabungan */}
+            <DashboardCharts
+              expenseByCategory={expenseByCategory}
+              totalExpense={cycleExpense}
+              savingsChartData={savingsChartData}
+            />
 
-      {/* ═══════════ Target Tabungan ═══════════ */}
-      {savingsGoalsList.length > 0 && (
-        <section className="space-y-3 w-full min-w-0">
-          <SectionHeader title="Target Tabungan" desc="Progres simpanan dana" href="/savings" linkLabel="Lihat Semua" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full min-w-0">
-            {savingsGoalsList.slice(0, 2).map(goal => (
-              <SavingsGoalCard key={goal.id} goal={goal} />
-            ))}
+            {/* 4. Target Tabungan */}
+            {savingsGoalsList.length > 0 && (
+              <section className="space-y-2.5 w-full min-w-0">
+                <SectionHeader title="Target Tabungan" desc="Progres simpanan dana" href="/savings" linkLabel="Lihat Semua" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full min-w-0">
+                  {savingsGoalsList.slice(0, 2).map(goal => (
+                    <SavingsGoalCard key={goal.id} goal={goal} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* 5. Insight & Evaluasi Finansial */}
+            <InsightCard
+              totalIncome={cycleIncome}
+              totalExpense={cycleExpense}
+              budgets={budgetWithSpending}
+              effectiveIncome={effectiveIncome}
+              foodSpent={foodSpent}
+              foodBudgetTotal={foodBudgetTotal}
+              month={currentMonth}
+              year={currentYear}
+              pendingInstallmentsCount={pendingInstallments.length}
+            />
           </div>
-        </section>
-      )}
-
-      {/* ═══════════ Insight & Evaluasi Finansial ═══════════ */}
-      <InsightCard
-        totalIncome={cycleIncome}
-        totalExpense={cycleExpense}
-        budgets={budgetWithSpending}
-        effectiveIncome={effectiveIncome}
-        foodSpent={foodSpent}
-        foodBudgetTotal={foodBudgetTotal}
-        month={currentMonth}
-        year={currentYear}
-        pendingInstallmentsCount={pendingInstallments.length}
+        }
       />
-
-      {/* ═══════════ Transaksi Terbaru ═══════════ */}
-      <section className="space-y-3 w-full min-w-0">
-        <SectionHeader title="Transaksi Terbaru" desc="Riwayat transaksi terakhir" href="/transactions" linkLabel="Lihat Semua" />
-        <RecentTransactions transactions={recentTransactions} />
-      </section>
 
       {/* Footer */}
-      <footer className="pt-6 pb-2 border-t border-zinc-200/40 dark:border-zinc-800/40 flex flex-col sm:flex-row items-center justify-between gap-1.5 text-[11px] text-zinc-300 dark:text-zinc-700 text-center sm:text-left tracking-wide">
-        <p>My Budget · Siklus {salaryDate}</p>
-        <p>Data tersimpan privat &amp; aman</p>
+      <footer className="pt-4 pb-2 border-t border-zinc-200/40 dark:border-zinc-800/40 flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-600">
+        <p>My Budget · {isStudentMode ? 'Bulanan' : `Siklus ${salaryDate}`}</p>
+        <p>Privat &amp; Aman</p>
       </footer>
     </div>
   );

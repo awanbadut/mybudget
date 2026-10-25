@@ -23,6 +23,7 @@ import {
 import { NetWorthCard } from '@/components/NetWorthCard';
 import { CycleSelector, CycleOption } from '@/components/CycleSelector';
 import { CycleHistoryRecap } from '@/components/CycleHistoryRecap';
+import { FilterBottomSheet } from '@/components/FilterBottomSheet';
 import { useToast } from '@/hooks/use-toast';
 
 const FILTERS = [
@@ -469,38 +470,18 @@ export function ReportsClient({
             </button>
           </div>
 
-          {/* Filter Kategori & Filter Bank/Tunai */}
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-              <Filter className="w-3.5 h-3.5" />
-              <span>Filter:</span>
-            </div>
-
-            <select
-              value={filterCategory}
-              onChange={e => setFilterCategory(e.target.value)}
-              className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl text-xs font-semibold bg-stone-50 dark:bg-zinc-800 text-zinc-900 dark:text-white border border-stone-200 dark:border-zinc-700 focus:outline-none"
-            >
-              <option value="all">Semua Kategori</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>
-                  Kategori: {cat.name}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={filterAccount}
-              onChange={e => setFilterAccount(e.target.value)}
-              className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl text-xs font-semibold bg-stone-50 dark:bg-zinc-800 text-zinc-900 dark:text-white border border-stone-200 dark:border-zinc-700 focus:outline-none"
-            >
-              <option value="all">Semua Bank &amp; Tunai</option>
-              {accounts.map(acc => (
-                <option key={acc.id} value={acc.id}>
-                  Dompet: {acc.name}
-                </option>
-              ))}
-            </select>
+          {/* Filter Kategori & Filter Bank/Tunai via Mobile Bottom Sheet */}
+          <div className="w-full sm:w-auto">
+            <FilterBottomSheet
+              showSearch={false}
+              showTypeBar={false}
+              categories={categories}
+              filterCategory={filterCategory}
+              onCategoryChange={setFilterCategory}
+              accounts={accounts}
+              filterAccount={filterAccount}
+              onAccountChange={setFilterAccount}
+            />
           </div>
         </div>
 
@@ -549,7 +530,85 @@ export function ReportsClient({
               </div>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile Card List (No Horizontal Table Scroll on Phone) */}
+            <div className="sm:hidden divide-y divide-stone-100 dark:divide-zinc-800">
+              {cycleHistoryComparison.map(cyc => {
+                const isSelected = cyc.offset === selectedCycleOffset;
+                return (
+                  <button
+                    key={cyc.offset}
+                    type="button"
+                    onClick={() => setSelectedCycleOffset(cyc.offset)}
+                    className={cn(
+                      'w-full text-left p-3.5 transition-colors touch-manipulation space-y-2',
+                      isSelected
+                        ? 'bg-amber-50/70 dark:bg-amber-950/25'
+                        : 'hover:bg-stone-50/70 dark:hover:bg-zinc-800/40'
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="font-bold text-xs text-zinc-900 dark:text-white truncate">
+                          {cyc.label}
+                        </span>
+                        {cyc.offset === 0 && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex-shrink-0">
+                            Aktif
+                          </span>
+                        )}
+                        {cyc.offset === -1 && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-stone-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 flex-shrink-0">
+                            Kemarin
+                          </span>
+                        )}
+                      </div>
+                      <span
+                        className={cn(
+                          'text-[10px] font-semibold px-2 py-0.5 rounded-lg flex-shrink-0',
+                          isSelected
+                            ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900'
+                            : 'bg-stone-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300'
+                        )}
+                      >
+                        {isSelected ? 'Aktif Dilihat' : 'Pilih'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 pt-0.5 text-[11px]">
+                      <div className="bg-stone-50 dark:bg-zinc-800/60 rounded-lg p-2">
+                        <p className="text-[9px] text-zinc-400">Pemasukan</p>
+                        <p className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums truncate">
+                          +{formatCurrency(cyc.income)}
+                        </p>
+                      </div>
+                      <div className="bg-stone-50 dark:bg-zinc-800/60 rounded-lg p-2">
+                        <p className="text-[9px] text-zinc-400">Pengeluaran</p>
+                        <p className="font-bold text-rose-600 dark:text-rose-400 tabular-nums truncate">
+                          -{formatCurrency(cyc.expense)}
+                        </p>
+                      </div>
+                      <div className="bg-stone-50 dark:bg-zinc-800/60 rounded-lg p-2">
+                        <p className="text-[9px] text-zinc-400">Sisa Uang</p>
+                        <p
+                          className={cn(
+                            'font-bold tabular-nums truncate',
+                            cyc.savings >= 0
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-rose-600 dark:text-rose-400'
+                          )}
+                        >
+                          {cyc.savings < 0 ? '-' : '+'}
+                          {formatCurrency(Math.abs(cyc.savings))}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-stone-50 dark:bg-zinc-800/60 text-zinc-500 dark:text-zinc-400 border-b border-stone-100 dark:border-zinc-800">
