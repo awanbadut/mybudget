@@ -12,7 +12,9 @@ import { BalanceVisibilityProvider } from '@/context/BalanceVisibilityContext';
 import { NavigationProgress } from '@/components/NavigationProgress';
 import { AdminImpersonationBanner } from '@/components/AdminImpersonationBanner';
 import { BroadcastBanner } from '@/components/BroadcastBanner';
-import { getSystemBroadcast } from '@/actions/admin';
+import { getActiveBroadcasts, getMaintenanceStatus } from '@/actions/admin';
+import { MaintenanceScreen } from '@/components/MaintenanceScreen';
+import { MaintenanceBanner } from '@/components/MaintenanceBanner';
 import { SidebarProvider } from '@/components/SidebarProvider';
 import { AppMainContent } from '@/components/AppMainContent';
 import { Suspense } from 'react';
@@ -68,17 +70,28 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   let session = null;
-  let broadcast = { message: '', isActive: false };
+  let broadcastMessages: string[] = [];
+  let maintenance = {
+    isActive: false,
+    title: 'Sistem Sedang Dalam Pemeliharaan',
+    message: 'Kami sedang melakukan peningkatan performa dan pembaruan sistem. Mohon tunggu beberapa saat.',
+    estimatedEndTime: '',
+  };
+
   try {
-    const [s, b] = await Promise.all([
+    const [s, b, m] = await Promise.all([
       getSession(),
-      getSystemBroadcast(),
+      getActiveBroadcasts(),
+      getMaintenanceStatus(),
     ]);
     session = s;
-    broadcast = b;
+    broadcastMessages = b;
+    maintenance = m;
   } catch {
     // Fallback
   }
+
+  const isAdmin = session?.role === 'admin' || Boolean(session?.impersonatorAdminId);
 
   return (
     <html lang="id" className="w-full max-w-full overflow-x-hidden" suppressHydrationWarning>
@@ -113,54 +126,68 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           transition-colors duration-200
         `}
       >
-        <BalanceVisibilityProvider>
-          <SidebarProvider>
-            {session?.impersonatorAdminId && (
-              <AdminImpersonationBanner
-                userName={session.name}
-                userUsername={session.username}
-                adminName={session.impersonatorAdminName}
-              />
-            )}
-            {broadcast.isActive && broadcast.message && (
-              <BroadcastBanner message={broadcast.message} />
-            )}
-            <Suspense fallback={null}>
-              <NavigationProgress />
-            </Suspense>
-            <div className="flex min-h-[100dvh] w-full max-w-full overflow-x-hidden">
-              {/* Desktop Sidebar */}
-              {session && (
-                <Sidebar
+        {maintenance.isActive && !isAdmin ? (
+          <MaintenanceScreen
+            title={maintenance.title}
+            message={maintenance.message}
+            estimatedEndTime={maintenance.estimatedEndTime}
+          />
+        ) : (
+          <BalanceVisibilityProvider>
+            <SidebarProvider>
+              {maintenance.isActive && isAdmin && (
+                <MaintenanceBanner
+                  title={maintenance.title}
+                  estimatedEndTime={maintenance.estimatedEndTime}
+                />
+              )}
+              {session?.impersonatorAdminId && (
+                <AdminImpersonationBanner
                   userName={session.name}
+                  userUsername={session.username}
+                  adminName={session.impersonatorAdminName}
+                />
+              )}
+              {broadcastMessages.length > 0 && (
+                <BroadcastBanner messages={broadcastMessages} />
+              )}
+              <Suspense fallback={null}>
+                <NavigationProgress />
+              </Suspense>
+              <div className="flex min-h-[100dvh] w-full max-w-full overflow-x-hidden">
+                {/* Desktop Sidebar */}
+                {session && (
+                  <Sidebar
+                    userName={session.name}
+                    userRole={session.role}
+                    isImpersonating={Boolean(session.impersonatorAdminId)}
+                  />
+                )}
+
+                {/* Main Content */}
+                <AppMainContent hasSession={Boolean(session)}>
+                  {session && <MobileTopHeader />}
+                  <div className="w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto px-4 sm:px-6 py-4 md:py-10 min-w-0">
+                    {children}
+                  </div>
+                </AppMainContent>
+              </div>
+
+              {/* Mobile Bottom Navigation */}
+              {session && (
+                <MobileNav
                   userRole={session.role}
                   isImpersonating={Boolean(session.impersonatorAdminId)}
                 />
               )}
 
-              {/* Main Content */}
-              <AppMainContent hasSession={Boolean(session)}>
-                {session && <MobileTopHeader />}
-                <div className="w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto px-4 sm:px-6 py-4 md:py-10 min-w-0">
-                  {children}
-                </div>
-              </AppMainContent>
-            </div>
-
-            {/* Mobile Bottom Navigation */}
-            {session && (
-              <MobileNav
-                userRole={session.role}
-                isImpersonating={Boolean(session.impersonatorAdminId)}
-              />
-            )}
-
-            {/* PWA Components */}
-            <InstallPWA />
-            <ServiceWorkerRegistrar />
-            <Toaster />
-          </SidebarProvider>
-        </BalanceVisibilityProvider>
+              {/* PWA Components */}
+              <InstallPWA />
+              <ServiceWorkerRegistrar />
+              <Toaster />
+            </SidebarProvider>
+          </BalanceVisibilityProvider>
+        )}
       </body>
     </html>
   );

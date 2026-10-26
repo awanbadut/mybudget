@@ -3,11 +3,23 @@
 import { useState, useEffect } from 'react';
 import { Megaphone, X } from 'lucide-react';
 
-export function BroadcastBanner({ message }: { message: string }) {
+interface BroadcastBannerProps {
+  message?: string;
+  messages?: string[];
+}
+
+export function BroadcastBanner({ message, messages }: BroadcastBannerProps) {
   const [closed, setClosed] = useState(false);
 
+  // Normalize all active broadcast strings
+  const activeList = (messages && messages.length > 0 ? messages : message ? [message] : [])
+    .map((m) => m?.trim())
+    .filter(Boolean);
+
+  const hasBroadcasts = activeList.length > 0 && !closed;
+
   useEffect(() => {
-    if (!closed && message) {
+    if (hasBroadcasts) {
       document.documentElement.style.setProperty('--broadcast-height', '36px');
     } else {
       document.documentElement.style.setProperty('--broadcast-height', '0px');
@@ -16,9 +28,9 @@ export function BroadcastBanner({ message }: { message: string }) {
     return () => {
       document.documentElement.style.setProperty('--broadcast-height', '0px');
     };
-  }, [closed, message]);
+  }, [hasBroadcasts]);
 
-  if (!message || closed) return null;
+  if (!hasBroadcasts) return null;
 
   return (
     <div
@@ -30,7 +42,9 @@ export function BroadcastBanner({ message }: { message: string }) {
         {/* Fixed Left Badge */}
         <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/25 backdrop-blur-xs text-[11px] font-bold text-indigo-100 flex-shrink-0 z-20 border border-white/10 shadow-xs">
           <Megaphone className="w-3.5 h-3.5 text-amber-300 animate-pulse flex-shrink-0" />
-          <span className="tracking-wide uppercase text-[10px] font-mono">PENGUMUMAN</span>
+          <span className="tracking-wide uppercase text-[10px] font-mono">
+            {activeList.length > 1 ? `PENGUMUMAN (${activeList.length})` : 'PENGUMUMAN'}
+          </span>
         </div>
 
         {/* Marquee Running Text Container */}
@@ -39,27 +53,25 @@ export function BroadcastBanner({ message }: { message: string }) {
           <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-indigo-700 to-transparent z-10" />
           <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-indigo-800 to-transparent z-10" />
 
-          {/* Running Text */}
+          {/* Running Text — 2 identical sequence sets for seamless loop */}
           <div
             title="Arahkan kursor untuk menjeda teks"
             className="animate-marquee whitespace-nowrap text-xs sm:text-[13px] font-semibold text-white/95 tracking-wide items-center"
           >
-            <span className="mx-6 inline-flex items-center gap-3">
-              {message}
-              <span className="text-amber-300 opacity-80 text-[10px]">✦</span>
-            </span>
-            <span className="mx-6 inline-flex items-center gap-3">
-              {message}
-              <span className="text-amber-300 opacity-80 text-[10px]">✦</span>
-            </span>
-            <span className="mx-6 inline-flex items-center gap-3">
-              {message}
-              <span className="text-amber-300 opacity-80 text-[10px]">✦</span>
-            </span>
-            <span className="mx-6 inline-flex items-center gap-3">
-              {message}
-              <span className="text-amber-300 opacity-80 text-[10px]">✦</span>
-            </span>
+            {/* Set 1 */}
+            {activeList.map((msg, idx) => (
+              <span key={`set1-${idx}`} className="mx-6 inline-flex items-center gap-3">
+                <span>{msg}</span>
+                <span className="text-amber-300 opacity-80 text-[10px]">✦</span>
+              </span>
+            ))}
+            {/* Set 2 */}
+            {activeList.map((msg, idx) => (
+              <span key={`set2-${idx}`} className="mx-6 inline-flex items-center gap-3">
+                <span>{msg}</span>
+                <span className="text-amber-300 opacity-80 text-[10px]">✦</span>
+              </span>
+            ))}
           </div>
         </div>
 

@@ -322,7 +322,7 @@ export default async function DashboardPage({
                 : `Siklus Tgl ${salaryDate} · ${payrollCycle.daysRemaining}h lagi`}
             </span>
           </div>
-          <h1 className="font-extrabold text-xl sm:text-2xl text-zinc-900 dark:text-white tracking-tight truncate mt-0.5">
+          <h1 className="font-extrabold text-lg sm:text-2xl text-zinc-900 dark:text-white tracking-tight leading-tight mt-0.5">
             Halo, {user?.name || 'Pengguna'}
           </h1>
         </div>

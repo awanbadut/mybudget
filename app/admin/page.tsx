@@ -6,7 +6,7 @@ import { users } from '@/db/schema';
 import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { AdminDashboardClient, UserDetail } from '@/components/AdminDashboardClient';
-import { getSystemBroadcast } from '@/actions/admin';
+import { adminGetAllBroadcasts, getMaintenanceStatus } from '@/actions/admin';
 
 export default async function AdminPage() {
   const session = await getSession();
@@ -14,8 +14,8 @@ export default async function AdminPage() {
     redirect('/');
   }
 
-  // Fetch all users (including admins) with full related data & broadcast state
-  const [allUsers, broadcast] = await Promise.all([
+  // Fetch all users (including admins) with full related data, broadcasts & maintenance state
+  const [allUsers, broadcastList, maintenance] = await Promise.all([
     db.query.users.findMany({
       with: {
         settings: true,
@@ -30,7 +30,8 @@ export default async function AdminPage() {
       },
       orderBy: (u, { asc }) => asc(u.createdAt),
     }),
-    getSystemBroadcast(),
+    adminGetAllBroadcasts(),
+    getMaintenanceStatus(),
   ]);
 
   const formattedUsers: UserDetail[] = allUsers.map((u) => {
@@ -153,7 +154,8 @@ export default async function AdminPage() {
       adminId={session.userId}
       adminName={session.name}
       users={formattedUsers}
-      initialBroadcast={broadcast}
+      initialBroadcasts={broadcastList}
+      initialMaintenance={maintenance}
     />
   );
 }

@@ -116,10 +116,11 @@ export function OnboardingModal({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-semibold transition-all active:scale-95 touch-manipulation"
+        title="Panduan Setup Anggaran"
+        className="inline-flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-semibold transition-all active:scale-95 touch-manipulation flex-shrink-0"
       >
-        <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-        <span>Panduan Setup</span>
+        <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500 flex-shrink-0" />
+        <span className="hidden sm:inline">Panduan Setup</span>
       </button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

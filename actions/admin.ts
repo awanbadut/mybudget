@@ -26,6 +26,26 @@ async function ensureAnnouncementTable() {
   }
 }
 
+let maintenanceTableChecked = false;
+async function ensureMaintenanceTable() {
+  if (maintenanceTableChecked) return;
+  try {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS system_maintenance (
+        id VARCHAR(50) PRIMARY KEY DEFAULT 'current',
+        is_active BOOLEAN NOT NULL DEFAULT false,
+        title TEXT NOT NULL DEFAULT 'Sistem Sedang Dalam Pemeliharaan',
+        message TEXT NOT NULL DEFAULT 'Kami sedang melakukan peningkatan performa dan pembaruan sistem. Mohon tunggu beberapa saat.',
+        estimated_end_time TEXT DEFAULT '',
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `);
+    maintenanceTableChecked = true;
+  } catch (e) {
+    console.error('ensureMaintenanceTable error:', e);
+  }
+}
+
 // 1. Reset user password directly
 export async function adminResetUserPassword(userId: string, newPassword: string) {
   try {
@@ -210,15 +230,60 @@ export async function adminStopImpersonating() {
   redirect('/admin');
 }
 
-// 7. Manage System Broadcast Announcement
-export async function adminSetBroadcast(message: string, isActive: boolean) {
+// 7. Manage System Broadcast Announcements (Supports Multiple Active Broadcasts)
+export async function getActiveBroadcasts(): Promise<string[]> {
+  try {
+    await ensureAnnouncementTable();
+    const result: any = await db.execute(sql`
+      SELECT message FROM system_announcements 
+      WHERE is_active = true AND TRIM(message) != ''
+      ORDER BY updated_at DESC;
+    `);
+    const rows = result?.rows || (Array.isArray(result) ? result : []);
+    return rows.map((r: any) => String(r.message || '').trim()).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+export interface BroadcastItem {
+  id: string;
+  message: string;
+  isActive: boolean;
+  updatedAt: string;
+}
+
+export async function adminGetAllBroadcasts(): Promise<BroadcastItem[]> {
+  try {
+    await ensureAnnouncementTable();
+    const result: any = await db.execute(sql`
+      SELECT id, message, is_active, updated_at 
+      FROM system_announcements 
+      ORDER BY updated_at DESC;
+    `);
+    const rows = result?.rows || (Array.isArray(result) ? result : []);
+    return rows.map((r: any) => ({
+      id: String(r.id),
+      message: String(r.message || ''),
+      isActive: Boolean(r.is_active),
+      updatedAt: r.updated_at ? new Date(r.updated_at).toISOString() : new Date().toISOString(),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function adminSaveBroadcast(id: string | null, message: string, isActive: boolean) {
   try {
     await requireAdmin();
     await ensureAnnouncementTable();
 
+    const targetId = id && id.trim() ? id.trim() : `bc_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const trimmedMsg = message.trim();
+
     await db.execute(sql`
       INSERT INTO system_announcements (id, message, is_active, updated_at)
-      VALUES ('global', ${message.trim()}, ${isActive}, NOW())
+      VALUES (${targetId}, ${trimmedMsg}, ${isActive}, NOW())
       ON CONFLICT (id) DO UPDATE 
       SET message = EXCLUDED.message, 
           is_active = EXCLUDED.is_active, 
@@ -227,29 +292,120 @@ export async function adminSetBroadcast(message: string, isActive: boolean) {
 
     safeRevalidate('/');
     safeRevalidate('/admin');
-    return { success: true };
+    return { success: true, id: targetId };
   } catch (error: any) {
-    console.error('adminSetBroadcast error:', error);
+    console.error('adminSaveBroadcast error:', error);
     return { success: false, error: error.message || 'Gagal menyimpan pengumuman.' };
   }
 }
 
+export async function adminDeleteBroadcast(id: string) {
+  try {
+    await requireAdmin();
+    await ensureAnnouncementTable();
+
+    await db.execute(sql`
+      DELETE FROM system_announcements WHERE id = ${id.trim()};
+    `);
+
+    safeRevalidate('/');
+    safeRevalidate('/admin');
+    return { success: true };
+  } catch (error: any) {
+    console.error('adminDeleteBroadcast error:', error);
+    return { success: false, error: error.message || 'Gagal menghapus pengumuman.' };
+  }
+}
+
+export async function adminSetBroadcast(message: string, isActive: boolean) {
+  return adminSaveBroadcast('global', message, isActive);
+}
+
 export async function getSystemBroadcast(): Promise<{ message: string; isActive: boolean }> {
   try {
-    await ensureAnnouncementTable();
+    const active = await getActiveBroadcasts();
+    if (active.length > 0) {
+      return { message: active.join('  ✦  '), isActive: true };
+    }
+    return { message: '', isActive: false };
+  } catch {
+    return { message: '', isActive: false };
+  }
+}
+
+// 8. Maintenance Window (System Maintenance Mode)
+export interface MaintenanceStatus {
+  isActive: boolean;
+  title: string;
+  message: string;
+  estimatedEndTime: string;
+}
+
+export async function getMaintenanceStatus(): Promise<MaintenanceStatus> {
+  try {
+    await ensureMaintenanceTable();
     const result: any = await db.execute(sql`
-      SELECT message, is_active FROM system_announcements WHERE id = 'global' LIMIT 1;
+      SELECT is_active, title, message, estimated_end_time 
+      FROM system_maintenance 
+      WHERE id = 'current' 
+      LIMIT 1;
     `);
 
     const row = result?.rows ? result.rows[0] : (Array.isArray(result) ? result[0] : null);
     if (row) {
       return {
-        message: String(row.message || ''),
         isActive: Boolean(row.is_active),
+        title: String(row.title || 'Sistem Sedang Dalam Pemeliharaan'),
+        message: String(row.message || 'Kami sedang melakukan peningkatan performa dan pembaruan sistem. Mohon tunggu beberapa saat.'),
+        estimatedEndTime: String(row.estimated_end_time || ''),
       };
     }
-    return { message: '', isActive: false };
+    return {
+      isActive: false,
+      title: 'Sistem Sedang Dalam Pemeliharaan',
+      message: 'Kami sedang melakukan peningkatan performa dan pembaruan sistem. Mohon tunggu beberapa saat.',
+      estimatedEndTime: '',
+    };
   } catch {
-    return { message: '', isActive: false };
+    return {
+      isActive: false,
+      title: 'Sistem Sedang Dalam Pemeliharaan',
+      message: 'Kami sedang melakukan pemeliharaan berkala.',
+      estimatedEndTime: '',
+    };
+  }
+}
+
+export async function adminSetMaintenance(
+  isActive: boolean,
+  title: string,
+  message: string,
+  estimatedEndTime: string
+) {
+  try {
+    await requireAdmin();
+    await ensureMaintenanceTable();
+
+    const safeTitle = title.trim() || 'Sistem Sedang Dalam Pemeliharaan';
+    const safeMsg = message.trim() || 'Kami sedang melakukan peningkatan performa dan pembaruan sistem. Mohon tunggu beberapa saat.';
+    const safeEnd = estimatedEndTime.trim();
+
+    await db.execute(sql`
+      INSERT INTO system_maintenance (id, is_active, title, message, estimated_end_time, updated_at)
+      VALUES ('current', ${isActive}, ${safeTitle}, ${safeMsg}, ${safeEnd}, NOW())
+      ON CONFLICT (id) DO UPDATE 
+      SET is_active = EXCLUDED.is_active, 
+          title = EXCLUDED.title, 
+          message = EXCLUDED.message, 
+          estimated_end_time = EXCLUDED.estimated_end_time, 
+          updated_at = NOW();
+    `);
+
+    safeRevalidate('/');
+    safeRevalidate('/admin');
+    return { success: true };
+  } catch (error: any) {
+    console.error('adminSetMaintenance error:', error);
+    return { success: false, error: error.message || 'Gagal mengatur mode pemeliharaan.' };
   }
 }

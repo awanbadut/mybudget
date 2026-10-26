@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Wallet, PieChart, BarChart3, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { TabErrorBoundary } from '@/components/TabErrorBoundary';
 
 interface DashboardTabsClientProps {
   summaryContent: React.ReactNode;
@@ -28,7 +29,7 @@ export function DashboardTabsClient({
   return (
     <div className="space-y-4 w-full min-w-0">
       {/* Sticky App-Style 3-Tab Switcher (High Contrast & Tactile Floating UX) */}
-      <div className="sticky top-2 z-30 bg-stone-100/90 dark:bg-zinc-900/90 backdrop-blur-xl p-1.5 rounded-2xl border border-stone-200/90 dark:border-zinc-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] grid grid-cols-3 gap-1.5 transition-all">
+      <div className="sticky top-[calc(var(--broadcast-height,0px)+3.75rem)] md:top-2 z-30 bg-stone-100/90 dark:bg-zinc-900/90 backdrop-blur-xl p-1.5 rounded-2xl border border-stone-200/90 dark:border-zinc-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] grid grid-cols-3 gap-1.5 transition-all">
         <button
           type="button"
           onClick={() => setActiveTab('summary')}
@@ -84,55 +85,61 @@ export function DashboardTabsClient({
 
       {/* Tab 1: Ringkasan & Dompet */}
       {activeTab === 'summary' && (
-        <div className="space-y-4 animate-in fade-in-50 duration-200">
-          {summaryContent}
+        <TabErrorBoundary tabName="Ringkasan">
+          <div className="space-y-4 animate-in fade-in-50 duration-200">
+            {summaryContent}
 
-          {/* Quick Jump Banner to Tab 2 (Evaluasi Siklus & Filter Transaksi) */}
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('cycle');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="w-full p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 hover:border-zinc-900/30 dark:hover:border-zinc-500 flex items-center justify-between gap-3 text-left shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all active:scale-[0.99] touch-manipulation group"
-          >
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center flex-shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                <PieChart className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-extrabold text-xs sm:text-sm text-zinc-900 dark:text-white truncate">
-                    Buka Evaluasi Siklus &amp; Pos Anggaran
-                  </p>
-                  {txCount > 0 && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
-                      {txCount} Transaksi
-                    </span>
-                  )}
+            {/* Quick Jump Banner to Tab 2 (Evaluasi Siklus & Filter Transaksi) */}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('cycle');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="w-full p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 hover:border-zinc-900/30 dark:hover:border-zinc-500 flex items-center justify-between gap-3 text-left shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-all active:scale-[0.99] touch-manipulation group"
+            >
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center flex-shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <PieChart className="w-5 h-5" />
                 </div>
-                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
-                  Cek sisa uang tiap pos, perbandingan siklus lalu &amp; filter mutasi bank
-                </p>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-extrabold text-xs sm:text-sm text-zinc-900 dark:text-white truncate">
+                      Buka Evaluasi Siklus &amp; Pos Anggaran
+                    </p>
+                    {txCount > 0 && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                        {txCount} Transaksi
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
+                    Cek sisa uang tiap pos, perbandingan siklus lalu &amp; filter mutasi bank
+                  </p>
+                </div>
               </div>
-            </div>
-            <ArrowRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all flex-shrink-0" />
-          </button>
-        </div>
+              <ArrowRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+            </button>
+          </div>
+        </TabErrorBoundary>
       )}
 
       {/* Tab 2: Evaluasi Siklus & Pos Budgeting */}
       {activeTab === 'cycle' && (
-        <div className="space-y-4 animate-in fade-in-50 duration-200">
-          {cycleContent}
-        </div>
+        <TabErrorBoundary tabName="Siklus & Anggaran">
+          <div className="space-y-4 animate-in fade-in-50 duration-200">
+            {cycleContent}
+          </div>
+        </TabErrorBoundary>
       )}
 
       {/* Tab 3: Analisis, Grafik & Kekayaan */}
       {activeTab === 'analytics' && (
-        <div className="space-y-4 animate-in fade-in-50 duration-200">
-          {analyticsContent}
-        </div>
+        <TabErrorBoundary tabName="Analisis">
+          <div className="space-y-4 animate-in fade-in-50 duration-200">
+            {analyticsContent}
+          </div>
+        </TabErrorBoundary>
       )}
     </div>
   );

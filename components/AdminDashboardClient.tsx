@@ -27,6 +27,9 @@ import {
   Shield,
   RefreshCw,
   Send,
+  Wrench,
+  Clock,
+  Plus,
 } from 'lucide-react';
 import { logoutAction } from '@/actions/auth';
 import {
@@ -35,7 +38,11 @@ import {
   adminUpdateUserProfile,
   adminDeleteUser,
   adminImpersonateUser,
-  adminSetBroadcast,
+  adminSaveBroadcast,
+  adminDeleteBroadcast,
+  adminSetMaintenance,
+  BroadcastItem,
+  MaintenanceStatus,
 } from '@/actions/admin';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -122,6 +129,8 @@ interface AdminDashboardClientProps {
   adminName: string;
   users: UserDetail[];
   initialBroadcast?: { message: string; isActive: boolean };
+  initialBroadcasts?: BroadcastItem[];
+  initialMaintenance?: MaintenanceStatus;
 }
 
 export function AdminDashboardClient({
@@ -129,6 +138,8 @@ export function AdminDashboardClient({
   adminName,
   users,
   initialBroadcast = { message: '', isActive: false },
+  initialBroadcasts = [],
+  initialMaintenance,
 }: AdminDashboardClientProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -150,10 +161,26 @@ export function AdminDashboardClient({
   const [deleteTargetUser, setDeleteTargetUser] = useState<UserDetail | null>(null);
   const [confirmDeleteInput, setConfirmDeleteInput] = useState('');
 
-  // Broadcast state
+  // Multi-Broadcast state
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
-  const [broadcastMsg, setBroadcastMsg] = useState(initialBroadcast.message || '');
-  const [broadcastActive, setBroadcastActive] = useState(initialBroadcast.isActive || false);
+  const [broadcastList, setBroadcastList] = useState<Array<{ id: string; message: string; isActive: boolean }>>(() => {
+    if (initialBroadcasts && initialBroadcasts.length > 0) {
+      return initialBroadcasts.map((b) => ({ id: b.id, message: b.message, isActive: b.isActive }));
+    }
+    if (initialBroadcast?.message) {
+      return [{ id: 'global', message: initialBroadcast.message, isActive: initialBroadcast.isActive }];
+    }
+    return [{ id: 'global', message: '', isActive: false }];
+  });
+
+  // Maintenance Window state
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
+  const [maintenanceActive, setMaintenanceActive] = useState(initialMaintenance?.isActive || false);
+  const [maintenanceTitle, setMaintenanceTitle] = useState(initialMaintenance?.title || 'Sistem Sedang Dalam Pemeliharaan');
+  const [maintenanceMsg, setMaintenanceMsg] = useState(initialMaintenance?.message || 'Kami sedang melakukan peningkatan performa dan pembaruan sistem. Mohon tunggu beberapa saat.');
+  const [maintenanceEndTime, setMaintenanceEndTime] = useState(initialMaintenance?.estimatedEndTime || '');
+
+  const activeBroadcastCount = broadcastList.filter((b) => b.isActive && b.message.trim()).length;
 
   const filteredUsers = users.filter((u) =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -270,21 +297,74 @@ export function AdminDashboardClient({
     });
   }
 
-  // 5. Handle Save Broadcast
-  function handleSaveBroadcast() {
+  // 5. Handle Save Multi-Broadcasts
+  function handleSaveAllBroadcasts() {
     startTransition(async () => {
-      const res = await adminSetBroadcast(broadcastMsg, broadcastActive);
-      if (res.success) {
+      let hasError = false;
+      for (const item of broadcastList) {
+        if (!item.message.trim() && !item.id.startsWith('temp_')) {
+          await adminDeleteBroadcast(item.id);
+          continue;
+        }
+        if (item.message.trim()) {
+          const res = await adminSaveBroadcast(
+            item.id.startsWith('temp_') ? null : item.id,
+            item.message,
+            item.isActive
+          );
+          if (!res.success) hasError = true;
+        }
+      }
+
+      if (!hasError) {
         toast({
-          title: broadcastActive ? 'Pengumuman Aktif Disiarkan! 📢' : 'Pengumuman Dinonaktifkan ✓',
-          description: broadcastActive
-            ? 'Pesan ini akan tampil di bagian atas layar seluruh pengguna aplikasi.'
-            : 'Pesan pengumuman telah ditarik dari layar pengguna.',
+          title: 'Pengumuman Berhasil Disimpan! 📢',
+          description: `${activeBroadcastCount} pengumuman aktif kini disiarkan di ticker marquee pengguna.`,
         });
         setShowBroadcastModal(false);
         router.refresh();
       } else {
-        toast({ title: res.error || 'Gagal menyimpan pengumuman', variant: 'destructive' });
+        toast({ title: 'Sebagian pengumuman gagal disimpan', variant: 'destructive' });
+      }
+    });
+  }
+
+  function handleAddBroadcastItem() {
+    setBroadcastList((prev) => [
+      ...prev,
+      { id: `temp_${Date.now()}`, message: '', isActive: true },
+    ]);
+  }
+
+  function handleDeleteBroadcastItem(idx: number, id: string) {
+    if (!id.startsWith('temp_')) {
+      startTransition(async () => {
+        await adminDeleteBroadcast(id);
+      });
+    }
+    setBroadcastList((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  // 6. Handle Save Maintenance Window
+  function handleSaveMaintenance() {
+    startTransition(async () => {
+      const res = await adminSetMaintenance(
+        maintenanceActive,
+        maintenanceTitle,
+        maintenanceMsg,
+        maintenanceEndTime
+      );
+      if (res.success) {
+        toast({
+          title: maintenanceActive ? 'Mode Pemeliharaan Diaktifkan! 🚧' : 'Mode Pemeliharaan Dinonaktifkan ✓',
+          description: maintenanceActive
+            ? 'Pengguna umum kini melihat layar pemeliharaan sistem. Hanya Administrator yang dapat mengakses.'
+            : 'Sistem telah kembali normal dan dapat diakses oleh seluruh pengguna.',
+        });
+        setShowMaintenanceModal(false);
+        router.refresh();
+      } else {
+        toast({ title: res.error || 'Gagal mengatur mode pemeliharaan', variant: 'destructive' });
       }
     });
   }
@@ -315,20 +395,42 @@ export function AdminDashboardClient({
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Maintenance Window Switch Trigger */}
+            <button
+              type="button"
+              id="maintenance"
+              onClick={() => setShowMaintenanceModal(true)}
+              className={cn(
+                'flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-xs touch-manipulation',
+                maintenanceActive
+                  ? 'bg-amber-500 hover:bg-amber-600 text-zinc-950 animate-pulse'
+                  : 'bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-stone-200 dark:hover:bg-zinc-700'
+              )}
+              title="Atur Mode Pemeliharaan Sistem (Maintenance Window)"
+            >
+              <Wrench className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">
+                {maintenanceActive ? 'Maintenance Aktif' : 'Maintenance'}
+              </span>
+            </button>
+
+            {/* Multi-Broadcast Trigger */}
             <button
               type="button"
               id="broadcast"
               onClick={() => setShowBroadcastModal(true)}
               className={cn(
                 'flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-xs touch-manipulation',
-                broadcastActive
+                activeBroadcastCount > 0
                   ? 'bg-indigo-600 hover:bg-indigo-700 text-white animate-pulse'
                   : 'bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-stone-200'
               )}
-              title="Broadcast Pengumuman Global ke Seluruh Pengguna"
+              title="Kelola Banyak Pengumuman Siaran Sistem"
             >
               <Megaphone className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{broadcastActive ? 'Broadcast Aktif' : 'Broadcast Pesan'}</span>
+              <span className="hidden sm:inline">
+                {activeBroadcastCount > 0 ? `Siaran (${activeBroadcastCount})` : 'Siaran Global'}
+              </span>
             </button>
 
             <form action={logoutAction}>
@@ -767,45 +869,93 @@ export function AdminDashboardClient({
         </DialogContent>
       </Dialog>
 
-      {/* ════════════════ MODAL 4: BROADCAST PENGUMUMAN SISTEM ════════════════ */}
+      {/* ════════════════ MODAL 4: MULTI-BROADCAST PENGUMUMAN SISTEM ════════════════ */}
       <Dialog open={showBroadcastModal} onOpenChange={setShowBroadcastModal}>
-        <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-lg bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-5 sm:p-6 max-h-[88vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white flex items-center gap-2">
-              <Megaphone className="w-4 h-4 text-indigo-500" />
-              <span>Broadcast Pengumuman Global</span>
+            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Megaphone className="w-4 h-4 text-indigo-500" />
+                <span>Pengumuman Siaran Sistem</span>
+              </div>
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                {activeBroadcastCount} Aktif
+              </span>
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3.5 text-xs pt-2">
+          <div className="space-y-4 text-xs pt-2">
             <p className="text-zinc-500 dark:text-zinc-400">
-              Pesan ini akan disiarkan ke bagian paling atas layar aplikasi seluruh pengguna (di HP &amp; laptop).
+              Anda dapat mengaktifkan <strong>lebih dari satu pengumuman</strong> sekaligus. Seluruh siaran aktif akan diputar secara bergantian dalam teks berjalan (marquee) di bagian paling atas aplikasi.
             </p>
 
-            <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Isi Pesan Pengumuman</label>
-              <textarea
-                rows={3}
-                placeholder="Contoh: Pembaruan fitur baru telah rilis! Nikmati performa 5x lebih cepat."
-                value={broadcastMsg}
-                onChange={(e) => setBroadcastMsg(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-50 dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white text-xs outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white resize-none"
-              />
+            {/* Announcements List */}
+            <div className="space-y-3">
+              {broadcastList.map((item, idx) => (
+                <div
+                  key={item.id || idx}
+                  className="p-3.5 rounded-xl bg-stone-50 dark:bg-zinc-800/60 border border-stone-200/70 dark:border-zinc-700/70 space-y-2.5 transition-all"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-[11px] text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                      Pengumuman #{idx + 1}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={item.isActive}
+                          onChange={(e) => {
+                            const val = e.target.checked;
+                            setBroadcastList((prev) =>
+                              prev.map((b, i) => (i === idx ? { ...b, isActive: val } : b))
+                            );
+                          }}
+                          className="w-3.5 h-3.5 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                        />
+                        <span className={cn('text-[11px] font-bold', item.isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400')}>
+                          {item.isActive ? 'Aktif Tayang' : 'Nonaktif'}
+                        </span>
+                      </label>
+                      {broadcastList.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteBroadcastItem(idx, item.id)}
+                          className="p-1 text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-md transition-colors"
+                          title="Hapus pengumuman ini"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <textarea
+                    rows={2}
+                    placeholder="Ketik isi pesan pengumuman..."
+                    value={item.message}
+                    onChange={(e) => {
+                      const text = e.target.value;
+                      setBroadcastList((prev) =>
+                        prev.map((b, i) => (i === idx ? { ...b, message: text } : b))
+                      );
+                    }}
+                    className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white text-xs outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+                  />
+                </div>
+              ))}
             </div>
 
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-stone-100/70 dark:bg-zinc-800/60 border border-stone-200/70 dark:border-zinc-700/70">
-              <input
-                type="checkbox"
-                id="activeBroadcastCheck"
-                checked={broadcastActive}
-                onChange={(e) => setBroadcastActive(e.target.checked)}
-                className="w-4 h-4 rounded text-zinc-900 focus:ring-zinc-900 cursor-pointer"
-              />
-              <label htmlFor="activeBroadcastCheck" className="font-bold text-zinc-800 dark:text-zinc-200 cursor-pointer select-none">
-                Aktifkan &amp; Tayangkan Pengumuman ke Pengguna
-              </label>
-            </div>
+            {/* Add New Announcement Button */}
+            <button
+              type="button"
+              onClick={handleAddBroadcastItem}
+              className="w-full py-2.5 px-3 rounded-xl border border-dashed border-indigo-300 dark:border-indigo-800/80 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all touch-manipulation"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Tambah Pengumuman Baru (+ Pesan)</span>
+            </button>
           </div>
-          <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
+          <DialogFooter className="pt-3 flex gap-2 sm:justify-end border-t border-stone-100 dark:border-zinc-800">
             <button
               onClick={() => setShowBroadcastModal(false)}
               className="px-3.5 py-2 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 text-xs touch-manipulation"
@@ -813,11 +963,110 @@ export function AdminDashboardClient({
               Batal
             </button>
             <button
-              onClick={handleSaveBroadcast}
+              onClick={handleSaveAllBroadcasts}
               disabled={isPending}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all touch-manipulation flex items-center gap-1.5"
             >
-              {isPending ? 'Menyimpan...' : 'Simpan & Siarkan'}
+              {isPending ? 'Menyimpan...' : 'Simpan Semua Siaran'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ════════════════ MODAL 5: MAINTENANCE WINDOW (MODE PEMELIHARAAN) ════════════════ */}
+      <Dialog open={showMaintenanceModal} onOpenChange={setShowMaintenanceModal}>
+        <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white flex items-center gap-2">
+              <Wrench className="w-4 h-4 text-amber-500" />
+              <span>Pengaturan Maintenance Window</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-xs pt-2">
+            <p className="text-zinc-500 dark:text-zinc-400">
+              Gunakan mode pemeliharaan ini saat sedang melakukan upgrade database atau update sistem. Pengguna biasa akan melihat layar pemeliharaan, sementara Admin tetap memiliki akses penuh.
+            </p>
+
+            {/* Toggle Switch Card */}
+            <div className={cn(
+              'p-3.5 rounded-xl border flex items-center justify-between gap-3 transition-colors',
+              maintenanceActive
+                ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800'
+                : 'bg-stone-50 dark:bg-zinc-800/60 border-stone-200 dark:border-zinc-700'
+            )}>
+              <div className="space-y-0.5">
+                <p className="font-bold text-xs text-zinc-900 dark:text-white">
+                  {maintenanceActive ? 'Mode Pemeliharaan AKTIF' : 'Mode Pemeliharaan NONAKTIF'}
+                </p>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                  {maintenanceActive ? 'User biasa diblokir ke layar maintenance' : 'Sistem dapat diakses normal oleh semua user'}
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                id="maintenanceToggleCheck"
+                checked={maintenanceActive}
+                onChange={(e) => setMaintenanceActive(e.target.checked)}
+                className="w-5 h-5 rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
+              />
+            </div>
+
+            {/* Custom Title Input */}
+            <div className="space-y-1">
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Judul Layar Pemeliharaan</label>
+              <input
+                type="text"
+                placeholder="Contoh: Sistem Sedang Dalam Pemeliharaan Berkala"
+                value={maintenanceTitle}
+                onChange={(e) => setMaintenanceTitle(e.target.value)}
+                className="w-full px-3 py-2 bg-stone-50 dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white text-xs outline-none focus:ring-1 focus:ring-amber-500"
+              />
+            </div>
+
+            {/* Custom Message Input */}
+            <div className="space-y-1">
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Pesan Penjelasan untuk Pengguna</label>
+              <textarea
+                rows={3}
+                placeholder="Jelaskan alasan pemeliharaan kepada pengguna..."
+                value={maintenanceMsg}
+                onChange={(e) => setMaintenanceMsg(e.target.value)}
+                className="w-full px-3 py-2 bg-stone-50 dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white text-xs outline-none focus:ring-1 focus:ring-amber-500 resize-none"
+              />
+            </div>
+
+            {/* Estimated Completion Time */}
+            <div className="space-y-1">
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">
+                Estimasi Waktu Selesai (Opsional)
+              </label>
+              <input
+                type="text"
+                placeholder="Contoh: 16:30 WIB atau 2 jam lagi"
+                value={maintenanceEndTime}
+                onChange={(e) => setMaintenanceEndTime(e.target.value)}
+                className="w-full px-3 py-2 bg-stone-50 dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white text-xs outline-none focus:ring-1 focus:ring-amber-500"
+              />
+            </div>
+          </div>
+          <DialogFooter className="pt-3 flex gap-2 sm:justify-end border-t border-stone-100 dark:border-zinc-800">
+            <button
+              onClick={() => setShowMaintenanceModal(false)}
+              className="px-3.5 py-2 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 text-xs touch-manipulation"
+            >
+              Batal
+            </button>
+            <button
+              onClick={handleSaveMaintenance}
+              disabled={isPending}
+              className={cn(
+                'px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition-all touch-manipulation flex items-center gap-1.5',
+                maintenanceActive
+                  ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                  : 'bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-900'
+              )}
+            >
+              {isPending ? 'Menyimpan...' : 'Simpan Status Maintenance'}
             </button>
           </DialogFooter>
         </DialogContent>

@@ -19,14 +19,16 @@ interface ExpenseChartProps {
   total: number;
 }
 
-export function ExpenseChart({ data, total }: ExpenseChartProps) {
-  const chartData = Object.entries(data)
-    .filter(([, value]) => value > 0)
-    .sort((a, b) => b[1] - a[1])
+export function ExpenseChart({ data = {}, total = 0 }: ExpenseChartProps) {
+  const safeData = data || {};
+  const safeTotal = Number(total) || 0;
+  const chartData = Object.entries(safeData)
+    .filter(([, value]) => Number(value) > 0)
+    .sort((a, b) => Number(b[1]) - Number(a[1]))
     .map(([name, value]) => ({
       name,
-      value,
-      percentage: total > 0 ? Math.round((value / total) * 100) : 0,
+      value: Number(value),
+      percentage: safeTotal > 0 ? Math.round((Number(value) / safeTotal) * 100) : 0,
     }));
 
   if (chartData.length === 0) {

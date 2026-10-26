@@ -7,7 +7,8 @@ interface SavingsChartClientProps {
   data: { label: string; amount: number; monthly: number }[];
 }
 
-export function SavingsChartClient({ data }: SavingsChartClientProps) {
+export function SavingsChartClient({ data = [] }: SavingsChartClientProps) {
+  const safeData = Array.isArray(data) ? data : [];
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-4 w-full min-w-0 overflow-hidden transition-colors">
       <div className="flex items-center justify-between gap-2">
@@ -21,7 +22,7 @@ export function SavingsChartClient({ data }: SavingsChartClientProps) {
 
       <div className="h-[200px] sm:h-[210px] w-full min-w-0 overflow-hidden">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-          <BarChart data={data} margin={{ top: 10, right: 5, left: -25, bottom: 0 }}>
+          <BarChart data={safeData} margin={{ top: 10, right: 5, left: -25, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-stone-100 dark:text-zinc-800/60" vertical={false} />
             <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#71717A' }} axisLine={false} tickLine={false} />
             <YAxis

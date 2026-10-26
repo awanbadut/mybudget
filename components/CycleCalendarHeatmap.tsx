@@ -120,19 +120,28 @@ export function CycleCalendarHeatmap({
 
   const daysList = useMemo(() => {
     const map: Record<string, { expense: number; income: number; items: HeatmapTx[] }> = {};
-    transactions.forEach(t => {
+    (transactions || []).forEach(t => {
+      if (!t || !t.transactionDate) return;
       if (!map[t.transactionDate]) {
         map[t.transactionDate] = { expense: 0, income: 0, items: [] };
       }
-      if (t.type === 'expense') map[t.transactionDate].expense += t.amount;
-      if (t.type === 'income') map[t.transactionDate].income += t.amount;
+      const amt = Number(t.amount) || 0;
+      if (t.type === 'expense') map[t.transactionDate].expense += amt;
+      if (t.type === 'income') map[t.transactionDate].income += amt;
       map[t.transactionDate].items.push(t);
     });
 
+    if (!startDateStr || !endDateStr || !startDateStr.includes('-') || !endDateStr.includes('-')) {
+      return [];
+    }
+
     const [sy, sm, sd] = startDateStr.split('-').map(Number);
     const [ey, em, ed] = endDateStr.split('-').map(Number);
+    if (!sy || !sm || !sd || !ey || !em || !ed) return [];
+
     const cur = new Date(sy, sm - 1, sd);
     const end = new Date(ey, em - 1, ed);
+    if (isNaN(cur.getTime()) || isNaN(end.getTime())) return [];
 
     const result: Array<{
       dateStr: string;
