@@ -17,6 +17,16 @@ export interface SessionPayload {
   username: string;
   name: string;
   role: 'user' | 'admin';
+  impersonatorAdminId?: string;
+  impersonatorAdminName?: string;
+}
+
+export async function requireAdmin(): Promise<SessionPayload> {
+  const session = await getSession();
+  if (!session || session.role !== 'admin') {
+    throw new Error('Akses ditolak: Anda harus login sebagai Administrator.');
+  }
+  return session;
 }
 
 export async function hashPassword(password: string): Promise<string> {

@@ -75,7 +75,7 @@ export async function middleware(request: NextRequest) {
 
   // Protect admin routes
   if (ADMIN_ROUTES.some(r => pathname.startsWith(r))) {
-    if ((session as any).role !== 'admin') {
+    if ((session as any).role !== 'admin' && !(session as any).impersonatorAdminId) {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }

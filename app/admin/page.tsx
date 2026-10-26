@@ -6,6 +6,7 @@ import { users } from '@/db/schema';
 import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { AdminDashboardClient, UserDetail } from '@/components/AdminDashboardClient';
+import { getSystemBroadcast } from '@/actions/admin';
 
 export default async function AdminPage() {
   const session = await getSession();
@@ -13,22 +14,24 @@ export default async function AdminPage() {
     redirect('/');
   }
 
-  // Fetch all non-admin users with full related data
-  const allUsers = await db.query.users.findMany({
-    where: (u, { ne }) => ne(u.role, 'admin'),
-    with: {
-      settings: true,
-      accounts: true,
-      transactions: {
-        orderBy: (t, { desc }) => [desc(t.transactionDate), desc(t.createdAt)],
+  // Fetch all users (including admins) with full related data & broadcast state
+  const [allUsers, broadcast] = await Promise.all([
+    db.query.users.findMany({
+      with: {
+        settings: true,
+        accounts: true,
+        transactions: {
+          orderBy: (t, { desc }) => [desc(t.transactionDate), desc(t.createdAt)],
+        },
+        savingsGoals: true,
+        debts: {
+          with: { installments: true },
+        },
       },
-      savingsGoals: true,
-      debts: {
-        with: { installments: true },
-      },
-    },
-    orderBy: (u, { asc }) => asc(u.createdAt),
-  });
+      orderBy: (u, { asc }) => asc(u.createdAt),
+    }),
+    getSystemBroadcast(),
+  ]);
 
   const formattedUsers: UserDetail[] = allUsers.map((u) => {
     // 1. Sort transactions strictly by date DESC, then createdAt DESC
@@ -92,6 +95,7 @@ export default async function AdminPage() {
       id: u.id,
       name: u.name,
       username: u.username || '-',
+      role: (u.role as 'user' | 'admin') || 'user',
       createdAt: u.createdAt.toISOString(),
       latestTransactionDate: sortedTransactions[0]?.transactionDate || null,
       settings: u.settings ? {
@@ -144,5 +148,12 @@ export default async function AdminPage() {
     };
   });
 
-  return <AdminDashboardClient adminName={session.name} users={formattedUsers} />;
+  return (
+    <AdminDashboardClient
+      adminId={session.userId}
+      adminName={session.name}
+      users={formattedUsers}
+      initialBroadcast={broadcast}
+    />
+  );
 }

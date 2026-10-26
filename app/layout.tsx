@@ -10,6 +10,9 @@ import { InstallPWA } from '@/components/InstallPWA';
 import { MobileTopHeader } from '@/components/MobileTopHeader';
 import { BalanceVisibilityProvider } from '@/context/BalanceVisibilityContext';
 import { NavigationProgress } from '@/components/NavigationProgress';
+import { AdminImpersonationBanner } from '@/components/AdminImpersonationBanner';
+import { BroadcastBanner } from '@/components/BroadcastBanner';
+import { getSystemBroadcast } from '@/actions/admin';
 import { Suspense } from 'react';
 
 const fontMono = Spline_Sans_Mono({
@@ -63,10 +66,16 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   let session = null;
+  let broadcast = { message: '', isActive: false };
   try {
-    session = await getSession();
+    const [s, b] = await Promise.all([
+      getSession(),
+      getSystemBroadcast(),
+    ]);
+    session = s;
+    broadcast = b;
   } catch {
-    // No session
+    // Fallback
   }
 
   return (
@@ -103,6 +112,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         `}
       >
         <BalanceVisibilityProvider>
+          {session?.impersonatorAdminId && (
+            <AdminImpersonationBanner
+              userName={session.name}
+              userUsername={session.username}
+              adminName={session.impersonatorAdminName}
+            />
+          )}
+          {broadcast.isActive && broadcast.message && (
+            <BroadcastBanner message={broadcast.message} />
+          )}
           <Suspense fallback={null}>
             <NavigationProgress />
           </Suspense>
