@@ -13,6 +13,8 @@ import { NavigationProgress } from '@/components/NavigationProgress';
 import { AdminImpersonationBanner } from '@/components/AdminImpersonationBanner';
 import { BroadcastBanner } from '@/components/BroadcastBanner';
 import { getSystemBroadcast } from '@/actions/admin';
+import { SidebarProvider } from '@/components/SidebarProvider';
+import { AppMainContent } from '@/components/AppMainContent';
 import { Suspense } from 'react';
 
 const fontMono = Spline_Sans_Mono({
@@ -112,47 +114,52 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         `}
       >
         <BalanceVisibilityProvider>
-          {session?.impersonatorAdminId && (
-            <AdminImpersonationBanner
-              userName={session.name}
-              userUsername={session.username}
-              adminName={session.impersonatorAdminName}
-            />
-          )}
-          {broadcast.isActive && broadcast.message && (
-            <BroadcastBanner message={broadcast.message} />
-          )}
-          <Suspense fallback={null}>
-            <NavigationProgress />
-          </Suspense>
-          <div className="flex min-h-[100dvh] w-full max-w-full overflow-x-hidden">
-            {/* Desktop Sidebar */}
+          <SidebarProvider>
+            {session?.impersonatorAdminId && (
+              <AdminImpersonationBanner
+                userName={session.name}
+                userUsername={session.username}
+                adminName={session.impersonatorAdminName}
+              />
+            )}
+            {broadcast.isActive && broadcast.message && (
+              <BroadcastBanner message={broadcast.message} />
+            )}
+            <Suspense fallback={null}>
+              <NavigationProgress />
+            </Suspense>
+            <div className="flex min-h-[100dvh] w-full max-w-full overflow-x-hidden">
+              {/* Desktop Sidebar */}
+              {session && (
+                <Sidebar
+                  userName={session.name}
+                  userRole={session.role}
+                  isImpersonating={Boolean(session.impersonatorAdminId)}
+                />
+              )}
+
+              {/* Main Content */}
+              <AppMainContent hasSession={Boolean(session)}>
+                {session && <MobileTopHeader />}
+                <div className="w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto px-4 sm:px-6 py-4 md:py-10 min-w-0">
+                  {children}
+                </div>
+              </AppMainContent>
+            </div>
+
+            {/* Mobile Bottom Navigation */}
             {session && (
-              <Sidebar userName={session.name} userRole={session.role} />
+              <MobileNav
+                userRole={session.role}
+                isImpersonating={Boolean(session.impersonatorAdminId)}
+              />
             )}
 
-            {/* Main Content */}
-            <main
-              className={`
-                flex-1 min-w-0 w-full max-w-full overflow-x-hidden
-                ${session ? 'md:ml-64' : ''}
-                pb-28 md:pb-12
-              `}
-            >
-              {session && <MobileTopHeader />}
-              <div className="w-full max-w-md sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto px-4 sm:px-6 py-4 md:py-10 min-w-0">
-                {children}
-              </div>
-            </main>
-          </div>
-
-          {/* Mobile Bottom Navigation */}
-          {session && <MobileNav />}
-
-          {/* PWA Components */}
-          <InstallPWA />
-          <ServiceWorkerRegistrar />
-          <Toaster />
+            {/* PWA Components */}
+            <InstallPWA />
+            <ServiceWorkerRegistrar />
+            <Toaster />
+          </SidebarProvider>
         </BalanceVisibilityProvider>
       </body>
     </html>

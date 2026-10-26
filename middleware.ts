@@ -61,6 +61,9 @@ export async function middleware(request: NextRequest) {
   // Redirect authenticated users away from login/register
   if (PUBLIC_ROUTES.includes(pathname)) {
     if (session) {
+      if ((session as any).role === 'admin' && !(session as any).impersonatorAdminId) {
+        return NextResponse.redirect(new URL('/admin', request.url));
+      }
       return NextResponse.redirect(new URL('/', request.url));
     }
     return NextResponse.next();
@@ -73,9 +76,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Protect admin routes
-  if (ADMIN_ROUTES.some(r => pathname.startsWith(r))) {
-    if ((session as any).role !== 'admin' && !(session as any).impersonatorAdminId) {
+  const isPureAdmin = (session as any).role === 'admin' && !(session as any).impersonatorAdminId;
+
+  // Pure admin should strictly access /admin (and not personal user finance pages)
+  if (isPureAdmin && !pathname.startsWith('/admin')) {
+    return NextResponse.redirect(new URL('/admin', request.url));
+  }
+
+  // Non-admins cannot access /admin (unless impersonating as admin)
+  if (!isPureAdmin && ADMIN_ROUTES.some((r) => pathname.startsWith(r))) {
+    if (!(session as any).impersonatorAdminId) {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }

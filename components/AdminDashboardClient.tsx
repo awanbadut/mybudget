@@ -317,6 +317,7 @@ export function AdminDashboardClient({
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               type="button"
+              id="broadcast"
               onClick={() => setShowBroadcastModal(true)}
               className={cn(
                 'flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-xs touch-manipulation',
@@ -345,7 +346,7 @@ export function AdminDashboardClient({
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         {/* Real Ecosystem Metric Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div id="metrics" className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 scroll-mt-20">
           <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-4 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-colors space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Total Pengguna</span>
@@ -413,7 +414,7 @@ export function AdminDashboardClient({
         </div>
 
         {/* Real User Management Table */}
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden transition-colors">
+        <div id="users" className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] overflow-hidden transition-colors scroll-mt-20">
           <div className="p-4 sm:p-5 border-b border-stone-100 dark:border-zinc-800 flex items-center justify-between">
             <div>
               <h2 className="font-bold text-base text-zinc-900 dark:text-white">

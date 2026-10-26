@@ -3,7 +3,8 @@ export const dynamic = 'force-dynamic';
 import { db } from '@/db';
 import { getCycleByOffset, getRecentCycles, getCurrentMonth, calculateProratedSalary } from '@/lib/dates';
 import { calculateSavingRate } from '@/lib/calculations';
-import { getUserId } from '@/lib/auth';
+import { getUserId, getSession } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 import { getOrInitializeBudgets } from '@/lib/budget-utils';
 import { formatCurrency } from '@/lib/currency';
 import { DashboardSummary } from '@/components/DashboardSummary';
@@ -36,6 +37,11 @@ export default async function DashboardPage({
   const params = searchParams ? await searchParams : {};
   const rawOffset = parseInt(params?.cycle || '0', 10);
   const cycleOffset = Number.isNaN(rawOffset) ? 0 : Math.min(0, rawOffset);
+
+  const session = await getSession();
+  if (session?.role === 'admin' && !session?.impersonatorAdminId) {
+    redirect('/admin');
+  }
 
   const DEV_USER_ID = await getUserId();
   const { month: currentMonth, year: currentYear } = getCurrentMonth();

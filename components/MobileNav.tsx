@@ -70,15 +70,21 @@ const APP_MENU_ITEMS = [
   },
 ];
 
-export function MobileNav() {
+interface MobileNavProps {
+  userRole?: string;
+  isImpersonating?: boolean;
+}
+
+export function MobileNav({ userRole, isImpersonating }: MobileNavProps = {}) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Don't show on auth / admin pages
+  // Don't show on auth / admin pages or if pure admin
   if (
     pathname === '/login' ||
     pathname === '/register' ||
-    pathname.startsWith('/admin')
+    pathname.startsWith('/admin') ||
+    (userRole === 'admin' && !isImpersonating)
   ) {
     return null;
   }
