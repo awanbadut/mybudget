@@ -7,6 +7,7 @@ import { getRecurringTransactions } from '@/actions/recurring';
 import { getCurrentMonth, getRecentCycles } from '@/lib/dates';
 
 import { getAccounts } from '@/actions/accounts';
+import { ensureSavingsCategory } from '@/actions/savings';
 
 const PAGE_SIZE = 1000; // load riwayat transaksi lengkap lintas siklus
 
@@ -17,6 +18,7 @@ export default async function TransactionsPage({
 }) {
   const params = await searchParams;
   const userId = await getUserId();
+  await ensureSavingsCategory(userId);
   const { month: currentMonth, year: currentYear } = getCurrentMonth();
 
   const [allCategories, allTransactions, recurringRes, accountsRes, userSettings] = await Promise.all([

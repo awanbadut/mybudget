@@ -122,10 +122,23 @@ export function CycleHistoryRecap({
   const [budgetPage, setBudgetPage] = useState<number>(1);
   const [budgetPageSize, setBudgetPageSize] = useState<number>(6);
 
-  // 1. Sisa Uang Siklus (Pemasukan - Pengeluaran di siklus ini, BUKAN saldo dompet keseluruhan)
+  // 1. Sisa Uang Siklus (Pemasukan - Pengeluaran Operasional di siklus ini, BUKAN saldo dompet keseluruhan)
   const baseIncomeForSurplus = cycleIncome > 0 ? cycleIncome : effectiveIncome;
   const cycleRemainingCash = cycleIncome - cycleExpense;
   const effectiveRemainingCash = baseIncomeForSurplus - cycleExpense;
+
+  // Total tabungan yang disetor / dialokasikan di siklus ini
+  const cycleSavings = useMemo(() => {
+    return transactions
+      .filter(t => 
+        (t.type === 'transfer' && (!t.toAccountId || t.category?.name === 'Tabungan' || t.name.startsWith('Setor Tabungan'))) ||
+        (t.category?.name === 'Tabungan' || t.name.startsWith('Setor Tabungan'))
+      )
+      .reduce((sum, t) => sum + t.amount, 0);
+  }, [transactions]);
+
+  const unsavedSurplus = Math.max(0, cycleRemainingCash - cycleSavings);
+  const isAllSurplusSaved = cycleRemainingCash > 0 && cycleSavings >= cycleRemainingCash;
 
   // 2. Sisa Uang dari Pos-pos Budgeting
   // Include foodBudget in list if 'Makan' is not already in budgets table
@@ -283,12 +296,14 @@ export function CycleHistoryRecap({
             <span
               className={cn(
                 'text-[10px] font-bold px-2 py-0.5 rounded-full',
-                cycleRemainingCash >= 0
+                cycleRemainingCash < 0
+                  ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
+                  : isAllSurplusSaved
                   ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                  : 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
+                  : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
               )}
             >
-              {cycleRemainingCash >= 0 ? 'Surplus Siklus' : 'Defisit Siklus'}
+              {cycleRemainingCash < 0 ? 'Defisit Siklus' : isAllSurplusSaved ? 'Surplus Diamankan' : 'Surplus Siklus'}
             </span>
           </div>
 
@@ -305,7 +320,7 @@ export function CycleHistoryRecap({
               {display(Math.abs(cycleRemainingCash))}
             </p>
             <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">
-              Selisih murni pemasukan &amp; pengeluaran di siklus ini (bukan saldo total dompet)
+              Selisih murni pemasukan &amp; pengeluaran operasional siklus ini (bukan saldo total dompet)
             </p>
           </div>
 
@@ -322,6 +337,17 @@ export function CycleHistoryRecap({
                 -{display(cycleExpense)}
               </span>
             </div>
+            {cycleSavings > 0 && (
+              <div className="flex justify-between pt-1 border-t border-dashed border-stone-200 dark:border-zinc-800 text-[11px]">
+                <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                  <PiggyBank className="w-3.5 h-3.5" />
+                  Dialokasikan ke Tabungan:
+                </span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                  {display(cycleSavings)}
+                </span>
+              </div>
+            )}
             {effectiveIncome > 0 && effectiveIncome !== cycleIncome && (
               <div className="flex justify-between pt-1 border-t border-dashed border-stone-200 dark:border-zinc-800 text-[11px]">
                 <span className="text-zinc-400">Sisa dari Gaji ({display(effectiveIncome)}):</span>
@@ -333,12 +359,17 @@ export function CycleHistoryRecap({
             )}
           </div>
 
-          {/* 1-Click Sweep Surplus to Savings Button */}
-          {cycleRemainingCash > 0 && (
+          {/* 1-Click Sweep Surplus to Savings Button or Completed Badge */}
+          {isAllSurplusSaved ? (
+            <div className="w-full py-2 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center justify-center gap-1.5 text-center">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+              <span>Seluruh sisa surplus ({display(cycleSavings)}) telah diamankan ke Tabungan</span>
+            </div>
+          ) : cycleRemainingCash > 0 ? (
             <button
               type="button"
               onClick={() => {
-                setSweepAmount(String(cycleRemainingCash));
+                setSweepAmount(String(unsavedSurplus > 0 ? unsavedSurplus : cycleRemainingCash));
                 if (!sweepGoalId && savingsGoals[0]) setSweepGoalId(savingsGoals[0].id);
                 if (!sweepAccountId && accounts[0]) setSweepAccountId(accounts[0].id);
                 setShowSweepModal(true);
@@ -346,9 +377,9 @@ export function CycleHistoryRecap({
               className="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs active:scale-95 transition-all touch-manipulation"
             >
               <PiggyBank className="w-3.5 h-3.5" />
-              <span>Tabungkan Sisa Uang Siklus</span>
+              <span>Tabungkan Sisa Uang {unsavedSurplus > 0 && unsavedSurplus < cycleRemainingCash ? `(${display(unsavedSurplus)})` : 'Siklus'}</span>
             </button>
-          )}
+          ) : null}
         </div>
 
         {/* Card B: Sisa Uang dari Pos-pos Budgeting */}
@@ -725,6 +756,12 @@ export function CycleHistoryRecap({
             {visibleTransactions.map(tx => {
               const isIncome = tx.type === 'income';
               const isTransfer = tx.type === 'transfer';
+              const isSavingsTransfer = (isTransfer || tx.type === 'expense') && (
+                tx.category?.name === 'Tabungan' ||
+                tx.name.startsWith('Setor Tabungan') ||
+                (tx.note && (tx.note.includes('[Tabungan]') || tx.note.includes('Sweeping Sisa Uang Siklus'))) ||
+                (isTransfer && !tx.toAccountId)
+              );
               const accName =
                 tx.account?.name || accounts.find(a => a.id === tx.accountId)?.name || null;
               const toAccName =
@@ -739,14 +776,18 @@ export function CycleHistoryRecap({
                     <div
                       className={cn(
                         'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0',
-                        isTransfer
+                        isSavingsTransfer
+                          ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
+                          : isTransfer
                           ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
                           : isIncome
                           ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
                           : 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400'
                       )}
                     >
-                      {isTransfer ? (
+                      {isSavingsTransfer ? (
+                        <PiggyBank className="w-4 h-4" />
+                      ) : isTransfer ? (
                         <ArrowLeftRight className="w-4 h-4" />
                       ) : isIncome ? (
                         <ArrowDownLeft className="w-4 h-4" />
@@ -760,12 +801,20 @@ export function CycleHistoryRecap({
                         {tx.name}
                       </p>
                       <div className="flex items-center gap-1.5 flex-wrap mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">
-                        <span>{ isTransfer ? 'Transfer Antar Dompet' : (tx.category?.name || 'Umum') }</span>
+                        {isSavingsTransfer ? (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                            Setor Tabungan
+                          </span>
+                        ) : isTransfer ? (
+                          <span>Transfer Antar Dompet</span>
+                        ) : (
+                          <span>{tx.category?.name || 'Umum'}</span>
+                        )}
                         {accName && (
                           <>
                             <span>·</span>
                             <span className="font-semibold px-1.5 py-0.5 rounded bg-stone-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px]">
-                              {isTransfer && toAccName ? `${accName} → ${toAccName}` : accName}
+                              {isSavingsTransfer ? `${accName} → Tabungan` : isTransfer && toAccName ? `${accName} → ${toAccName}` : accName}
                             </span>
                           </>
                         )}
@@ -779,14 +828,16 @@ export function CycleHistoryRecap({
                     <span
                       className={cn(
                         'font-bold text-xs sm:text-sm tabular-nums',
-                        isTransfer
+                        isSavingsTransfer
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : isTransfer
                           ? 'text-blue-600 dark:text-blue-400'
                           : isIncome
                           ? 'text-emerald-600 dark:text-emerald-400'
                           : 'text-zinc-900 dark:text-white'
                       )}
                     >
-                      {isTransfer ? '' : isIncome ? '+' : '-'}
+                      {isSavingsTransfer ? '→ ' : isTransfer ? '' : isIncome ? '+' : '-'}
                       {display(tx.amount)}
                     </span>
                   </div>

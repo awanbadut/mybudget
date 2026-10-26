@@ -23,25 +23,31 @@ export async function ensureSavingsCategory(userId: string) {
     savingsCat = inserted;
   }
 
-  // Auto-repair: find any past savings transactions that were mistakenly linked to Kos or another category
+  // Auto-repair: find any past savings transactions that were mistakenly linked to Kos or marked as expense
   try {
     const brokenTxs = await db.query.transactions.findMany({
-      where: (t, { and: a, eq: e, or: o, like: l, ne: n }) => a(
+      where: (t, { and: a, eq: e, or: o, like: l }) => a(
         e(t.userId, userId),
         o(
           l(t.name, 'Setor Tabungan%'),
           l(t.note, '%[Tabungan]%'),
           l(t.note, '%Sweeping Sisa Uang Siklus%')
-        ),
-        n(t.categoryId, savingsCat.id)
+        )
       ),
     });
 
     if (brokenTxs.length > 0) {
       for (const bTx of brokenTxs) {
-        await db.update(transactions)
-          .set({ categoryId: savingsCat.id, updatedAt: new Date() })
-          .where(eq(transactions.id, bTx.id));
+        if (bTx.categoryId !== savingsCat.id || bTx.type !== 'transfer' || bTx.toAccountId !== null) {
+          await db.update(transactions)
+            .set({
+              categoryId: savingsCat.id,
+              type: 'transfer',
+              toAccountId: null,
+              updatedAt: new Date(),
+            })
+            .where(eq(transactions.id, bTx.id));
+        }
       }
     }
   } catch (repairErr) {
@@ -129,7 +135,7 @@ export async function addSavings(data: unknown) {
 
     let linkedCashTxId: string | null = null;
 
-    // If deductFromCash is true, record matching expense in cash ledger
+    // If deductFromCash is true, record matching asset transfer in cash ledger (transfer to savings, not an operational expense)
     if (validated.deductFromCash) {
       const savingsCat = await ensureSavingsCategory(userId);
 
@@ -137,7 +143,8 @@ export async function addSavings(data: unknown) {
         userId,
         categoryId: savingsCat.id,
         accountId: validated.accountId || null,
-        type: 'expense',
+        toAccountId: null,
+        type: 'transfer',
         name: `Setor Tabungan: ${goal.name}`,
         amount: validated.amount,
         transactionDate: validated.transactionDate,

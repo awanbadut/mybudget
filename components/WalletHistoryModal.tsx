@@ -23,6 +23,7 @@ import {
   Coins,
   Filter,
   Scale,
+  PiggyBank,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -120,10 +121,11 @@ export function WalletHistoryModal({
         tx.toAccount?.name || allAccounts.find(a => a.id === tx.toAccountId)?.name || 'Dompet';
 
       if (tx.type === 'transfer') {
+        const isSavings = !tx.toAccountId || tx.category?.name === 'Tabungan' || tx.name.startsWith('Setor Tabungan');
         if (tx.accountId === account.id) {
           delta = -tx.amount;
           mutationType = 'out';
-          subtitle = `Keluar ke ${toAccName}`;
+          subtitle = isSavings ? 'Setor ke Tabungan' : `Keluar ke ${toAccName}`;
         } else if (tx.toAccountId === account.id) {
           delta = tx.amount;
           mutationType = 'in';
@@ -472,6 +474,8 @@ export function WalletHistoryModal({
               const isOut = item.delta < 0;
               const isTransfer = item.type === 'transfer';
 
+              const isSavings = item.subtitle === 'Setor ke Tabungan';
+
               return (
                 <div
                   key={item.id}
@@ -481,12 +485,16 @@ export function WalletHistoryModal({
                     <div
                       className={cn(
                         'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5',
-                        isOut
+                        isSavings
+                          ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
+                          : isOut
                           ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400'
                           : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
                       )}
                     >
-                      {isTransfer ? (
+                      {isSavings ? (
+                        <PiggyBank className="w-4 h-4" />
+                      ) : isTransfer ? (
                         <ArrowLeftRight className="w-4 h-4" />
                       ) : isOut ? (
                         <ArrowUpRight className="w-4 h-4" />
