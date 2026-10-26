@@ -6,7 +6,7 @@ import { formatMonth } from '@/lib/dates';
 import { upsertBudget, deleteBudget } from '@/actions/budgets';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, PieChart } from 'lucide-react';
+import { Plus, Pencil, Trash2, PieChart, CheckCircle2, AlertTriangle, AlertCircle, X } from 'lucide-react';
 import { CycleSelector, CycleOption } from '@/components/CycleSelector';
 import { PaginationBar } from '@/components/PaginationBar';
 import { cn } from '@/lib/utils';
@@ -65,6 +65,10 @@ export function BudgetClient({
   const totalSpent = budgets.reduce((s, b) => s + b.spent, 0);
   const totalRemaining = totalBudget - totalSpent;
   const overallPct = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+
+  const safeCount = budgets.filter(b => b.percentage < 70).length;
+  const warningCount = budgets.filter(b => b.percentage >= 70 && b.percentage <= 100).length;
+  const overCount = budgets.filter(b => b.percentage > 100 || b.remaining < 0).length;
 
   // Categories not yet in budget
   const budgetedCategoryIds = new Set(budgets.map(b => b.categoryId));
@@ -183,6 +187,27 @@ export function BudgetClient({
             </span>
           </div>
         </div>
+
+        {budgets.length > 0 && (
+          <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-stone-100 dark:border-zinc-800 text-[11px] font-semibold">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>{safeCount} Pos Aman</span>
+            </span>
+            {warningCount > 0 && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>{warningCount} Pos Hampir Habis</span>
+              </span>
+            )}
+            {overCount > 0 && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/60">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>{overCount} Pos Overbudget</span>
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Budget list */}
@@ -269,49 +294,86 @@ export function BudgetClient({
         </div>
       )}
 
-      {/* Form Dialog */}
+      {/* Modernized Form Dialog (No Horizontal Scroll, No Native Select) */}
       <Dialog open={showForm} onOpenChange={(open) => { if (!open) { setShowForm(false); resetForm(); } }}>
-        <DialogContent className="max-w-sm bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-5 sm:p-6 overflow-x-hidden">
           <DialogHeader>
             <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white">
               {editBudget ? 'Ubah Alokasi Anggaran' : 'Tetapkan Anggaran Baru'}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3.5 text-xs pt-2">
-            <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Kategori</label>
-              <select
-                value={formCategory}
-                onChange={e => setFormCategory(e.target.value)}
-                disabled={!!editBudget}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 disabled:opacity-60 touch-manipulation"
-              >
-                <option value="">Pilih Kategori</option>
-                {(editBudget ? categories : availableCategories).map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+          <div className="space-y-4 text-xs pt-2">
+            {/* Visual Category Pill Grid */}
+            <div className="space-y-1.5">
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300 block">
+                Pilih Pos Kategori Belanja
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-44 overflow-y-auto pr-0.5">
+                {(editBudget ? categories : availableCategories).map(cat => {
+                  const isSelected = formCategory === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      disabled={!!editBudget}
+                      onClick={() => setFormCategory(cat.id)}
+                      className={cn(
+                        'p-2.5 rounded-xl border text-left font-bold text-xs flex items-center gap-2 transition-all touch-manipulation',
+                        isSelected
+                          ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-2xs'
+                          : 'bg-stone-50 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border-stone-200 dark:border-zinc-700 hover:border-zinc-400',
+                        editBudget && !isSelected && 'opacity-40 cursor-not-allowed'
+                      )}
+                    >
+                      <span
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: cat.color || '#10b981' }}
+                      />
+                      <span className="truncate">{cat.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nominal Anggaran (Rp)</label>
-              <input
-                placeholder="0"
-                value={formAmount}
-                onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
-                inputMode="numeric"
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-base text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 tabular-nums touch-manipulation"
-              />
-              <div className="flex gap-1.5 overflow-x-auto pt-1 pb-1">
-                {[100000, 250000, 500000, 1000000, 2000000].map(amt => (
+            {/* Hero Currency Input + 2-Row Preset Grid */}
+            <div className="space-y-2">
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300 block">
+                Nominal Jatah Anggaran (Rp)
+              </label>
+              <div className="relative flex items-center bg-stone-50 dark:bg-zinc-800/90 border border-stone-200 dark:border-zinc-700 rounded-2xl px-3.5 py-2.5 focus-within:ring-2 focus-within:ring-zinc-900 dark:focus-within:ring-white">
+                <span className="text-sm font-extrabold text-zinc-400 dark:text-zinc-500 mr-2 select-none">
+                  Rp
+                </span>
+                <input
+                  placeholder="0"
+                  value={formAmount ? Number(formAmount.replace(/[^0-9]/g, '')).toLocaleString('id-ID') : ''}
+                  onChange={e => setFormAmount(e.target.value.replace(/[^0-9]/g, ''))}
+                  inputMode="numeric"
+                  className="w-full bg-transparent font-extrabold text-lg sm:text-xl text-zinc-900 dark:text-white focus:outline-none tabular-nums touch-manipulation"
+                />
+                {formAmount && (
+                  <button
+                    type="button"
+                    onClick={() => setFormAmount('')}
+                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                    title="Reset nominal"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-3 gap-1.5 pt-0.5">
+                {[100000, 250000, 500000, 1000000, 1500000, 2000000].map(amt => (
                   <button
                     key={amt}
                     type="button"
                     onClick={() => {
-                      const cur = parseInt(formAmount || '0', 10);
+                      const cur = parseInt(formAmount.replace(/[^0-9]/g, '') || '0', 10);
                       setFormAmount(String(cur + amt));
                     }}
-                    className="px-2.5 py-1 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg text-[11px] font-medium transition-colors flex-shrink-0 touch-manipulation"
+                    className="py-1.5 px-2 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-[11px] font-bold transition-colors touch-manipulation text-center"
                   >
                     +{amt >= 1000000 ? `${amt / 1000000}jt` : `${amt / 1000}rb`}
                   </button>
@@ -319,19 +381,19 @@ export function BudgetClient({
               </div>
             </div>
           </div>
-          <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
+          <DialogFooter className="pt-3 flex gap-2">
             <button
               onClick={() => { setShowForm(false); resetForm(); }}
-              className="px-3.5 py-1.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs touch-manipulation"
+              className="flex-1 py-2.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-bold hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs touch-manipulation"
             >
               Batal
             </button>
             <button
               onClick={handleSave}
               disabled={isPending || !formCategory || !formAmount}
-              className="px-4 py-1.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold shadow-sm transition-all disabled:opacity-50 touch-manipulation"
+              className="flex-1 py-2.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-bold shadow-sm transition-all disabled:opacity-50 touch-manipulation"
             >
-              {isPending ? 'Menyimpan...' : 'Simpan'}
+              {isPending ? 'Menyimpan...' : 'Simpan Anggaran'}
             </button>
           </DialogFooter>
         </DialogContent>

@@ -7,7 +7,7 @@ import { createSavingsGoal, updateSavingsGoal, deleteSavingsGoal, addSavings, de
 import { AccountWithBalance } from '@/actions/accounts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Target, Plus, Pencil, Trash2, PiggyBank, ChevronDown, ChevronUp, Wallet, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Target, Plus, Pencil, Trash2, PiggyBank, ChevronDown, ChevronUp, Wallet, RefreshCw, CheckCircle2, X, Sparkles, CalendarClock } from 'lucide-react';
 import { calculateProgress } from '@/lib/calculations';
 import { PaginationBar } from '@/components/PaginationBar';
 import { cn } from '@/lib/utils';
@@ -277,6 +277,25 @@ export function SavingsClient({
             const progress = calculateProgress(goal.currentAmount, goal.targetAmount);
             const remaining = Math.max(0, goal.targetAmount - goal.currentAmount);
             const isExpanded = expandedGoal === goal.id;
+            const isCompleted = progress >= 100;
+
+            let smartHint: string | null = null;
+            if (!isCompleted && remaining > 0) {
+              if (goal.deadline) {
+                const diffMs = new Date(goal.deadline).getTime() - Date.now();
+                const monthsLeft = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24 * 30)));
+                const monthlyNeeded = Math.ceil(remaining / monthsLeft);
+                smartHint = `Rekomendasi: ${formatCurrency(monthlyNeeded)} / bln (${monthsLeft} bln tersisa)`;
+              } else if (goal.transactions.length > 0) {
+                const avgDeposit = Math.round(
+                  goal.transactions.reduce((s, t) => s + t.amount, 0) / goal.transactions.length
+                );
+                if (avgDeposit > 0) {
+                  const estDepositsLeft = Math.ceil(remaining / avgDeposit);
+                  smartHint = `Estimasi ~${estDepositsLeft}x setoran lagi (rata-rata ${formatCurrency(avgDeposit)})`;
+                }
+              }
+            }
 
             return (
               <div key={goal.id} className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)] p-5 sm:p-6 flex flex-col justify-between space-y-4 transition-colors">
@@ -284,11 +303,23 @@ export function SavingsClient({
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100/70 dark:border-indigo-800/60">
-                        <Target className="w-4 h-4" />
+                      <div className={cn(
+                        "w-8 h-8 rounded-xl flex items-center justify-center border",
+                        isCompleted
+                          ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200/70 dark:border-emerald-800/60"
+                          : "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border-indigo-100/70 dark:border-indigo-800/60"
+                      )}>
+                        {isCompleted ? <Sparkles className="w-4 h-4" /> : <Target className="w-4 h-4" />}
                       </div>
                       <div>
-                        <h2 className="font-bold text-base text-zinc-900 dark:text-white leading-tight">{goal.name}</h2>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h2 className="font-bold text-base text-zinc-900 dark:text-white leading-tight">{goal.name}</h2>
+                          {isCompleted && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/70 dark:border-emerald-800/60">
+                              🎉 Tercapai!
+                            </span>
+                          )}
+                        </div>
                         {goal.deadline && (
                           <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Tenggat: {formatDateShort(goal.deadline)}</p>
                         )}
@@ -321,13 +352,31 @@ export function SavingsClient({
 
                   {/* Progress Bar */}
                   <div className="w-full bg-stone-100 dark:bg-zinc-800 h-2 rounded-full overflow-hidden mb-1.5">
-                    <div className="h-full bg-indigo-600 dark:bg-indigo-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-all",
+                        isCompleted ? "bg-emerald-500" : "bg-indigo-600 dark:bg-indigo-500"
+                      )}
+                      style={{ width: `${progress}%` }}
+                    />
                   </div>
 
                   <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
-                    <span className="font-semibold text-indigo-600 dark:text-indigo-400">{progress}% Tercapai</span>
+                    <span className={cn(
+                      "font-semibold",
+                      isCompleted ? "text-emerald-600 dark:text-emerald-400" : "text-indigo-600 dark:text-indigo-400"
+                    )}>
+                      {progress}% Tercapai
+                    </span>
                     <span className="tabular-nums">Sisa: {formatCurrency(remaining)}</span>
                   </div>
+
+                  {smartHint && (
+                    <div className="mt-2.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-stone-50 dark:bg-zinc-800/60 border border-stone-200/60 dark:border-zinc-800 text-[11px] font-medium text-zinc-600 dark:text-zinc-300">
+                      <CalendarClock className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
+                      <span className="truncate">{smartHint}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Actions & History */}
@@ -410,44 +459,85 @@ export function SavingsClient({
 
       {/* Add Savings Deposit Dialog */}
       <Dialog open={!!addSavingsGoalId} onOpenChange={(open) => { if (!open) setAddSavingsGoalId(null); }}>
-        <DialogContent className="max-w-sm bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white">
               Setor Dana Tabungan
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3.5 text-xs pt-2">
-            <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nominal Setoran (Rp)</label>
-              <input
-                placeholder="0"
-                value={savingsAmount}
-                onChange={e => setSavingsAmount(e.target.value.replace(/[^0-9]/g, ''))}
-                inputMode="numeric"
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation"
-              />
+          <div className="space-y-4 text-xs pt-2">
+            {/* Hero Currency Input */}
+            <div className="space-y-2">
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nominal Setoran</label>
+              <div className="relative flex items-center bg-stone-50 dark:bg-zinc-800/60 border border-stone-200/80 dark:border-zinc-700/80 rounded-2xl px-4 py-3 focus-within:ring-2 focus-within:ring-zinc-900 dark:focus-within:ring-white transition-all">
+                <span className="font-bold text-sm text-zinc-400 dark:text-zinc-500 mr-2 select-none">Rp</span>
+                <input
+                  placeholder="0"
+                  value={savingsAmount ? Number(savingsAmount.replace(/[^0-9]/g, '')).toLocaleString('id-ID') : ''}
+                  onChange={e => setSavingsAmount(e.target.value.replace(/[^0-9]/g, ''))}
+                  inputMode="numeric"
+                  className="w-full bg-transparent font-sans font-extrabold text-xl text-zinc-900 dark:text-white focus:outline-none tabular-nums touch-manipulation"
+                />
+                {savingsAmount && (
+                  <button
+                    type="button"
+                    onClick={() => setSavingsAmount('')}
+                    className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-lg"
+                    title="Reset nominal"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Quick Preset Chips (Grid 3 cols, no horizontal scroll) */}
+              <div className="grid grid-cols-3 gap-1.5 pt-0.5">
+                {[
+                  { label: '+50rb', val: 50000 },
+                  { label: '+100rb', val: 100000 },
+                  { label: '+250rb', val: 250000 },
+                  { label: '+500rb', val: 500000 },
+                  { label: '+1jt', val: 1000000 },
+                  { label: '+2jt', val: 2000000 },
+                ].map(p => (
+                  <button
+                    key={p.val}
+                    type="button"
+                    onClick={() => {
+                      const curr = parseInt(savingsAmount.replace(/[^0-9]/g, '') || '0', 10);
+                      setSavingsAmount(String(curr + p.val));
+                    }}
+                    className="py-1.5 px-2 rounded-xl border border-stone-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-stone-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold text-[11px] transition-colors active:scale-[0.98]"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Setor</label>
-              <input
-                type="date"
-                value={savingsDate}
-                onChange={e => setSavingsDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Catatan (opsional)</label>
-              <input
-                placeholder="Contoh: Tabungan sisa gaji bulan ini"
-                value={savingsNote}
-                onChange={e => setSavingsNote(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
-              />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Setor</label>
+                <input
+                  type="date"
+                  value={savingsDate}
+                  onChange={e => setSavingsDate(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="font-semibold text-zinc-700 dark:text-zinc-300">Catatan (opsional)</label>
+                <input
+                  placeholder="Mis: Sisa gaji"
+                  value={savingsNote}
+                  onChange={e => setSavingsNote(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
+                />
+              </div>
             </div>
 
             {/* Connected wallet deduction */}
-            <div className="pt-2 border-t border-stone-100 dark:border-zinc-800 space-y-2">
+            <div className="pt-2 border-t border-stone-100 dark:border-zinc-800 space-y-2.5">
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -462,21 +552,36 @@ export function SavingsClient({
               </div>
 
               {deductFromCash && accounts.length > 0 && (
-                <div className="space-y-1.5 pl-6">
+                <div className="space-y-2">
                   <label className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Pilih Dompet Sumber Dana:</label>
-                  <select
-                    value={selectedAccountId}
-                    onChange={(e) => setSelectedAccountId(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white font-medium focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
-                  >
-                    {accounts.map(acc => (
-                      <option key={acc.id} value={acc.id}>
-                        {acc.name} ({formatCurrency(acc.balance)})
-                      </option>
-                    ))}
-                  </select>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                    {accounts.map(acc => {
+                      const isSelected = selectedAccountId === acc.id;
+                      return (
+                        <button
+                          key={acc.id}
+                          type="button"
+                          onClick={() => setSelectedAccountId(acc.id)}
+                          className={cn(
+                            'flex items-center justify-between px-3 py-2 rounded-xl border text-left transition-all touch-manipulation',
+                            isSelected
+                              ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-2xs'
+                              : 'bg-white dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border-stone-200 dark:border-zinc-700 hover:border-zinc-400'
+                          )}
+                        >
+                          <span className="font-bold truncate pr-2">{acc.name}</span>
+                          <span className={cn(
+                            'text-[10px] font-semibold tabular-nums flex-shrink-0',
+                            isSelected ? 'text-zinc-300 dark:text-zinc-600' : 'text-zinc-400 dark:text-zinc-500'
+                          )}>
+                            {formatCurrency(acc.balance)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                   <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-tight">
-                    Saldo dompet ini akan otomatis berkurang sehingga uang kas Anda tidak tercatat ganda.
+                    Saldo dompet ini akan otomatis dipindahkan ke tabungan sehingga tidak dihitung sebagai pengeluaran.
                   </p>
                 </div>
               )}
@@ -485,14 +590,14 @@ export function SavingsClient({
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => setAddSavingsGoalId(null)}
-              className="px-3.5 py-1.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs touch-manipulation"
+              className="px-3.5 py-2 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs touch-manipulation"
             >
               Batal
             </button>
             <button
               onClick={handleAddSavings}
               disabled={isPending}
-              className="px-4 py-1.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
+              className="px-4 py-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
             >
               {isPending ? 'Menyimpan...' : 'Simpan Setoran'}
             </button>
@@ -502,53 +607,91 @@ export function SavingsClient({
 
       {/* Add / Edit Goal Dialog */}
       <Dialog open={showAddGoal || !!editGoal} onOpenChange={(open) => { if (!open) { setShowAddGoal(false); setEditGoal(null); resetGoalForm(); } }}>
-        <DialogContent className="max-w-sm bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6">
+        <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white">
               {editGoal ? 'Ubah Target Tabungan' : 'Target Tabungan Baru'}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3.5 text-xs pt-2">
-            <div className="space-y-1">
+          <div className="space-y-4 text-xs pt-2">
+            <div className="space-y-1.5">
               <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nama Target</label>
               <input
                 placeholder="Contoh: Dana Darurat / Laptop Baru"
                 value={goalName}
                 onChange={e => setGoalName(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
               />
             </div>
-            <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Target Nominal (Rp)</label>
-              <input
-                placeholder="0"
-                value={goalTarget}
-                onChange={e => setGoalTarget(e.target.value.replace(/[^0-9]/g, ''))}
-                inputMode="numeric"
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl font-sans font-bold text-base sm:text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation"
-              />
+
+            <div className="space-y-2">
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Target Nominal</label>
+              <div className="relative flex items-center bg-stone-50 dark:bg-zinc-800/60 border border-stone-200/80 dark:border-zinc-700/80 rounded-2xl px-4 py-3 focus-within:ring-2 focus-within:ring-zinc-900 dark:focus-within:ring-white transition-all">
+                <span className="font-bold text-sm text-zinc-400 dark:text-zinc-500 mr-2 select-none">Rp</span>
+                <input
+                  placeholder="0"
+                  value={goalTarget ? Number(goalTarget.replace(/[^0-9]/g, '')).toLocaleString('id-ID') : ''}
+                  onChange={e => setGoalTarget(e.target.value.replace(/[^0-9]/g, ''))}
+                  inputMode="numeric"
+                  className="w-full bg-transparent font-sans font-extrabold text-xl text-zinc-900 dark:text-white focus:outline-none tabular-nums touch-manipulation"
+                />
+                {goalTarget && (
+                  <button
+                    type="button"
+                    onClick={() => setGoalTarget('')}
+                    className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-lg"
+                    title="Reset nominal"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-3 gap-1.5 pt-0.5">
+                {[
+                  { label: '+1jt', val: 1000000 },
+                  { label: '+2,5jt', val: 2500000 },
+                  { label: '+5jt', val: 5000000 },
+                  { label: '+10jt', val: 10000000 },
+                  { label: '+25jt', val: 25000000 },
+                  { label: '+50jt', val: 50000000 },
+                ].map(p => (
+                  <button
+                    key={p.val}
+                    type="button"
+                    onClick={() => {
+                      const curr = parseInt(goalTarget.replace(/[^0-9]/g, '') || '0', 10);
+                      setGoalTarget(String(curr + p.val));
+                    }}
+                    className="py-1.5 px-2 rounded-xl border border-stone-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-stone-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold text-[11px] transition-colors active:scale-[0.98]"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="space-y-1">
+
+            <div className="space-y-1.5">
               <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tenggat Waktu (opsional)</label>
               <input
                 type="date"
                 value={goalDeadline}
                 onChange={e => setGoalDeadline(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
               />
             </div>
           </div>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end">
             <button
               onClick={() => { setShowAddGoal(false); setEditGoal(null); resetGoalForm(); }}
-              className="px-3.5 py-1.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs touch-manipulation"
+              className="px-3.5 py-2 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800 text-xs touch-manipulation"
             >
               Batal
             </button>
             <button
               onClick={editGoal ? handleUpdateGoal : handleCreateGoal}
               disabled={isPending}
-              className="px-4 py-1.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
+              className="px-4 py-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold shadow-sm transition-all touch-manipulation"
             >
               {isPending ? 'Menyimpan...' : 'Simpan Target'}
             </button>

@@ -4,7 +4,8 @@ import { useState, useTransition, useEffect } from 'react';
 import { createAccount, updateAccount, deleteAccount, AccountWithBalance } from '@/actions/accounts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Building2, Smartphone, Coins, Wallet, CreditCard, Trash2 } from 'lucide-react';
+import { Building2, Smartphone, Coins, Wallet, CreditCard, Trash2, PiggyBank } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface AccountModalProps {
   open: boolean;
@@ -157,30 +158,71 @@ export function AccountModal({ open, onOpenChange, account, onSuccess }: Account
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tipe Dompet</label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { id: 'bank', label: 'Bank Operasional', sub: 'Transaksi harian', iconComp: Building2, defaultIcon: 'Building2' },
+                { id: 'savings', label: 'Dompet Tabungan', sub: 'Anti saldo dobel', iconComp: PiggyBank, defaultIcon: 'PiggyBank', defaultColor: '#16a34a' },
+                { id: 'ewallet', label: 'E-Wallet', sub: 'GoPay, OVO, DANA', iconComp: Smartphone, defaultIcon: 'Smartphone' },
+                { id: 'cash', label: 'Tunai / Cash', sub: 'Dompet fisik', iconComp: Coins, defaultIcon: 'Coins' },
+              ].map((item) => {
+                const IconComp = item.iconComp;
+                const isSelected = type === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setType(item.id as any);
+                      setIcon(item.defaultIcon);
+                      if (item.defaultColor) setColor(item.defaultColor);
+                    }}
+                    className={cn(
+                      'flex items-center gap-2.5 p-2.5 rounded-xl border text-left transition-all touch-manipulation',
+                      isSelected
+                        ? item.id === 'savings'
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                          : 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-2xs'
+                        : 'bg-white dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border-stone-200 dark:border-zinc-700 hover:border-zinc-400'
+                    )}
+                  >
+                    <IconComp className="w-4 h-4 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-bold text-xs leading-tight truncate">{item.label}</p>
+                      <p className={cn(
+                        'text-[10px] truncate mt-0.5',
+                        isSelected ? 'opacity-80' : 'text-zinc-400 dark:text-zinc-500'
+                      )}>
+                        {item.sub}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {type === 'savings' && (
+            <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-800/70 text-emerald-800 dark:text-emerald-300 text-[11px] font-medium leading-relaxed">
+              ✓ <strong>Dompet Tabungan:</strong> Saldo di dompet ini otomatis diakui sebagai <strong>Tabungan</strong> di menu Tabungan dan tidak dihitung ganda (tidak dobel) dengan Kekayaan Bersih maupun kas harian.
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tipe Dompet</label>
-              <select
-                value={type}
-                onChange={(e) => {
-                  const t = e.target.value as any;
-                  setType(t);
-                  if (t === 'bank') setIcon('Building2');
-                  else if (t === 'ewallet') setIcon('Smartphone');
-                  else if (t === 'cash') setIcon('Coins');
-                  else if (t === 'savings') {
-                    setIcon('PiggyBank');
-                    setColor('#16a34a');
-                  } else setIcon('Wallet');
-                }}
-                className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white font-medium focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
-              >
-                <option value="bank">Bank Operasional</option>
-                <option value="savings">Tabungan / Simpanan</option>
-                <option value="ewallet">E-Wallet</option>
-                <option value="cash">Tunai / Cash</option>
-                <option value="other">Lainnya</option>
-              </select>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Saldo Awal (Rp)</label>
+              <div className="relative flex items-center bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl px-3 py-2 focus-within:ring-1 focus-within:ring-zinc-900 dark:focus-within:ring-white">
+                <span className="text-zinc-400 dark:text-zinc-500 font-bold mr-1.5 select-none">Rp</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={initialBalance ? Number(initialBalance.replace(/[^0-9]/g, '')).toLocaleString('id-ID') : ''}
+                  onChange={(e) => setInitialBalance(e.target.value.replace(/[^0-9]/g, ''))}
+                  className="w-full bg-transparent font-bold text-zinc-900 dark:text-white focus:outline-none tabular-nums touch-manipulation"
+                />
+              </div>
             </div>
 
             <div className="space-y-1">
@@ -193,24 +235,6 @@ export function AccountModal({ open, onOpenChange, account, onSuccess }: Account
                 className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
               />
             </div>
-          </div>
-
-          {type === 'savings' && (
-            <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-800/70 text-emerald-800 dark:text-emerald-300 text-[11px] font-medium leading-relaxed">
-              ✓ <strong>Dompet Tabungan:</strong> Saldo di dompet ini otomatis diakui sebagai <strong>Tabungan</strong> di menu Tabungan dan tidak dihitung ganda (tidak dobel) dengan Kekayaan Bersih maupun kas harian.
-            </div>
-          )}
-
-          <div className="space-y-1">
-            <label className="font-semibold text-zinc-700 dark:text-zinc-300">Saldo Awal (Rp)</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="0"
-              value={initialBalance}
-              onChange={(e) => setInitialBalance(e.target.value.replace(/[^0-9]/g, ''))}
-              className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl font-medium text-zinc-900 dark:text-white focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white tabular-nums touch-manipulation"
-            />
           </div>
 
           {/* Color & Icon Picker */}
