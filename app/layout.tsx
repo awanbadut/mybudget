@@ -18,6 +18,7 @@ import { MaintenanceBanner } from '@/components/MaintenanceBanner';
 import { SidebarProvider } from '@/components/SidebarProvider';
 import { AppMainContent } from '@/components/AppMainContent';
 import { Suspense } from 'react';
+import { headers } from 'next/headers';
 
 const fontMono = Spline_Sans_Mono({
   subsets: ['latin'],
@@ -77,21 +78,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     message: 'Kami sedang melakukan peningkatan performa dan pembaruan sistem. Mohon tunggu beberapa saat.',
     estimatedEndTime: '',
   };
+  let currentPath = '';
 
   try {
-    const [s, b, m] = await Promise.all([
+    const [s, b, m, h] = await Promise.all([
       getSession(),
       getActiveBroadcasts(),
       getMaintenanceStatus(),
+      headers(),
     ]);
     session = s;
     broadcastMessages = b;
     maintenance = m;
+    currentPath = h.get('x-pathname') || '';
   } catch {
     // Fallback
   }
 
   const isAdmin = session?.role === 'admin' || Boolean(session?.impersonatorAdminId);
+  const isAuthOrAdminRoute = currentPath.startsWith('/login') || currentPath.startsWith('/admin');
+  const shouldShowMaintenance = maintenance.isActive && !isAdmin && !isAuthOrAdminRoute;
 
   return (
     <html lang="id" className="w-full max-w-full overflow-x-hidden" suppressHydrationWarning>
@@ -126,7 +132,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           transition-colors duration-200
         `}
       >
-        {maintenance.isActive && !isAdmin ? (
+        {shouldShowMaintenance ? (
           <MaintenanceScreen
             title={maintenance.title}
             message={maintenance.message}

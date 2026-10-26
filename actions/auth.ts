@@ -8,6 +8,7 @@ import { eq } from 'drizzle-orm';
 import { hashPassword, comparePassword, signToken, getSession } from '@/lib/auth';
 import { safeRevalidate } from '@/lib/server-utils';
 import { ensureAccountsTable } from '@/actions/accounts';
+import { getMaintenanceStatus } from '@/actions/admin';
 
 export async function loginAction(formData: FormData) {
   const rawUsername = (formData.get('username') as string)?.trim();
@@ -36,11 +37,27 @@ export async function loginAction(formData: FormData) {
       return { error: 'Username atau password salah.' };
     }
 
+    const userRole = (user.role as 'user' | 'admin') || 'user';
+
+    // If maintenance window is active, only administrators may log in
+    if (userRole !== 'admin') {
+      try {
+        const maintenance = await getMaintenanceStatus();
+        if (maintenance.isActive) {
+          return {
+            error: 'Sistem sedang dalam masa pemeliharaan. Akses sementara dibatasi hanya untuk Administrator. Silakan coba beberapa saat lagi.',
+          };
+        }
+      } catch {
+        // Continue if check fails
+      }
+    }
+
     const token = await signToken({
       userId: user.id,
       username: user.username!,
       name: user.name,
-      role: (user.role as 'user' | 'admin') || 'user',
+      role: userRole,
     });
 
     const cookieStore = await cookies();
@@ -66,6 +83,17 @@ export async function logoutAction() {
 }
 
 export async function registerAction(formData: FormData) {
+  try {
+    const maintenance = await getMaintenanceStatus();
+    if (maintenance.isActive) {
+      return {
+        error: 'Sistem sedang dalam masa pemeliharaan. Pendaftaran akun baru ditutup sementara. Silakan coba kembali nanti.',
+      };
+    }
+  } catch {
+    // Continue if check fails
+  }
+
   const name = (formData.get('name') as string)?.trim();
   const rawUsername = (formData.get('username') as string)?.trim();
   const username = rawUsername?.toLowerCase();

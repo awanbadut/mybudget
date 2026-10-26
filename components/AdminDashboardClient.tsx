@@ -1048,6 +1048,30 @@ export function AdminDashboardClient({
                 className="w-full px-3 py-2 bg-stone-50 dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white text-xs outline-none focus:ring-1 focus:ring-amber-500"
               />
             </div>
+
+            {/* Live Preview Box */}
+            <div className="p-3 bg-stone-50 dark:bg-zinc-800/50 rounded-xl border border-dashed border-stone-300 dark:border-zinc-700 space-y-2">
+              <div className="flex items-center justify-between text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                <span>Pratinjau Tampilan Pengguna:</span>
+                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">Live Preview</span>
+              </div>
+              <div className="bg-white dark:bg-zinc-900 p-3 rounded-lg border border-stone-200/70 dark:border-zinc-800 text-center space-y-1.5 shadow-2xs">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center mx-auto shadow-xs">
+                  <Wrench className="w-4 h-4" />
+                </div>
+                <div className="font-bold text-xs text-zinc-900 dark:text-white leading-tight">
+                  {maintenanceTitle || 'Sistem Sedang Dalam Pemeliharaan'}
+                </div>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
+                  {maintenanceMsg || 'Kami sedang melakukan peningkatan performa dan pembaruan sistem.'}
+                </p>
+                {maintenanceEndTime && (
+                  <div className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold bg-amber-50 dark:bg-amber-950/40 py-1 px-2 rounded-md">
+                    Estimasi Selesai: {maintenanceEndTime}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           <DialogFooter className="pt-3 flex gap-2 sm:justify-end border-t border-stone-100 dark:border-zinc-800">
             <button

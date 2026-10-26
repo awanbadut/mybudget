@@ -1,17 +1,29 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useTransition, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Wrench, ShieldCheck } from 'lucide-react';
 import { loginAction } from '@/actions/auth';
+import { getMaintenanceStatus } from '@/actions/admin';
 import { Logo } from '@/components/Logo';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isAdminParam = searchParams.get('admin') === '1';
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [maintenance, setMaintenance] = useState<{ isActive: boolean; title: string; estimatedEndTime: string } | null>(null);
+
+  useEffect(() => {
+    getMaintenanceStatus()
+      .then((m) => {
+        if (m?.isActive) setMaintenance(m);
+      })
+      .catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -31,7 +43,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-[100dvh] bg-[#F8F8F8] dark:bg-[#0F0F0F] flex items-center justify-center p-5 font-sans transition-colors">
-      <div className="w-full max-w-sm space-y-8">
+      <div className="w-full max-w-sm space-y-6">
 
         {/* Brand */}
         <div className="text-center space-y-4">
@@ -40,13 +52,36 @@ export default function LoginPage() {
           </div>
           <div className="space-y-1.5">
             <h1 className="font-bold text-[1.6rem] text-zinc-900 dark:text-white tracking-tight">
-              Selamat Datang
+              {isAdminParam ? 'Login Administrator' : 'Selamat Datang'}
             </h1>
             <p className="text-[13.5px] text-zinc-400 dark:text-zinc-500">
-              Masuk untuk mengelola keuangan pribadimu
+              {isAdminParam 
+                ? 'Masuk ke konsol pengelolaan sistem My Budget' 
+                : 'Masuk untuk mengelola keuangan pribadimu'}
             </p>
           </div>
         </div>
+
+        {/* Maintenance Notice Banner if Active */}
+        {maintenance?.isActive && (
+          <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/80 rounded-2xl p-3.5 flex items-start gap-3 text-amber-900 dark:text-amber-200 text-xs shadow-2xs animate-in fade-in-50 duration-200">
+            <Wrench className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0 animate-spin" style={{ animationDuration: '6s' }} />
+            <div className="space-y-1">
+              <div className="font-bold flex items-center gap-1.5">
+                <span>Mode Pemeliharaan Aktif</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              </div>
+              <p className="text-amber-700 dark:text-amber-300/90 leading-relaxed text-[11.5px]">
+                Sistem sedang dalam peningkatan performa. Login saat ini <strong>khusus untuk akun Administrator</strong>.
+              </p>
+              {maintenance.estimatedEndTime && (
+                <div className="text-[11px] font-semibold text-amber-800 dark:text-amber-300 pt-0.5">
+                  Estimasi Selesai: {maintenance.estimatedEndTime}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Form card */}
         <div
@@ -69,7 +104,7 @@ export default function LoginPage() {
               <input
                 name="username"
                 type="text"
-                placeholder="Username Anda"
+                placeholder={isAdminParam ? 'admin' : 'Username Anda'}
                 required
                 autoComplete="username"
                 className="
@@ -125,7 +160,7 @@ export default function LoginPage() {
 
             {/* Error */}
             {error && (
-              <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 px-4 py-3 rounded-xl text-[13px] font-medium">
+              <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 px-4 py-3 rounded-xl text-[13px] font-medium leading-relaxed">
                 {error}
               </div>
             )}
@@ -149,19 +184,36 @@ export default function LoginPage() {
               "
             >
               {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-              <span>{isPending ? 'Memproses...' : 'Masuk'}</span>
+              <span>{isPending ? 'Memproses...' : (isAdminParam ? 'Masuk sebagai Admin' : 'Masuk')}</span>
             </button>
           </form>
 
           {/* Footer */}
           <div className="text-center text-[13px] text-zinc-400 dark:text-zinc-500 border-t border-zinc-100 dark:border-zinc-800 pt-4">
-            Belum punya akun?{' '}
-            <Link href="/register" className="font-semibold text-zinc-900 dark:text-white hover:underline">
-              Daftar
-            </Link>
+            {maintenance?.isActive ? (
+              <span className="text-xs text-amber-600 dark:text-amber-400 font-medium flex items-center justify-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                Registrasi umum dinonaktifkan sementara
+              </span>
+            ) : (
+              <>
+                Belum punya akun?{' '}
+                <Link href="/register" className="font-semibold text-zinc-900 dark:text-white hover:underline">
+                  Daftar
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F8F8F8] dark:bg-[#0F0F0F]" />}>
+      <LoginForm />
+    </Suspense>
   );
 }

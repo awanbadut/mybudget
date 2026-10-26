@@ -66,8 +66,8 @@ export function MaintenanceScreen({
           </button>
 
           <Link
-            href="/admin"
-            className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors pt-2"
+            href="/login?admin=1"
+            className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors pt-2 font-medium"
           >
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>Login Khusus Administrator</span>

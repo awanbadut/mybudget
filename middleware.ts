@@ -41,6 +41,9 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-pathname', pathname);
+
   // Rate limit login attempts
   if (pathname === '/login' && request.method === 'POST') {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
@@ -66,7 +69,11 @@ export async function middleware(request: NextRequest) {
       }
       return NextResponse.redirect(new URL('/', request.url));
     }
-    return NextResponse.next();
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
   }
 
   // Protect all other routes
@@ -90,7 +97,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }
 
 export const config = {
