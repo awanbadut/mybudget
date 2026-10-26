@@ -130,10 +130,14 @@ export function CycleHistoryRecap({
   // Total tabungan yang disetor / dialokasikan di siklus ini
   const cycleSavings = useMemo(() => {
     return transactions
-      .filter(t => 
-        (t.type === 'transfer' && (!t.toAccountId || t.category?.name === 'Tabungan' || t.name.startsWith('Setor Tabungan'))) ||
-        (t.category?.name === 'Tabungan' || t.name.startsWith('Setor Tabungan'))
-      )
+      .filter(t => {
+        const isAdjustment = t.name.startsWith('Penyesuaian Saldo') || (t.note || '').includes('Penyesuaian saldo');
+        if (isAdjustment) return false;
+        return (
+          (t.type === 'transfer' && (!t.toAccountId || t.category?.name === 'Tabungan' || t.name.startsWith('Setor Tabungan'))) ||
+          (t.category?.name === 'Tabungan' || t.name.startsWith('Setor Tabungan'))
+        );
+      })
       .reduce((sum, t) => sum + t.amount, 0);
   }, [transactions]);
 

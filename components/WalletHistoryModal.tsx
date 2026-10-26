@@ -121,15 +121,16 @@ export function WalletHistoryModal({
         tx.toAccount?.name || allAccounts.find(a => a.id === tx.toAccountId)?.name || 'Dompet';
 
       if (tx.type === 'transfer') {
-        const isSavings = !tx.toAccountId || tx.category?.name === 'Tabungan' || tx.name.startsWith('Setor Tabungan');
+        const isAdjustment = tx.name.startsWith('Penyesuaian Saldo') || (tx.note || '').includes('Penyesuaian saldo');
+        const isSavings = !isAdjustment && (!tx.toAccountId || tx.category?.name === 'Tabungan' || tx.name.startsWith('Setor Tabungan'));
         if (tx.accountId === account.id) {
           delta = -tx.amount;
           mutationType = 'out';
-          subtitle = isSavings ? 'Setor ke Tabungan' : `Keluar ke ${toAccName}`;
+          subtitle = isAdjustment ? 'Penyesuaian Saldo (Opname)' : isSavings ? 'Setor ke Tabungan' : `Keluar ke ${toAccName}`;
         } else if (tx.toAccountId === account.id) {
           delta = tx.amount;
           mutationType = 'in';
-          subtitle = `Masuk dari ${fromAccName}`;
+          subtitle = isAdjustment ? 'Penyesuaian Saldo (Opname)' : `Masuk dari ${fromAccName}`;
         }
       } else if (tx.type === 'income') {
         delta = tx.amount;
@@ -334,18 +335,12 @@ export function WalletHistoryModal({
                         if (diff === 0) return;
                         startTransition(async () => {
                           const isIncome = diff > 0;
-                          const matchedCat =
-                            categories.find(
-                              c =>
-                                c.type === (isIncome ? 'income' : 'expense') &&
-                                (c.name.toLowerCase().includes('lain') || c.name.toLowerCase().includes('umum'))
-                            ) || categories.find(c => c.type === (isIncome ? 'income' : 'expense'));
-
                           const res = await createTransaction({
-                            type: isIncome ? 'income' : 'expense',
+                            type: 'transfer',
                             name: `Penyesuaian Saldo: ${account.name}`,
-                            categoryId: matchedCat?.id || null,
-                            accountId: account.id,
+                            categoryId: null, // Murni opname catatan dompet, JANGAN bebani Pos Lainnya / anggaran
+                            accountId: isIncome ? null : account.id,
+                            toAccountId: isIncome ? account.id : null,
                             amount: Math.abs(diff),
                             transactionDate: toDateString(new Date()),
                             note: `Penyesuaian saldo dari ${formatCurrency(account.balance)} menjadi ${formatCurrency(targetBal)}`,
@@ -474,7 +469,8 @@ export function WalletHistoryModal({
               const isOut = item.delta < 0;
               const isTransfer = item.type === 'transfer';
 
-              const isSavings = item.subtitle === 'Setor ke Tabungan';
+              const isAdjustment = item.subtitle === 'Penyesuaian Saldo (Opname)' || item.name.startsWith('Penyesuaian Saldo');
+              const isSavings = !isAdjustment && item.subtitle === 'Setor ke Tabungan';
 
               return (
                 <div
@@ -485,14 +481,18 @@ export function WalletHistoryModal({
                     <div
                       className={cn(
                         'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5',
-                        isSavings
+                        isAdjustment
+                          ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400'
+                          : isSavings
                           ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
                           : isOut
                           ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400'
                           : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
                       )}
                     >
-                      {isSavings ? (
+                      {isAdjustment ? (
+                        <Scale className="w-4 h-4" />
+                      ) : isSavings ? (
                         <PiggyBank className="w-4 h-4" />
                       ) : isTransfer ? (
                         <ArrowLeftRight className="w-4 h-4" />

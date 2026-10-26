@@ -8,7 +8,7 @@ import { createTransaction, updateTransaction, deleteTransaction } from '@/actio
 import { transferBetweenAccounts, AccountWithBalance } from '@/actions/accounts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat, ArrowLeftRight, ArrowDownToLine, Lightbulb, Calculator, Sparkles, Building2, Coins, Smartphone, Wallet, X, Check, PiggyBank } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat, ArrowLeftRight, ArrowDownToLine, Lightbulb, Calculator, Sparkles, Building2, Coins, Smartphone, Wallet, X, Check, PiggyBank, Scale } from 'lucide-react';
 import { RecurringManager, RecurringItem } from '@/components/RecurringManager';
 import { TransferModal } from '@/components/TransferModal';
 import { CycleOption } from '@/components/CycleSelector';
@@ -559,14 +559,15 @@ export function TransactionListClient({
             .map(tx => {
             const isIncome = tx.type === 'income';
             const isTransfer = tx.type === 'transfer';
-            const isSavingsTransfer = (isTransfer || tx.type === 'expense') && (
+            const isAdjustment = tx.name.startsWith('Penyesuaian Saldo') || (tx.name.toLowerCase().includes('penyesuaian saldo'));
+            const isSavingsTransfer = !isAdjustment && ((isTransfer || tx.type === 'expense') && (
               tx.category?.name === 'Tabungan' ||
               tx.name.startsWith('Setor Tabungan') ||
               (tx.note && (tx.note.includes('[Tabungan]') || tx.note.includes('Sweeping Sisa Uang Siklus'))) ||
               (isTransfer && !tx.toAccountId)
-            );
+            ));
             const iconName = tx.category?.icon || 'MoreHorizontal';
-            const Icon = isSavingsTransfer ? PiggyBank : isTransfer ? ArrowLeftRight : (ICON_MAP[iconName] || MoreHorizontal);
+            const Icon = isAdjustment ? Scale : isSavingsTransfer ? PiggyBank : isTransfer ? ArrowLeftRight : (ICON_MAP[iconName] || MoreHorizontal);
             const accountName = tx.account?.name || (tx.accountId ? accounts.find(a => a.id === tx.accountId)?.name : null);
             const toAccountName = tx.toAccount?.name || (tx.toAccountId ? accounts.find(a => a.id === tx.toAccountId)?.name : null);
 
@@ -576,7 +577,9 @@ export function TransactionListClient({
                   <div
                     className={cn(
                       'w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0',
-                      isSavingsTransfer
+                      isAdjustment
+                        ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400'
+                        : isSavingsTransfer
                         ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
                         : isTransfer
                         ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
@@ -593,7 +596,12 @@ export function TransactionListClient({
                       {tx.name}
                     </p>
                     <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                      {isSavingsTransfer ? (
+                      {isAdjustment ? (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center gap-1">
+                          <Scale className="w-3 h-3" />
+                          Penyesuaian Saldo
+                        </span>
+                      ) : isSavingsTransfer ? (
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
                           <PiggyBank className="w-3 h-3" />
                           Setor Tabungan

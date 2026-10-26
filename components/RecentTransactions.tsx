@@ -4,7 +4,7 @@ import {
   House, ForkKnife, CreditCard, MusicNotes, Bag, Car,
   ShoppingCart, FileText, Heart, DotsThree, TrendUp, Money, Gift, Laptop, ArrowsLeftRight,
 } from '@phosphor-icons/react/dist/ssr';
-import { PiggyBank } from 'lucide-react';
+import { PiggyBank, Scale } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -62,10 +62,11 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
       {transactions.map((tx, index) => {
         const isIncome = tx.type === 'income';
         const isTransfer = tx.type === 'transfer';
-        const isSavingsTransfer = (isTransfer || tx.type === 'expense') && (
+        const isAdjustment = tx.name.startsWith('Penyesuaian Saldo') || (tx.name.toLowerCase().includes('penyesuaian saldo'));
+        const isSavingsTransfer = !isAdjustment && ((isTransfer || tx.type === 'expense') && (
           tx.category?.name === 'Tabungan' ||
           tx.name.startsWith('Setor Tabungan')
-        );
+        ));
         const iconName = tx.category?.icon || 'MoreHorizontal';
         const PhosphorIcon = isTransfer ? ArrowsLeftRight : (ICON_MAP[iconName] || DotsThree);
         const isLast = index === transactions.length - 1;
@@ -83,7 +84,9 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
             <div className="flex items-center gap-3 min-w-0">
               <div className={cn(
                 'w-9 h-9 rounded-[11px] flex items-center justify-center flex-shrink-0',
-                isSavingsTransfer
+                isAdjustment
+                  ? 'bg-amber-500 text-white'
+                  : isSavingsTransfer
                   ? 'bg-emerald-600 text-white'
                   : isTransfer
                   ? 'bg-blue-600 text-white'
@@ -91,7 +94,9 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                   ? 'bg-green-600 text-white'
                   : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300'
               )}>
-                {isSavingsTransfer ? (
+                {isAdjustment ? (
+                  <Scale className="w-4 h-4" />
+                ) : isSavingsTransfer ? (
                   <PiggyBank className="w-4 h-4" />
                 ) : (
                   <PhosphorIcon size={16} weight={isTransfer || isIncome ? 'bold' : 'regular'} />
@@ -104,9 +109,19 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className={cn(
                     'text-[11px] truncate',
-                    isSavingsTransfer ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-zinc-400 dark:text-zinc-500'
+                    isAdjustment
+                      ? 'text-amber-600 dark:text-amber-400 font-medium'
+                      : isSavingsTransfer
+                      ? 'text-emerald-600 dark:text-emerald-400 font-medium'
+                      : 'text-zinc-400 dark:text-zinc-500'
                   )}>
-                    {isSavingsTransfer ? 'Setor Tabungan' : isTransfer ? 'Transfer Antar Dompet' : (tx.category?.name || 'Umum')}
+                    {isAdjustment
+                      ? 'Penyesuaian Saldo'
+                      : isSavingsTransfer
+                      ? 'Setor Tabungan'
+                      : isTransfer
+                      ? 'Transfer Antar Dompet'
+                      : (tx.category?.name || 'Umum')}
                   </span>
                   <span className="text-zinc-300 dark:text-zinc-700 text-[9px] select-none">·</span>
                   <span className="text-[11px] text-zinc-400 dark:text-zinc-500 flex-shrink-0">

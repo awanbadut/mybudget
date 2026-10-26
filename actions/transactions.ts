@@ -14,7 +14,7 @@ export async function createTransaction(data: unknown) {
     const userId = await getUserId();
 
     let accountId = validated.accountId;
-    if (!accountId) {
+    if (!accountId && !validated.toAccountId) {
       const defaultAcc = await db.query.accounts.findFirst({
         where: (a, { eq: eqFn }) => eqFn(a.userId, userId),
         orderBy: (a, { desc, asc }) => [desc(a.isDefault), asc(a.name)],

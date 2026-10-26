@@ -122,6 +122,19 @@ export async function getAccounts(): Promise<{ success: boolean; data: AccountWi
       });
     }
 
+    // Auto-heal: Ensure any past Penyesuaian Saldo transactions are detached from Pos Lainnya and marked as transfer
+    try {
+      await db.execute(sql`
+        UPDATE transactions 
+        SET category_id = NULL, type = 'transfer' 
+        WHERE user_id = ${userId} 
+          AND (category_id IS NOT NULL OR type != 'transfer')
+          AND (name ILIKE '%penyesuaian%' OR note ILIKE '%penyesuaian%')
+      `);
+    } catch (e) {
+      console.error('Error auto-healing adjustment transactions:', e);
+    }
+
     // Fetch all user transactions to calculate accurate live balance strictly per account
     const allUserTx = await db.query.transactions.findMany({
       where: (t, { eq: eqFn }) => eqFn(t.userId, userId),

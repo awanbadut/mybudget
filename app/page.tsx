@@ -172,16 +172,9 @@ export default async function DashboardPage({
     ? Math.max(savingsWalletsBalance, goalsSavingsTotal)
     : goalsSavingsTotal;
 
-  // Portion of savings that was already deducted to external (toAccountId === null)
-  const externalDeductedSavings = allTransactions
-    .filter(t => t.type === 'transfer' && !t.toAccountId && t.accountId && (t.category?.name === 'Tabungan' || t.name.startsWith('Setor Tabungan')))
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const inWalletSavings = Math.max(0, totalSavings - externalDeductedSavings);
-
-  // Operational available cash (excludes savings balance that physically sits inside wallets)
+  // Operational available cash (never double counts: if savings sit inside bank wallets, it does not inflate assets)
   const realAvailableBalance = userAccounts.length > 0
-    ? (savingsWallets.length > 0 ? operationalWalletsBalance : Math.max(0, totalWalletsBalance - inWalletSavings))
+    ? (savingsWallets.length > 0 ? operationalWalletsBalance : Math.max(0, totalWalletsBalance - totalSavings))
     : (totalLifetimeIncome - totalLifetimeExpense);
 
   // 3. Transactions inside selected payroll cycle (e.g., 25 Sep - 24 Okt) & previous cycle for comparison
