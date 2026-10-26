@@ -146,8 +146,18 @@ export default async function DashboardPage({
     console.error('Error loading cycle budgets:', err);
   }
 
-  // 2. Real Available Balance across all user wallets / bank accounts
+  // 2. Separate operational wallets vs savings wallets (prevent double counting between Dompet & Menu Tabungan)
+  const savingsWallets = userAccounts.filter(
+    a => a.type === 'savings' || /tabungan|simpanan|celengan|saving/i.test(a.name)
+  );
+  const operationalWallets = userAccounts.filter(
+    a => !savingsWallets.some(s => s.id === a.id)
+  );
+
   const totalWalletsBalance = userAccounts.reduce((sum, a) => sum + (a.balance || 0), 0);
+  const operationalWalletsBalance = operationalWallets.reduce((sum, a) => sum + (a.balance || 0), 0);
+  const savingsWalletsBalance = savingsWallets.reduce((sum, a) => sum + Math.max(0, a.balance || 0), 0);
+
   const totalLifetimeIncome = allTransactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -156,8 +166,23 @@ export default async function DashboardPage({
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  // Total balance matches sum of all individual wallets (BCA, BNI, Cash, etc.)
-  const realAvailableBalance = userAccounts.length > 0 ? totalWalletsBalance : (totalLifetimeIncome - totalLifetimeExpense);
+  // 4. Total savings (synced between savings wallet and savings goals, never double counted)
+  const goalsSavingsTotal = savingsGoalsList.reduce((sum, g) => sum + (g.currentAmount || 0), 0);
+  const totalSavings = savingsWallets.length > 0
+    ? Math.max(savingsWalletsBalance, goalsSavingsTotal)
+    : goalsSavingsTotal;
+
+  // Portion of savings that was already deducted to external (toAccountId === null)
+  const externalDeductedSavings = allTransactions
+    .filter(t => t.type === 'transfer' && !t.toAccountId && t.accountId && (t.category?.name === 'Tabungan' || t.name.startsWith('Setor Tabungan')))
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const inWalletSavings = Math.max(0, totalSavings - externalDeductedSavings);
+
+  // Operational available cash (excludes savings balance that physically sits inside wallets)
+  const realAvailableBalance = userAccounts.length > 0
+    ? (savingsWallets.length > 0 ? operationalWalletsBalance : Math.max(0, totalWalletsBalance - inWalletSavings))
+    : (totalLifetimeIncome - totalLifetimeExpense);
 
   // 3. Transactions inside selected payroll cycle (e.g., 25 Sep - 24 Okt) & previous cycle for comparison
   const cycleTransactions = allTransactions.filter(
@@ -186,9 +211,6 @@ export default async function DashboardPage({
 
   const cycleNetFlow = cycleIncome - cycleExpense;
   const savingRate = calculateSavingRate(cycleIncome, cycleNetFlow);
-
-  // 4. Total savings across all goals
-  const totalSavings = savingsGoalsList.reduce((sum, g) => sum + (g.currentAmount || 0), 0);
 
   // 5. Effective income calculation
   // - Karyawan: pakai gaji dari settings (dengan prorata jika aktif)
@@ -461,17 +483,24 @@ export default async function DashboardPage({
               />
             </div>
 
-            {/* 2. Kalender Disiplin Harian & No-Spend Day Tracker */}
+            {/* 2. Kalender Disiplin Harian & Streak Sesuai Target */}
             <CycleCalendarHeatmap
               startDateStr={payrollCycle.startDateStr}
               endDateStr={payrollCycle.endDateStr}
               cycleLabel={payrollCycle.label}
               transactions={cycleTransactions}
-              dailyIdealBudget={
-                payrollCycle.totalDays > 0 && effectiveIncome > 0
-                  ? Math.round((effectiveIncome * 0.7) / payrollCycle.totalDays)
-                  : 100000
-              }
+              dailyIdealBudget={(() => {
+                const totalAllocatedBudget =
+                  budgetWithSpending.reduce((sum, b) => sum + b.amount, 0) +
+                  (!hasFoodInBudgets && foodBudgetTotal > 0 ? foodBudgetTotal : 0);
+                if (totalAllocatedBudget > 0 && payrollCycle.totalDays > 0) {
+                  return Math.round(totalAllocatedBudget / payrollCycle.totalDays);
+                }
+                if (payrollCycle.totalDays > 0 && effectiveIncome > 0) {
+                  return Math.round((effectiveIncome * 0.7) / payrollCycle.totalDays);
+                }
+                return 100000;
+              })()}
             />
 
             {/* 3. Kekayaan Bersih */}

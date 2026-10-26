@@ -260,3 +260,102 @@ h1, h2, h3, h4 {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ─── Animated Fire Streak Keyframes ─── */
+@keyframes flame-flicker {
+  0%, 100% {
+    transform: scaleY(1) scaleX(1) rotate(-1deg);
+  }
+  25% {
+    transform: scaleY(1.09) scaleX(0.94) rotate(2deg) skewX(-2deg);
+  }
+  50% {
+    transform: scaleY(0.95) scaleX(1.05) rotate(-2deg) skewX(2deg);
+  }
+  75% {
+    transform: scaleY(1.06) scaleX(0.97) rotate(1.5deg);
+  }
+}
+
+@keyframes flame-flicker-alt {
+  0%, 100% {
+    transform: scaleY(1) scaleX(1) rotate(1deg);
+  }
+  33% {
+    transform: scaleY(0.93) scaleX(1.06) rotate(-2.5deg) skewX(2deg);
+  }
+  66% {
+    transform: scaleY(1.10) scaleX(0.94) rotate(2deg) skewX(-2deg);
+  }
+}
+
+@keyframes flame-core-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.92;
+  }
+  50% {
+    transform: scale(1.12, 1.2);
+    opacity: 1;
+  }
+}
+
+@keyframes ember-rise-1 {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateY(-13px) translateX(-3px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+@keyframes ember-rise-2 {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-15px) translateX(4px) scale(0.15);
+    opacity: 0;
+  }
+}
+
+@keyframes flame-glow-pulse {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.12);
+  }
+}
+
+.animate-flame-outer {
+  transform-origin: 50% 88%;
+  animation: flame-flicker 1.3s ease-in-out infinite;
+}
+
+.animate-flame-mid {
+  transform-origin: 50% 88%;
+  animation: flame-flicker-alt 1.05s ease-in-out infinite;
+}
+
+.animate-flame-core {
+  transform-origin: 50% 90%;
+  animation: flame-core-pulse 0.85s ease-in-out infinite;
+}
+
+.animate-ember-1 {
+  animation: ember-rise-1 1.4s ease-out infinite;
+}
+
+.animate-ember-2 {
+  animation: ember-rise-2 1.7s ease-out 0.5s infinite;
+}
+
+.animate-flame-glow {
+  animation: flame-glow-pulse 1.6s ease-in-out infinite;
+}

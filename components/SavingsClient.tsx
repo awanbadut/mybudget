@@ -3,11 +3,11 @@
 import { useState, useTransition } from 'react';
 import { formatCurrency } from '@/lib/currency';
 import { formatDateShort, toDateString } from '@/lib/dates';
-import { createSavingsGoal, updateSavingsGoal, deleteSavingsGoal, addSavings, deleteSavingsTransaction } from '@/actions/savings';
+import { createSavingsGoal, updateSavingsGoal, deleteSavingsGoal, addSavings, deleteSavingsTransaction, syncSavingsWithWallet } from '@/actions/savings';
 import { AccountWithBalance } from '@/actions/accounts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Target, Plus, Pencil, Trash2, PiggyBank, ChevronDown, ChevronUp, Wallet } from 'lucide-react';
+import { Target, Plus, Pencil, Trash2, PiggyBank, ChevronDown, ChevronUp, Wallet, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { calculateProgress } from '@/lib/calculations';
 import { PaginationBar } from '@/components/PaginationBar';
 import { cn } from '@/lib/utils';
@@ -39,7 +39,10 @@ export function SavingsClient({
 }) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const defaultAccount = accounts.find(a => a.isDefault) || accounts[0];
+  const savingsWallet = accounts.find(a => a.type === 'savings' || /tabungan|simpanan|celengan|saving/i.test(a.name));
+  const operationalAccounts = accounts.filter(a => a.id !== savingsWallet?.id);
+  const defaultAccount = operationalAccounts.find(a => a.isDefault) || operationalAccounts[0] || accounts[0];
+  const totalGoalsSaved = goals.reduce((s, g) => s + (g.currentAmount || 0), 0);
 
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [editGoal, setEditGoal] = useState<SavingsGoal | null>(null);
@@ -150,6 +153,20 @@ export function SavingsClient({
     });
   }
 
+  function handleSyncWallet(accId: string) {
+    startTransition(async () => {
+      const res = await syncSavingsWithWallet(accId);
+      if (res.success) {
+        toast({
+          title: 'Dompet Tabungan Tersinkron! ✓',
+          description: `Saldo tabungan disamakan dengan dompet (${formatCurrency(res.syncedBalance || 0)}) tanpa dihitung dobel.`,
+        });
+      } else {
+        toast({ title: res.error || 'Gagal menyinkronkan dompet', variant: 'destructive' });
+      }
+    });
+  }
+
   return (
     <div className="space-y-6 font-sans">
       {/* Header */}
@@ -171,6 +188,76 @@ export function SavingsClient({
           <span>Buat Target Baru</span>
         </button>
       </div>
+
+      {/* Dompet Tempat Tabungan Sync Card (Anti Saldo Dobel) */}
+      {accounts.length > 0 && (
+        <div className="bg-emerald-50/70 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200/80 dark:border-emerald-800/60 p-4 sm:p-5 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Wallet className="w-4 h-4" />
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-bold text-xs sm:text-sm text-zinc-900 dark:text-white">
+                    {savingsWallet
+                      ? `Terhubung dengan Dompet Tabungan: ${savingsWallet.name}`
+                      : 'Pilih Dompet Tempat Menyimpan Tabungan'}
+                  </h3>
+                  {savingsWallet && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Anti Saldo Dobel Aktif</span>
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                  {savingsWallet
+                    ? `Saldo di dompet "${savingsWallet.name}" (${formatCurrency(savingsWallet.balance)}) diakui sebagai tabungan yang sama dengan menu ini, sehingga tidak dihitung ganda pada Kekayaan Bersih.`
+                    : 'Jika Anda menggunakan 1 dompet khusus untuk menyimpan tabungan, pilih dompet tersebut di bawah agar saldonya sinkron dan tidak terhitung dobel.'}
+                </p>
+              </div>
+            </div>
+
+            {savingsWallet && totalGoalsSaved !== savingsWallet.balance && (
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={() => handleSyncWallet(savingsWallet.id)}
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all flex-shrink-0"
+              >
+                <RefreshCw className={cn('w-3.5 h-3.5', isPending && 'animate-spin')} />
+                <span>Samakan Saldo ({formatCurrency(savingsWallet.balance)})</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-wrap pt-1">
+            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 mr-1">
+              Dompet Tabungan:
+            </span>
+            {accounts.map(acc => {
+              const isSelected = savingsWallet?.id === acc.id;
+              return (
+                <button
+                  key={acc.id}
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => handleSyncWallet(acc.id)}
+                  className={cn(
+                    'px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all touch-manipulation',
+                    isSelected
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                      : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-stone-200 dark:border-zinc-700 hover:border-emerald-400'
+                  )}
+                >
+                  {acc.name} ({formatCurrency(acc.balance)})
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {goals.length === 0 ? (
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2.5 transition-colors">

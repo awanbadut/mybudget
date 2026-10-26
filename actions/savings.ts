@@ -4,10 +4,12 @@ import { db } from '@/db';
 import { savingsGoals, savingsTransactions, transactions, categories, accounts } from '@/db/schema';
 import { SavingsGoalSchema, SavingsTransactionSchema } from '@/lib/validation';
 import { safeRevalidate, getUserId } from '@/lib/server-utils';
-import { ensureAccountsTable } from '@/actions/accounts';
+import { ensureAccountsTable, getAccounts } from '@/actions/accounts';
 import { eq, and, or, like, ne } from 'drizzle-orm';
 
 export async function ensureSavingsCategory(userId: string) {
+  await ensureAccountsTable();
+
   let savingsCat = await db.query.categories.findFirst({
     where: (c, { and: a, eq: e }) => a(e(c.userId, userId), e(c.name, 'Tabungan'), e(c.type, 'expense')),
   });
@@ -23,8 +25,24 @@ export async function ensureSavingsCategory(userId: string) {
     savingsCat = inserted;
   }
 
-  // Auto-repair: find any past savings transactions that were mistakenly linked to Kos or marked as expense
+  // Auto-detect any wallet named "Tabungan" / "Simpanan" / "Celengan" and mark its type as 'savings'
   try {
+    const userAccs = await db.query.accounts.findMany({
+      where: (a, { eq: e }) => e(a.userId, userId),
+    });
+
+    let savingsAcc = userAccs.find(a => a.type === 'savings');
+    if (!savingsAcc) {
+      const matched = userAccs.find(a => /tabungan|simpanan|celengan|saving/i.test(a.name));
+      if (matched) {
+        await db.update(accounts)
+          .set({ type: 'savings', icon: 'PiggyBank', color: '#10b981', updatedAt: new Date() })
+          .where(eq(accounts.id, matched.id));
+        savingsAcc = { ...matched, type: 'savings' };
+      }
+    }
+
+    // Auto-repair: find any past savings transactions that were mistakenly linked to Kos or marked as expense
     const brokenTxs = await db.query.transactions.findMany({
       where: (t, { and: a, eq: e, or: o, like: l }) => a(
         e(t.userId, userId),
@@ -38,16 +56,60 @@ export async function ensureSavingsCategory(userId: string) {
 
     if (brokenTxs.length > 0) {
       for (const bTx of brokenTxs) {
-        if (bTx.categoryId !== savingsCat.id || bTx.type !== 'transfer' || bTx.toAccountId !== null) {
+        // If user selected the savings wallet itself as source account, don't let it deduct from the savings wallet!
+        if (savingsAcc && bTx.accountId === savingsAcc.id && !bTx.toAccountId) {
           await db.update(transactions)
             .set({
               categoryId: savingsCat.id,
               type: 'transfer',
+              accountId: null,
               toAccountId: null,
               updatedAt: new Date(),
             })
             .where(eq(transactions.id, bTx.id));
+        } else {
+          const targetToAccId = savingsAcc && bTx.accountId && bTx.accountId !== savingsAcc.id
+            ? savingsAcc.id
+            : bTx.toAccountId;
+          if (bTx.categoryId !== savingsCat.id || bTx.type !== 'transfer' || bTx.toAccountId !== targetToAccId) {
+            await db.update(transactions)
+              .set({
+                categoryId: savingsCat.id,
+                type: 'transfer',
+                toAccountId: targetToAccId,
+                updatedAt: new Date(),
+              })
+              .where(eq(transactions.id, bTx.id));
+          }
         }
+      }
+    }
+
+    // If user has a dedicated savings wallet, keep single savings goal balance automatically in sync with live wallet balance
+    if (savingsAcc) {
+      const allTx = await db.query.transactions.findMany({
+        where: (t, { eq: e }) => e(t.userId, userId),
+      });
+      let liveSavingsBal = savingsAcc.initialBalance;
+      for (const tx of allTx) {
+        if (tx.accountId === savingsAcc.id) {
+          if (tx.type === 'income') liveSavingsBal += tx.amount;
+          else if (tx.type === 'expense' || tx.type === 'transfer') liveSavingsBal -= tx.amount;
+        }
+        if (tx.type === 'transfer' && tx.toAccountId === savingsAcc.id) {
+          liveSavingsBal += tx.amount;
+        }
+      }
+      liveSavingsBal = Math.max(0, liveSavingsBal);
+
+      const userGoals = await db.query.savingsGoals.findMany({
+        where: (g, { eq: e }) => e(g.userId, userId),
+      });
+
+      if (userGoals.length === 1 && userGoals[0].currentAmount !== liveSavingsBal && liveSavingsBal > 0) {
+        await db.update(savingsGoals)
+          .set({ currentAmount: liveSavingsBal, updatedAt: new Date() })
+          .where(eq(savingsGoals.id, userGoals[0].id));
       }
     }
   } catch (repairErr) {
@@ -135,15 +197,22 @@ export async function addSavings(data: unknown) {
 
     let linkedCashTxId: string | null = null;
 
-    // If deductFromCash is true, record matching asset transfer in cash ledger (transfer to savings, not an operational expense)
-    if (validated.deductFromCash) {
+    // Check if user has a dedicated savings wallet
+    const userAccs = await db.query.accounts.findMany({
+      where: (a, { eq: e }) => e(a.userId, userId),
+    });
+    const savingsAcc = userAccs.find(a => a.type === 'savings' || /tabungan|simpanan|celengan|saving/i.test(a.name));
+
+    // If deductFromCash is true, record matching asset transfer in cash ledger
+    // However, if the selected account IS the savings wallet itself, do not deduct from it (money is already in savings wallet)
+    if (validated.deductFromCash && (!savingsAcc || validated.accountId !== savingsAcc.id)) {
       const savingsCat = await ensureSavingsCategory(userId);
 
       const [cashTx] = await db.insert(transactions).values({
         userId,
         categoryId: savingsCat.id,
         accountId: validated.accountId || null,
-        toAccountId: null,
+        toAccountId: savingsAcc ? savingsAcc.id : null,
         type: 'transfer',
         name: `Setor Tabungan: ${goal.name}`,
         amount: validated.amount,
@@ -225,5 +294,75 @@ export async function deleteSavingsTransaction(id: string, goalId: string) {
   } catch (error) {
     console.error('deleteSavingsTransaction error:', error);
     return { success: false, error: 'Terjadi kesalahan. Silakan coba lagi.' };
+  }
+}
+
+export async function syncSavingsWithWallet(accountId: string) {
+  try {
+    await ensureAccountsTable();
+    const userId = await getUserId();
+
+    const targetAcc = await db.query.accounts.findFirst({
+      where: (a, { and: aFn, eq: eFn }) => aFn(eFn(a.id, accountId), eFn(a.userId, userId)),
+    });
+
+    if (!targetAcc) {
+      return { success: false, error: 'Dompet tidak ditemukan.' };
+    }
+
+    // Set this account as the dedicated savings wallet
+    await db.update(accounts)
+      .set({
+        type: 'savings',
+        icon: 'PiggyBank',
+        color: '#10b981',
+        updatedAt: new Date(),
+      })
+      .where(eq(accounts.id, accountId));
+
+    // Re-run repair so any self-deduction on this savings wallet is neutralized
+    await ensureSavingsCategory(userId);
+
+    // Get live balance of this savings wallet
+    const accsRes = await getAccounts();
+    const liveSavingsAcc = accsRes.data.find(a => a.id === accountId);
+    const walletBalance = Math.max(0, liveSavingsAcc?.balance || 0);
+
+    // Sync user's savings goals with this wallet's balance
+    const userGoals = await db.query.savingsGoals.findMany({
+      where: (g, { eq: eFn }) => eFn(g.userId, userId),
+    });
+
+    if (userGoals.length === 0) {
+      await db.insert(savingsGoals).values({
+        userId,
+        name: targetAcc.name || 'Tabungan Utama',
+        targetAmount: Math.max(10000000, walletBalance * 2 || 5000000),
+        currentAmount: walletBalance,
+      });
+    } else if (userGoals.length === 1) {
+      await db.update(savingsGoals)
+        .set({ currentAmount: walletBalance, updatedAt: new Date() })
+        .where(eq(savingsGoals.id, userGoals[0].id));
+    } else {
+      // Distribute or adjust the primary goal so total goals match the savings wallet balance
+      const otherGoalsSum = userGoals.slice(1).reduce((s, g) => s + (g.currentAmount || 0), 0);
+      const firstGoalAmount = Math.max(0, walletBalance - otherGoalsSum);
+      await db.update(savingsGoals)
+        .set({ currentAmount: firstGoalAmount, updatedAt: new Date() })
+        .where(eq(savingsGoals.id, userGoals[0].id));
+    }
+
+    safeRevalidate('/savings');
+    safeRevalidate('/');
+    safeRevalidate('/budget');
+    safeRevalidate('/transactions');
+    safeRevalidate('/reports');
+    safeRevalidate('/admin');
+
+    return { success: true, syncedBalance: walletBalance };
+  } catch (error) {
+    console.error('syncSavingsWithWallet error:', error);
+    return { success: false, error: 'Gagal menyinkronkan dompet tabungan.' };
   }
 }

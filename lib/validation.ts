@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const AccountSchema = z.object({
   name: z.string().min(1, 'Nama dompet harus diisi').max(255),
-  type: z.enum(['bank', 'ewallet', 'cash', 'other']).default('bank'),
+  type: z.enum(['bank', 'ewallet', 'cash', 'savings', 'other']).default('bank'),
   accountNumber: z.string().max(100).optional().nullable(),
   initialBalance: z.number().int().default(0),
   color: z.string().max(50).default('#2563eb'),
@@ -56,6 +56,7 @@ export const SavingsGoalSchema = z.object({
   targetAmount: z.number().int().positive(),
   currentAmount: z.number().int().min(0).optional(),
   deadline: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+  accountId: z.string().uuid().optional().nullable(),
 });
 
 export const SavingsTransactionSchema = z.object({

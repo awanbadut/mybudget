@@ -9,7 +9,7 @@ import { AccountModal } from '@/components/AccountModal';
 import { WalletHistoryModal, WalletTxItem } from '@/components/WalletHistoryModal';
 import { CycleOption } from '@/components/CycleSelector';
 import { useBalanceVisibility } from '@/context/BalanceVisibilityContext';
-import { Building2, Smartphone, Coins, Wallet, ArrowLeftRight, Plus, Pencil, Banknote, ArrowDownToLine, Eye, EyeOff, History } from 'lucide-react';
+import { Building2, Smartphone, Coins, Wallet, ArrowLeftRight, Plus, Pencil, Banknote, ArrowDownToLine, Eye, EyeOff, History, PiggyBank } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -17,6 +17,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Smartphone,
   Coins,
   Wallet,
+  PiggyBank,
 };
 
 interface WalletCardsProps {
@@ -47,6 +48,10 @@ export function WalletCards({
   const [showHistory, setShowHistory] = useState(false);
   const [historyAccount, setHistoryAccount] = useState<AccountWithBalance | null>(null);
 
+  const savingsAccounts = accounts.filter(a => a.type === 'savings' || /tabungan|simpanan|celengan|saving/i.test(a.name));
+  const operationalAccounts = accounts.filter(a => !savingsAccounts.some(s => s.id === a.id));
+  const operationalBalance = operationalAccounts.reduce((sum, a) => sum + a.balance, 0);
+  const savingsWalletsBalance = savingsAccounts.reduce((sum, a) => sum + a.balance, 0);
   const totalBalance = accounts.reduce((sum, a) => sum + a.balance, 0);
 
   function openWithdraw(accId?: string) {
@@ -84,9 +89,19 @@ export function WalletCards({
                 {accounts.length} Dompet
               </span>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-              <span>Total Saldo Semua Kas:</span>
-              <span className="font-semibold text-zinc-900 dark:text-white tabular-nums">{formatMasked(totalBalance)}</span>
+            <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 flex-wrap">
+              <span>Kas Operasional:</span>
+              <span className="font-semibold text-zinc-900 dark:text-white tabular-nums">
+                {formatMasked(savingsAccounts.length > 0 ? operationalBalance : totalBalance)}
+              </span>
+              {savingsAccounts.length > 0 && (
+                <>
+                  <span className="text-zinc-300 dark:text-zinc-600">·</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums">
+                    Tabungan: {formatMasked(savingsWalletsBalance)}
+                  </span>
+                </>
+              )}
               <button
                 type="button"
                 onClick={toggleBalance}
@@ -139,8 +154,9 @@ export function WalletCards({
       {/* Cards Carousel on Mobile / Grid on Tablet & Desktop */}
       <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1.5 -mx-4 px-4 no-scrollbar sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:mx-0 sm:px-0 sm:overflow-visible">
         {accounts.map((acc) => {
-          const Icon = ICON_MAP[acc.icon || 'Wallet'] || (acc.type === 'bank' ? Building2 : acc.type === 'ewallet' ? Smartphone : Coins);
-          const accentColor = acc.color || '#2563eb';
+          const isSavingsAcc = acc.type === 'savings' || /tabungan|simpanan|celengan|saving/i.test(acc.name);
+          const Icon = isSavingsAcc ? PiggyBank : (ICON_MAP[acc.icon || 'Wallet'] || (acc.type === 'bank' ? Building2 : acc.type === 'ewallet' ? Smartphone : Coins));
+          const accentColor = isSavingsAcc ? '#16a34a' : (acc.color || '#2563eb');
 
           return (
             <div
@@ -158,18 +174,23 @@ export function WalletCards({
                     <Icon className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="font-bold text-sm text-zinc-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         {acc.name}
                       </span>
+                      {isSavingsAcc && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                          Dompet Tabungan
+                        </span>
+                      )}
                       {acc.isDefault && (
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
                           Utama
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] text-zinc-400 dark:text-zinc-500 capitalize">
-                      {acc.type === 'bank' ? 'Bank Rekening' : acc.type === 'ewallet' ? 'E-Wallet' : acc.type === 'cash' ? 'Uang Tunai / Cash' : 'Lainnya'}
+                    <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
+                      {isSavingsAcc ? 'Tempat Tabungan (Sinkron Menu Tabungan)' : acc.type === 'bank' ? 'Bank Rekening' : acc.type === 'ewallet' ? 'E-Wallet' : acc.type === 'cash' ? 'Uang Tunai / Cash' : 'Lainnya'}
                       {acc.accountNumber ? ` · ${acc.accountNumber}` : ''}
                     </span>
                   </div>

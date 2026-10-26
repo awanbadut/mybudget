@@ -28,7 +28,7 @@ export function AccountModal({ open, onOpenChange, account, onSuccess }: Account
   const [isPending, startTransition] = useTransition();
 
   const [name, setName] = useState(account?.name || '');
-  const [type, setType] = useState<'bank' | 'ewallet' | 'cash' | 'other'>((account?.type as any) || 'bank');
+  const [type, setType] = useState<'bank' | 'ewallet' | 'cash' | 'savings' | 'other'>((account?.type as any) || 'bank');
   const [accountNumber, setAccountNumber] = useState(account?.accountNumber || '');
   const [initialBalance, setInitialBalance] = useState(account ? String(account.initialBalance) : '0');
   const [color, setColor] = useState(account?.color || '#2563eb');
@@ -159,7 +159,7 @@ export function AccountModal({ open, onOpenChange, account, onSuccess }: Account
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tipe</label>
+              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tipe Dompet</label>
               <select
                 value={type}
                 onChange={(e) => {
@@ -168,11 +168,15 @@ export function AccountModal({ open, onOpenChange, account, onSuccess }: Account
                   if (t === 'bank') setIcon('Building2');
                   else if (t === 'ewallet') setIcon('Smartphone');
                   else if (t === 'cash') setIcon('Coins');
-                  else setIcon('Wallet');
+                  else if (t === 'savings') {
+                    setIcon('PiggyBank');
+                    setColor('#16a34a');
+                  } else setIcon('Wallet');
                 }}
                 className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-stone-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-white font-medium focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white touch-manipulation"
               >
-                <option value="bank">Bank</option>
+                <option value="bank">Bank Operasional</option>
+                <option value="savings">Tabungan / Simpanan</option>
                 <option value="ewallet">E-Wallet</option>
                 <option value="cash">Tunai / Cash</option>
                 <option value="other">Lainnya</option>
@@ -190,6 +194,12 @@ export function AccountModal({ open, onOpenChange, account, onSuccess }: Account
               />
             </div>
           </div>
+
+          {type === 'savings' && (
+            <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-800/70 text-emerald-800 dark:text-emerald-300 text-[11px] font-medium leading-relaxed">
+              ✓ <strong>Dompet Tabungan:</strong> Saldo di dompet ini otomatis diakui sebagai <strong>Tabungan</strong> di menu Tabungan dan tidak dihitung ganda (tidak dobel) dengan Kekayaan Bersih maupun kas harian.
+            </div>
+          )}
 
           <div className="space-y-1">
             <label className="font-semibold text-zinc-700 dark:text-zinc-300">Saldo Awal (Rp)</label>

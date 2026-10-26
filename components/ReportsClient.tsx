@@ -231,22 +231,43 @@ export function ReportsClient({
     });
   }, [cycles, transactions, budgets, foodBudgetTotal, filterCategory, filterAccount]);
 
-  // Lifetime liquid balance
-  const lifetimeCashBalance = useMemo(() => {
-    if (accounts.length > 0) {
-      return accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
-    }
-    return transactions.reduce((sum, t) => {
-      if (t.type === 'income') return sum + t.amount;
-      if (t.type === 'expense') return sum - t.amount;
-      return sum;
-    }, 0);
-  }, [transactions, accounts]);
+  // Separate savings wallets vs operational wallets to prevent double-counting in Net Worth
+  const { lifetimeCashBalance, totalSavingsAmount } = useMemo(() => {
+    const savingsWallets = accounts.filter(
+      a => a.type === 'savings' || /tabungan|simpanan|celengan|saving/i.test(a.name)
+    );
+    const operationalWallets = accounts.filter(
+      a => !savingsWallets.some(s => s.id === a.id)
+    );
 
-  // Total savings across all goals
-  const totalSavingsAmount = useMemo(() => {
-    return savingsGoals.reduce((sum, g) => sum + (g.currentAmount || 0), 0);
-  }, [savingsGoals]);
+    const allWalletsBal = accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
+    const operationalBal = operationalWallets.reduce((sum, a) => sum + (a.balance || 0), 0);
+    const savingsWalletBal = savingsWallets.reduce((sum, a) => sum + Math.max(0, a.balance || 0), 0);
+    const goalsTotal = savingsGoals.reduce((sum, g) => sum + (g.currentAmount || 0), 0);
+
+    const syncedSavings = savingsWallets.length > 0
+      ? Math.max(savingsWalletBal, goalsTotal)
+      : goalsTotal;
+
+    const externalDeductedSavings = transactions
+      .filter(t => t.type === 'transfer' && !t.toAccountId && t.accountId && (t.category?.name === 'Tabungan' || t.name.startsWith('Setor Tabungan')))
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const inWalletSavings = Math.max(0, syncedSavings - externalDeductedSavings);
+
+    const cashBal = accounts.length > 0
+      ? (savingsWallets.length > 0 ? operationalBal : Math.max(0, allWalletsBal - inWalletSavings))
+      : transactions.reduce((sum, t) => {
+          if (t.type === 'income') return sum + t.amount;
+          if (t.type === 'expense') return sum - t.amount;
+          return sum;
+        }, 0);
+
+    return {
+      lifetimeCashBalance: cashBal,
+      totalSavingsAmount: syncedSavings,
+    };
+  }, [transactions, accounts, savingsGoals]);
 
   // Total pending debts
   const totalPendingDebtAmount = useMemo(() => {
