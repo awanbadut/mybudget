@@ -8,7 +8,7 @@ import { createTransaction, updateTransaction, deleteTransaction } from '@/actio
 import { transferBetweenAccounts, AccountWithBalance } from '@/actions/accounts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat, ArrowLeftRight, ArrowDownToLine, Lightbulb, Calculator, Sparkles, Building2, Coins, Smartphone, Wallet, X, Check, PiggyBank, Scale } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat, ArrowLeftRight, ArrowDownToLine, Lightbulb, Calculator, Sparkles, Building2, Coins, Smartphone, Wallet, X, Check, PiggyBank, Scale, ChevronDown } from 'lucide-react';
 import { RecurringManager, RecurringItem } from '@/components/RecurringManager';
 import { TransferModal } from '@/components/TransferModal';
 import { CycleOption } from '@/components/CycleSelector';
@@ -116,6 +116,8 @@ export function TransactionListClient({
   const [transferSubMode, setTransferSubMode] = useState<'withdraw' | 'deposit' | 'free'>('withdraw');
   const [formName, setFormName] = useState(initialName || '');
   const [formCategory, setFormCategory] = useState('');
+  const [showCategorySheet, setShowCategorySheet] = useState(false);
+  const [categorySearch, setCategorySearch] = useState('');
   const [formAccount, setFormAccount] = useState(defaultAccount?.id || '');
   const [formToAccount, setFormToAccount] = useState('');
   const [formAmount, setFormAmount] = useState(initialAmount || '');
@@ -214,6 +216,8 @@ export function TransactionListClient({
   function resetForm() {
     setFormName('');
     setFormCategory('');
+    setShowCategorySheet(false);
+    setCategorySearch('');
     setFormAccount(defaultAccount?.id || '');
     setFormToAccount('');
     setFormAmount('');
@@ -913,38 +917,134 @@ export function TransactionListClient({
                   </div>
                 )}
 
-                {/* Visual Category Selection */}
+                {/* Gojek-Style Category Dropdown Selector */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <label className="font-semibold text-zinc-700 dark:text-zinc-300">
                       Pos Belanja / Kategori
                     </label>
                     <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
-                      {filteredCategories.find(c => c.id === formCategory)?.name || 'Pilih salah satu'}
+                      {formCategory ? '1 dipilih' : 'Wajib dipilih'}
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1 overscroll-contain">
-                    {filteredCategories.map(cat => {
-                      const isSelected = formCategory === cat.id;
-                      const CatIcon = (cat.icon && ICON_MAP[cat.icon]) ? ICON_MAP[cat.icon] : MoreHorizontal;
-                      return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => setFormCategory(cat.id)}
-                          className={cn(
-                            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border touch-manipulation',
-                            isSelected
-                              ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-xs scale-[1.02]'
-                              : 'bg-stone-50 dark:bg-zinc-800/60 hover:bg-stone-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-stone-200/80 dark:border-zinc-700/60'
-                          )}
-                        >
-                          <CatIcon className={cn('w-3.5 h-3.5 flex-shrink-0', isSelected ? 'text-white dark:text-zinc-900' : 'text-zinc-500 dark:text-zinc-400')} />
-                          <span>{cat.name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+
+                  {/* Compact Gojek Trigger Pill */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHaptic('selection');
+                      setShowCategorySheet(true);
+                    }}
+                    className={cn(
+                      'w-full p-2.5 sm:p-3 rounded-2xl border flex items-center justify-between gap-3 text-left transition-all active:scale-[0.99] touch-manipulation',
+                      formCategory
+                        ? 'bg-stone-50/90 dark:bg-zinc-800/80 border-stone-300/80 dark:border-zinc-700 shadow-2xs'
+                        : 'bg-stone-50 dark:bg-zinc-800/50 border-dashed border-stone-300 dark:border-zinc-700 hover:border-zinc-400'
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={cn(
+                        'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors',
+                        formCategory
+                          ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs'
+                          : 'bg-stone-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400'
+                      )}>
+                        {(() => {
+                          const cat = filteredCategories.find(c => c.id === formCategory);
+                          const IconComp = (cat?.icon && ICON_MAP[cat.icon]) ? ICON_MAP[cat.icon] : MoreHorizontal;
+                          return <IconComp className="w-4 h-4" />;
+                        })()}
+                      </div>
+                      <div className="min-w-0">
+                        <div className={cn(
+                          'text-xs sm:text-sm font-bold truncate',
+                          formCategory ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400 font-medium'
+                        )}>
+                          {filteredCategories.find(c => c.id === formCategory)?.name || 'Pilih Pos Belanja / Kategori...'}
+                        </div>
+                        <div className="text-[10px] text-zinc-400 dark:text-zinc-500">
+                          {formCategory ? 'Ketuk untuk mengganti pos belanja' : 'Pilih pos anggaran untuk transaksi ini'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-700 text-xs font-semibold text-zinc-600 dark:text-zinc-300 shadow-2xs flex-shrink-0">
+                      <span className="hidden sm:inline">Pilih</span>
+                      <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+                    </div>
+                  </button>
+
+                  {/* Gojek-Style Bottom Sheet / Dialog */}
+                  <Dialog open={showCategorySheet} onOpenChange={setShowCategorySheet}>
+                    <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 p-0 overflow-hidden flex flex-col max-h-[82vh] rounded-3xl shadow-2xl">
+                      <DialogHeader className="px-5 pt-4 pb-3 border-b border-stone-100 dark:border-zinc-800">
+                        <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white flex items-center gap-2">
+                          <ShoppingBag className="w-4 h-4 text-emerald-500" />
+                          <span>Pilih Pos Belanja</span>
+                        </DialogTitle>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {formType === 'expense' ? 'Kategori pos pengeluaran anggaran' : 'Kategori sumber pemasukan'}
+                        </p>
+                        {/* Instant Search Bar */}
+                        <div className="pt-2 relative">
+                          <input
+                            type="text"
+                            placeholder="Cari nama pos belanja (makan, bensin, dll)..."
+                            value={categorySearch}
+                            onChange={e => setCategorySearch(e.target.value)}
+                            className="w-full pl-8 pr-3 py-2 bg-stone-100 dark:bg-zinc-800/80 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-xs text-zinc-900 dark:text-white outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white transition-all"
+                          />
+                          <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-[18px]" />
+                        </div>
+                      </DialogHeader>
+
+                      <div className="flex-1 overflow-y-auto p-3 space-y-1">
+                        {filteredCategories
+                          .filter(c => c.name.toLowerCase().includes(categorySearch.toLowerCase()))
+                          .map(cat => {
+                            const isSelected = formCategory === cat.id;
+                            const CatIcon = (cat.icon && ICON_MAP[cat.icon]) ? ICON_MAP[cat.icon] : MoreHorizontal;
+                            return (
+                              <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => {
+                                  triggerHaptic('selection');
+                                  setFormCategory(cat.id);
+                                  setShowCategorySheet(false);
+                                  setCategorySearch('');
+                                }}
+                                className={cn(
+                                  'w-full p-2.5 sm:p-3 rounded-2xl flex items-center justify-between transition-all active:scale-[0.99] touch-manipulation',
+                                  isSelected
+                                    ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-sm'
+                                    : 'hover:bg-stone-100 dark:hover:bg-zinc-800/70 text-zinc-800 dark:text-zinc-200'
+                                )}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className={cn(
+                                    'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors',
+                                    isSelected
+                                      ? 'bg-white/20 dark:bg-black/10 text-white dark:text-zinc-900'
+                                      : 'bg-stone-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                                  )}>
+                                    <CatIcon className="w-4 h-4" />
+                                  </div>
+                                  <span className="font-semibold text-xs sm:text-sm text-left">{cat.name}</span>
+                                </div>
+                                {isSelected && <Check className="w-4 h-4 flex-shrink-0" />}
+                              </button>
+                            );
+                          })}
+
+                        {filteredCategories.filter(c => c.name.toLowerCase().includes(categorySearch.toLowerCase())).length === 0 && (
+                          <div className="py-8 text-center text-zinc-400 text-xs">
+                            Tidak ada pos belanja &quot;{categorySearch}&quot;
+                          </div>
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
 
                 {/* Visual Wallet / Account Selection */}

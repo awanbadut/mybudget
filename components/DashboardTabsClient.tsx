@@ -34,7 +34,10 @@ export function DashboardTabsClient({
   return (
     <div className="space-y-4 w-full min-w-0">
       {/* Sticky App-Style 3-Tab Switcher (High Contrast & Tactile Floating UX) */}
-      <div className="sticky top-[calc(var(--broadcast-height,0px)+3.75rem)] md:top-2 z-30 bg-stone-100/90 dark:bg-zinc-900/90 backdrop-blur-xl p-1.5 rounded-2xl border border-stone-200/90 dark:border-zinc-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] grid grid-cols-3 gap-1.5 transition-all">
+      <div
+        style={{ top: 'var(--broadcast-height, 0px)' }}
+        className="sticky md:top-2 z-30 bg-stone-100/90 dark:bg-zinc-900/90 backdrop-blur-xl p-1.5 rounded-2xl border border-stone-200/90 dark:border-zinc-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] grid grid-cols-3 gap-1.5 transition-all"
+      >
         <button
           type="button"
           onClick={() => handleTabChange('summary')}
