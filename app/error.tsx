@@ -43,12 +43,25 @@ export default function Error({
           </div>
         )}
 
-        <div className="pt-2">
+        <div className="pt-2 flex flex-col sm:flex-row gap-2">
           <Button
-            onClick={() => reset()}
-            className="w-full gap-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-100 rounded-xl font-semibold text-xs sm:text-sm shadow-sm transition-all"
+            onClick={() => {
+              try {
+                reset();
+              } catch {
+                window.location.reload();
+              }
+            }}
+            className="flex-1 gap-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-100 rounded-xl font-semibold text-xs sm:text-sm shadow-sm transition-all"
           >
             <RefreshCw className="w-4 h-4" /> Coba Lagi
+          </Button>
+          <Button
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="flex-1 gap-2 rounded-xl font-semibold text-xs sm:text-sm border-zinc-200 dark:border-zinc-700"
+          >
+            Muat Ulang Halaman
           </Button>
         </div>
       </div>

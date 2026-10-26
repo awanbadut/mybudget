@@ -27,6 +27,8 @@ import { CycleCalendarHeatmap } from '@/components/CycleCalendarHeatmap';
 import { getAccounts } from '@/actions/accounts';
 import { postRecurringTransactions } from '@/actions/recurring';
 import { ensureSavingsCategory } from '@/actions/savings';
+import { withDbRetry } from '@/lib/db-resilience';
+import { DatabaseErrorRetry } from '@/components/DatabaseErrorRetry';
 import Link from 'next/link';
 import { Plus, ChevronRight, AlertTriangle, Calendar } from 'lucide-react';
 
@@ -66,64 +68,73 @@ export default async function DashboardPage({
   let fetchError: string | null = null;
 
   try {
-    await ensureSavingsCategory(DEV_USER_ID);
-    const data = await Promise.all([
-      db.query.settings.findFirst({
-        where: (s, { eq: eqFn }) => eqFn(s.userId, DEV_USER_ID),
-      }),
-      db.query.users.findFirst({
-        where: (u, { eq: eqFn }) => eqFn(u.id, DEV_USER_ID),
-      }),
-      db.query.transactions.findMany({
-        where: (t, { eq: eqFn }) => eqFn(t.userId, DEV_USER_ID),
-        with: { category: true, account: true, toAccount: true },
-        orderBy: (t, { desc }) => [desc(t.transactionDate), desc(t.createdAt)],
-      }),
-      db.query.categories.findMany({
-        where: (c, { eq: eqFn }) => eqFn(c.userId, DEV_USER_ID),
-      }),
-      db.query.savingsGoals.findMany({
-        where: (g, { eq: eqFn }) => eqFn(g.userId, DEV_USER_ID),
-        with: { transactions: true },
-      }),
-      db.query.debts.findMany({
-        where: (d, { and: andFn, eq: eqFn }) =>
-          andFn(eqFn(d.userId, DEV_USER_ID), eqFn(d.status, 'active')),
-        with: { installments: true },
-      }),
-      getAccounts(),
+    // Non-blocking initialization of savings category to prevent blocking SSR
+    ensureSavingsCategory(DEV_USER_ID).catch(err => {
+      console.warn('[DashboardPage] ensureSavingsCategory non-blocking notice:', err);
+    });
+
+    const [s, u, tx, cats, g, d, accRes] = await Promise.all([
+      withDbRetry(
+        () => db.query.settings.findFirst({
+          where: (s, { eq: eqFn }) => eqFn(s.userId, DEV_USER_ID),
+        }),
+        { retries: 2, fallback: null, tag: 'settings' }
+      ),
+      withDbRetry(
+        () => db.query.users.findFirst({
+          where: (u, { eq: eqFn }) => eqFn(u.id, DEV_USER_ID),
+        }),
+        { retries: 2, fallback: null, tag: 'users' }
+      ),
+      withDbRetry(
+        () => db.query.transactions.findMany({
+          where: (t, { eq: eqFn }) => eqFn(t.userId, DEV_USER_ID),
+          with: { category: true, account: true, toAccount: true },
+          orderBy: (t, { desc }) => [desc(t.transactionDate), desc(t.createdAt)],
+        }),
+        { retries: 2, fallback: [], tag: 'transactions' }
+      ),
+      withDbRetry(
+        () => db.query.categories.findMany({
+          where: (c, { eq: eqFn }) => eqFn(c.userId, DEV_USER_ID),
+        }),
+        { retries: 2, fallback: [], tag: 'categories' }
+      ),
+      withDbRetry(
+        () => db.query.savingsGoals.findMany({
+          where: (g, { eq: eqFn }) => eqFn(g.userId, DEV_USER_ID),
+          with: { transactions: true },
+        }),
+        { retries: 2, fallback: [], tag: 'savingsGoals' }
+      ),
+      withDbRetry(
+        () => db.query.debts.findMany({
+          where: (d, { and: andFn, eq: eqFn }) =>
+            andFn(eqFn(d.userId, DEV_USER_ID), eqFn(d.status, 'active')),
+          with: { installments: true },
+        }),
+        { retries: 2, fallback: [], tag: 'debts' }
+      ),
+      withDbRetry(
+        () => getAccounts(),
+        { retries: 2, fallback: { success: true, data: [] }, tag: 'accounts' }
+      ),
     ]);
-    const [s, u, tx, cats, g, d, accRes] = data;
+
     userSettings = s;
     user = u;
-    allTransactions = tx;
-    userCategories = cats;
-    savingsGoalsList = g;
-    activeDebts = d;
-    userAccounts = accRes.data || [];
+    allTransactions = tx || [];
+    userCategories = cats || [];
+    savingsGoalsList = g || [];
+    activeDebts = d || [];
+    userAccounts = accRes?.data || [];
   } catch (err: any) {
     console.error('Error fetching dashboard data:', err);
     fetchError = err?.message || String(err);
   }
 
-  if (fetchError) {
-    return (
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-rose-200 dark:border-rose-900/50 p-6 sm:p-8 max-w-lg mx-auto text-center space-y-4 my-8 shadow-sm w-full transition-colors">
-        <div className="w-12 h-12 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto border border-rose-100 dark:border-rose-900/30">
-          <AlertTriangle className="w-6 h-6" />
-        </div>
-        <h2 className="font-bold text-xl text-zinc-900 dark:text-white">Koneksi Database Gagal</h2>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          Server tidak dapat menghubungi database PostgreSQL:
-        </p>
-        <div className="bg-stone-50 dark:bg-zinc-800/80 border border-stone-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 p-3 rounded-xl text-xs font-mono text-left break-all">
-          {fetchError}
-        </div>
-        <p className="text-xs text-zinc-400 dark:text-zinc-500">
-          Pastikan DATABASE_URL sudah diatur di environment Vercel Anda.
-        </p>
-      </div>
-    );
+  if (fetchError && !user && allTransactions.length === 0) {
+    return <DatabaseErrorRetry error={fetchError} />;
   }
 
   // 1. User cycle configuration — otomatis pilih mode berdasarkan salary
@@ -146,7 +157,10 @@ export default async function DashboardPage({
   const targetBudgetMonth = payrollCycle.budgetMonth || currentMonth;
   const targetBudgetYear = payrollCycle.budgetYear || currentYear;
   try {
-    monthBudgets = await getOrInitializeBudgets(DEV_USER_ID, targetBudgetMonth, targetBudgetYear);
+    monthBudgets = await withDbRetry(
+      () => getOrInitializeBudgets(DEV_USER_ID, targetBudgetMonth, targetBudgetYear),
+      { retries: 2, fallback: [], tag: 'budgets' }
+    );
   } catch (err) {
     console.error('Error loading cycle budgets:', err);
   }
@@ -308,6 +322,9 @@ export default async function DashboardPage({
     return { label, amount: cumulativeSavings, monthly: monthSavings };
   });
 
+  const remainingDaysInCycle = Math.max(1, payrollCycle.daysRemaining);
+  const safeDailySpend = Math.max(0, Math.round(realAvailableBalance / remainingDaysInCycle));
+
   return (
     <div className="space-y-3.5 sm:space-y-5 w-full max-w-full min-w-0 overflow-x-hidden">
       {/* ═══════════ Compact Mobile-First Header ═══════════ */}
@@ -388,6 +405,8 @@ export default async function DashboardPage({
               cycleLabel={payrollCycle.label}
               isHistorical={payrollCycle.isHistorical}
               budgetRemainingTotal={totalBudgetRemaining}
+              safeDailySpend={safeDailySpend}
+              daysRemaining={payrollCycle.daysRemaining}
             />
 
             {/* 2. Dompet & Rekening (Horizontal Swipe Carousel di HP + Ketuk untuk Mutasi Saldo) */}

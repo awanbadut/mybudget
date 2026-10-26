@@ -4,7 +4,7 @@ import {
   House, ForkKnife, CreditCard, MusicNotes, Bag, Car,
   ShoppingCart, FileText, Heart, DotsThree, TrendUp, Money, Gift, Laptop, ArrowsLeftRight,
 } from '@phosphor-icons/react/dist/ssr';
-import { PiggyBank, Scale } from 'lucide-react';
+import { PiggyBank, Scale, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -45,13 +45,22 @@ interface RecentTransactionsProps {
 export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   if (transactions.length === 0) {
     return (
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-8 sm:p-10 text-center space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-colors">
-        <div className="w-11 h-11 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400 flex items-center justify-center mx-auto">
-          <DotsThree size={20} weight="bold" />
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-8 sm:p-10 text-center space-y-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-colors">
+        <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400 flex items-center justify-center mx-auto">
+          <DotsThree size={22} weight="bold" />
         </div>
-        <div>
-          <p className="font-semibold text-[14px] text-zinc-900 dark:text-white">Belum ada transaksi</p>
-          <p className="text-[12.5px] text-zinc-400 dark:text-zinc-500 mt-1">Mulai catat transaksi untuk melacak arus kas.</p>
+        <div className="space-y-1">
+          <p className="font-semibold text-[14px] text-zinc-900 dark:text-white">Belum ada transaksi di siklus ini</p>
+          <p className="text-[12.5px] text-zinc-400 dark:text-zinc-500">Mulai catat transaksi untuk memantau sisa uang & pos anggaran.</p>
+        </div>
+        <div className="pt-1">
+          <Link
+            href="/transactions?action=new"
+            className="inline-flex items-center gap-1.5 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all duration-200 active:scale-95"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Catat Transaksi Baru</span>
+          </Link>
         </div>
       </div>
     );

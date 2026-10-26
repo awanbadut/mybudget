@@ -72,6 +72,8 @@ export async function ensureAccountsTable() {
     tablesEnsured = true;
   } catch (error) {
     console.error('ensureAccountsTable error:', error);
+    // Prevent hammered repeated DDL attempts in the same process
+    tablesEnsured = true;
   }
 }
 

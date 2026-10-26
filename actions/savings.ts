@@ -15,118 +15,124 @@ export async function ensureSavingsCategory(userId: string) {
     return savingsCategoryCache[userId];
   }
 
-  await ensureAccountsTable();
-
-  let savingsCat = await db.query.categories.findFirst({
-    where: (c, { and: a, eq: e }) => a(e(c.userId, userId), e(c.name, 'Tabungan'), e(c.type, 'expense')),
-  });
-
-  if (!savingsCat) {
-    const [inserted] = await db.insert(categories).values({
-      userId,
-      name: 'Tabungan',
-      type: 'expense',
-      color: '#10b981',
-      icon: 'PiggyBank',
-    }).returning();
-    savingsCat = inserted;
-  }
-
-  savingsCategoryCache[userId] = savingsCat;
-  initializedUsers.add(userId);
-
-  // Auto-detect any wallet named "Tabungan" / "Simpanan" / "Celengan" and mark its type as 'savings'
   try {
-    const userAccs = await db.query.accounts.findMany({
-      where: (a, { eq: e }) => e(a.userId, userId),
+    await ensureAccountsTable();
+
+    let savingsCat = await db.query.categories.findFirst({
+      where: (c, { and: a, eq: e }) => a(e(c.userId, userId), e(c.name, 'Tabungan'), e(c.type, 'expense')),
     });
 
-    let savingsAcc = userAccs.find(a => a.type === 'savings');
-    if (!savingsAcc) {
-      const matched = userAccs.find(a => /tabungan|simpanan|celengan|saving/i.test(a.name));
-      if (matched) {
-        await db.update(accounts)
-          .set({ type: 'savings', icon: 'PiggyBank', color: '#10b981', updatedAt: new Date() })
-          .where(eq(accounts.id, matched.id));
-        savingsAcc = { ...matched, type: 'savings' };
-      }
+    if (!savingsCat) {
+      const [inserted] = await db.insert(categories).values({
+        userId,
+        name: 'Tabungan',
+        type: 'expense',
+        color: '#10b981',
+        icon: 'PiggyBank',
+      }).returning();
+      savingsCat = inserted;
     }
 
-    // Auto-repair: find any past savings transactions that were mistakenly linked to Kos or marked as expense
-    const brokenTxs = await db.query.transactions.findMany({
-      where: (t, { and: a, eq: e, or: o, like: l }) => a(
-        e(t.userId, userId),
-        o(
-          l(t.name, 'Setor Tabungan%'),
-          l(t.note, '%[Tabungan]%'),
-          l(t.note, '%Sweeping Sisa Uang Siklus%')
-        )
-      ),
-    });
+    if (savingsCat) {
+      savingsCategoryCache[userId] = savingsCat;
+      initializedUsers.add(userId);
+    }
 
-    if (brokenTxs.length > 0) {
-      for (const bTx of brokenTxs) {
-        // If user selected the savings wallet itself as source account, don't let it deduct from the savings wallet!
-        if (savingsAcc && bTx.accountId === savingsAcc.id && !bTx.toAccountId) {
-          await db.update(transactions)
-            .set({
-              categoryId: savingsCat.id,
-              type: 'transfer',
-              accountId: null,
-              toAccountId: null,
-              updatedAt: new Date(),
-            })
-            .where(eq(transactions.id, bTx.id));
-        } else {
-          const targetToAccId = savingsAcc && bTx.accountId && bTx.accountId !== savingsAcc.id
-            ? savingsAcc.id
-            : bTx.toAccountId;
-          if (bTx.categoryId !== savingsCat.id || bTx.type !== 'transfer' || bTx.toAccountId !== targetToAccId) {
+    // Auto-detect any wallet named "Tabungan" / "Simpanan" / "Celengan" and mark its type as 'savings'
+    try {
+      const userAccs = await db.query.accounts.findMany({
+        where: (a, { eq: e }) => e(a.userId, userId),
+      });
+
+      let savingsAcc = userAccs.find(a => a.type === 'savings');
+      if (!savingsAcc) {
+        const matched = userAccs.find(a => /tabungan|simpanan|celengan|saving/i.test(a.name));
+        if (matched) {
+          await db.update(accounts)
+            .set({ type: 'savings', icon: 'PiggyBank', color: '#10b981', updatedAt: new Date() })
+            .where(eq(accounts.id, matched.id));
+          savingsAcc = { ...matched, type: 'savings' };
+        }
+      }
+
+      // Auto-repair: find any past savings transactions that were mistakenly linked to Kos or marked as expense
+      const brokenTxs = await db.query.transactions.findMany({
+        where: (t, { and: a, eq: e, or: o, like: l }) => a(
+          e(t.userId, userId),
+          o(
+            l(t.name, 'Setor Tabungan%'),
+            l(t.note, '%[Tabungan]%'),
+            l(t.note, '%Sweeping Sisa Uang Siklus%')
+          )
+        ),
+      });
+
+      if (brokenTxs.length > 0) {
+        for (const bTx of brokenTxs) {
+          if (savingsAcc && bTx.accountId === savingsAcc.id && !bTx.toAccountId) {
             await db.update(transactions)
               .set({
                 categoryId: savingsCat.id,
                 type: 'transfer',
-                toAccountId: targetToAccId,
+                accountId: null,
+                toAccountId: null,
                 updatedAt: new Date(),
               })
               .where(eq(transactions.id, bTx.id));
+          } else {
+            const targetToAccId = savingsAcc && bTx.accountId && bTx.accountId !== savingsAcc.id
+              ? savingsAcc.id
+              : bTx.toAccountId;
+            if (bTx.categoryId !== savingsCat.id || bTx.type !== 'transfer' || bTx.toAccountId !== targetToAccId) {
+              await db.update(transactions)
+                .set({
+                  categoryId: savingsCat.id,
+                  type: 'transfer',
+                  toAccountId: targetToAccId,
+                  updatedAt: new Date(),
+                })
+                .where(eq(transactions.id, bTx.id));
+            }
           }
         }
       }
-    }
 
-    // If user has a dedicated savings wallet, keep single savings goal balance automatically in sync with live wallet balance
-    if (savingsAcc) {
-      const allTx = await db.query.transactions.findMany({
-        where: (t, { eq: e }) => e(t.userId, userId),
-      });
-      let liveSavingsBal = savingsAcc.initialBalance;
-      for (const tx of allTx) {
-        if (tx.accountId === savingsAcc.id) {
-          if (tx.type === 'income') liveSavingsBal += tx.amount;
-          else if (tx.type === 'expense' || tx.type === 'transfer') liveSavingsBal -= tx.amount;
+      // If user has a dedicated savings wallet, keep single savings goal balance automatically in sync with live wallet balance
+      if (savingsAcc) {
+        const allTx = await db.query.transactions.findMany({
+          where: (t, { eq: e }) => e(t.userId, userId),
+        });
+        let liveSavingsBal = savingsAcc.initialBalance;
+        for (const tx of allTx) {
+          if (tx.accountId === savingsAcc.id) {
+            if (tx.type === 'income') liveSavingsBal += tx.amount;
+            else if (tx.type === 'expense' || tx.type === 'transfer') liveSavingsBal -= tx.amount;
+          }
+          if (tx.type === 'transfer' && tx.toAccountId === savingsAcc.id) {
+            liveSavingsBal += tx.amount;
+          }
         }
-        if (tx.type === 'transfer' && tx.toAccountId === savingsAcc.id) {
-          liveSavingsBal += tx.amount;
+        liveSavingsBal = Math.max(0, liveSavingsBal);
+
+        const userGoals = await db.query.savingsGoals.findMany({
+          where: (g, { eq: e }) => e(g.userId, userId),
+        });
+
+        if (userGoals.length === 1 && userGoals[0].currentAmount !== liveSavingsBal && liveSavingsBal > 0) {
+          await db.update(savingsGoals)
+            .set({ currentAmount: liveSavingsBal, updatedAt: new Date() })
+            .where(eq(savingsGoals.id, userGoals[0].id));
         }
       }
-      liveSavingsBal = Math.max(0, liveSavingsBal);
-
-      const userGoals = await db.query.savingsGoals.findMany({
-        where: (g, { eq: e }) => e(g.userId, userId),
-      });
-
-      if (userGoals.length === 1 && userGoals[0].currentAmount !== liveSavingsBal && liveSavingsBal > 0) {
-        await db.update(savingsGoals)
-          .set({ currentAmount: liveSavingsBal, updatedAt: new Date() })
-          .where(eq(savingsGoals.id, userGoals[0].id));
-      }
+    } catch (repairErr) {
+      console.warn('Auto-repair savings transactions note:', repairErr);
     }
-  } catch (repairErr) {
-    console.warn('Auto-repair savings transactions note:', repairErr);
+
+    return savingsCat;
+  } catch (err) {
+    console.warn('[ensureSavingsCategory] Non-fatal error during init:', err);
+    return null;
   }
-
-  return savingsCat;
 }
 
 export async function repairSavingsCategoryAction() {

@@ -11,6 +11,8 @@ import {
   PiggyBank,
   TrendUp,
 } from '@phosphor-icons/react';
+import { Sparkles, ShieldCheck } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface DashboardSummaryProps {
   balance: number;
@@ -22,6 +24,8 @@ interface DashboardSummaryProps {
   cycleLabel?: string;
   isHistorical?: boolean;
   budgetRemainingTotal?: number;
+  safeDailySpend?: number;
+  daysRemaining?: number;
 }
 
 export function DashboardSummary({
@@ -34,6 +38,8 @@ export function DashboardSummary({
   cycleLabel,
   isHistorical = false,
   budgetRemainingTotal = 0,
+  safeDailySpend,
+  daysRemaining,
 }: DashboardSummaryProps) {
   const { showBalance: showAmount, toggleBalance } = useBalanceVisibility();
 
@@ -101,6 +107,42 @@ export function DashboardSummary({
               ? 'Total kas bersih yang tersedia di dompet & rekening saat ini'
               : 'Pengeluaran melebihi pemasukan tercatat'}
           </p>
+
+          {/* Safe-to-spend today guidance for active cycle */}
+          {!isHistorical && safeDailySpend !== undefined && (
+            <div className="mt-4 pt-3.5 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className={cn(
+                  'w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0',
+                  safeDailySpend > 0
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                )}>
+                  {safeDailySpend > 0 ? (
+                    <Sparkles className="w-3.5 h-3.5" />
+                  ) : (
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[11.5px] font-medium text-zinc-500 dark:text-zinc-400">
+                      Aman Belanja Hari Ini:
+                    </span>
+                    <span className="font-bold text-[13.5px] text-zinc-900 dark:text-white tabular-nums">
+                      {display(safeDailySpend)}
+                      <span className="text-[11px] font-normal text-zinc-400 dark:text-zinc-500"> / hari</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              {daysRemaining !== undefined && (
+                <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 rounded-lg border border-zinc-200/60 dark:border-zinc-700/60">
+                  Sisa {daysRemaining} hari siklus
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 4-metric strip — solid icon backgrounds */}
