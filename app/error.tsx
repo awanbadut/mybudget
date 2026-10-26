@@ -64,7 +64,19 @@ export default function Error({
             <RefreshCw className="w-4 h-4" /> Coba Lagi
           </Button>
           <Button
-            onClick={() => window.location.reload()}
+            onClick={async () => {
+              try {
+                if ('caches' in window) {
+                  const keys = await caches.keys();
+                  await Promise.all(keys.map(k => caches.delete(k)));
+                }
+                if ('serviceWorker' in navigator) {
+                  const regs = await navigator.serviceWorker.getRegistrations();
+                  await Promise.all(regs.map(r => r.unregister()));
+                }
+              } catch (_) {}
+              window.location.reload();
+            }}
             variant="outline"
             className="flex-1 gap-2 rounded-xl font-semibold text-xs sm:text-sm border-zinc-200 dark:border-zinc-700"
           >
