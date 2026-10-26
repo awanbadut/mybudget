@@ -141,10 +141,17 @@ export async function toggleRecurringActive(id: string, currentState: boolean) {
   }
 }
 
+let lastCheckedCycleUser = new Set<string>();
+
 export async function postRecurringTransactions(month: number, year: number) {
   try {
-    await ensureTable();
     const userId = await getUserId();
+    const cycleKey = `${userId}-${month}-${year}`;
+    if (lastCheckedCycleUser.has(cycleKey)) {
+      return { success: true, count: 0 };
+    }
+
+    await ensureTable();
 
     const activeList = await db.query.recurringTransactions.findMany({
       where: (r, { and: a, eq: e }) => a(e(r.userId, userId), e(r.isActive, true)),
@@ -154,6 +161,8 @@ export async function postRecurringTransactions(month: number, year: number) {
     const dueItems = activeList.filter(
       r => r.lastPostedMonth !== month || r.lastPostedYear !== year
     );
+
+    lastCheckedCycleUser.add(cycleKey);
 
     if (dueItems.length === 0) {
       return { success: true, count: 0, message: 'Semua transaksi berulang sudah diposting untuk bulan ini.' };

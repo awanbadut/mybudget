@@ -91,6 +91,8 @@ export interface AccountWithBalance {
   updatedAt: Date;
 }
 
+const healedUsers = new Set<string>();
+
 export async function getAccounts(): Promise<{ success: boolean; data: AccountWithBalance[] }> {
   try {
     await ensureAccountsTable();
@@ -122,22 +124,32 @@ export async function getAccounts(): Promise<{ success: boolean; data: AccountWi
       });
     }
 
-    // Auto-heal: Ensure any past Penyesuaian Saldo transactions are detached from Pos Lainnya and marked as transfer
-    try {
-      await db.execute(sql`
-        UPDATE transactions 
-        SET category_id = NULL, type = 'transfer' 
-        WHERE user_id = ${userId} 
-          AND (category_id IS NOT NULL OR type != 'transfer')
-          AND (name ILIKE '%penyesuaian%' OR note ILIKE '%penyesuaian%')
-      `);
-    } catch (e) {
-      console.error('Error auto-healing adjustment transactions:', e);
+    // Auto-heal: Ensure any past Penyesuaian Saldo transactions are detached from Pos Lainnya (run once per user session)
+    if (!healedUsers.has(userId)) {
+      try {
+        await db.execute(sql`
+          UPDATE transactions 
+          SET category_id = NULL, type = 'transfer' 
+          WHERE user_id = ${userId} 
+            AND (category_id IS NOT NULL OR type != 'transfer')
+            AND (name ILIKE '%penyesuaian%' OR note ILIKE '%penyesuaian%')
+        `);
+        healedUsers.add(userId);
+      } catch (e) {
+        console.error('Error auto-healing adjustment transactions:', e);
+      }
     }
 
-    // Fetch all user transactions to calculate accurate live balance strictly per account
+    // Fetch minimal transaction columns needed strictly for account balance calculations
     const allUserTx = await db.query.transactions.findMany({
       where: (t, { eq: eqFn }) => eqFn(t.userId, userId),
+      columns: {
+        id: true,
+        amount: true,
+        type: true,
+        accountId: true,
+        toAccountId: true,
+      },
     });
 
     const result: AccountWithBalance[] = userAccounts.map((acc) => {

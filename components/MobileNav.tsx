@@ -195,6 +195,7 @@ export function MobileNav() {
                   <Link
                     key={item.href}
                     href={item.href}
+                    prefetch={true}
                     onClick={() => setMenuOpen(false)}
                     className={cn(
                       'flex items-center justify-between gap-3 p-3 rounded-2xl border transition-all active:scale-[0.99] touch-manipulation',
@@ -261,6 +262,7 @@ function NavItem({
   return (
     <Link
       href={href}
+      prefetch={true}
       className={cn(
         'flex-1 flex flex-col items-center justify-center py-1.5 gap-0.5 transition-all active:scale-95 touch-manipulation rounded-xl',
         isActive

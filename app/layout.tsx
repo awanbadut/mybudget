@@ -9,6 +9,8 @@ import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar';
 import { InstallPWA } from '@/components/InstallPWA';
 import { MobileTopHeader } from '@/components/MobileTopHeader';
 import { BalanceVisibilityProvider } from '@/context/BalanceVisibilityContext';
+import { NavigationProgress } from '@/components/NavigationProgress';
+import { Suspense } from 'react';
 
 const fontMono = Spline_Sans_Mono({
   subsets: ['latin'],
@@ -101,6 +103,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         `}
       >
         <BalanceVisibilityProvider>
+          <Suspense fallback={null}>
+            <NavigationProgress />
+          </Suspense>
           <div className="flex min-h-[100dvh] w-full max-w-full overflow-x-hidden">
             {/* Desktop Sidebar */}
             {session && (

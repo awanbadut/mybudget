@@ -18,9 +18,7 @@ export default async function TransactionsPage({
 }) {
   const params = await searchParams;
   const userId = await getUserId();
-  await ensureSavingsCategory(userId);
   const { month: currentMonth, year: currentYear } = getCurrentMonth();
-
   const [allCategories, allTransactions, recurringRes, accountsRes, userSettings] = await Promise.all([
     db.query.categories.findMany({
       where: (c, { eq: eqFn }) => eqFn(c.userId, userId),
@@ -40,6 +38,7 @@ export default async function TransactionsPage({
     db.query.settings.findFirst({
       where: (s, { eq: eqFn }) => eqFn(s.userId, userId),
     }),
+    ensureSavingsCategory(userId),
   ]);
 
   const salary = userSettings?.salary || 0;

@@ -40,12 +40,10 @@ export default async function DashboardPage({
   const DEV_USER_ID = await getUserId();
   const { month: currentMonth, year: currentYear } = getCurrentMonth();
 
-  // Auto-post due recurring transactions for the current cycle
-  try {
-    await postRecurringTransactions(currentMonth, currentYear);
-  } catch (err) {
+  // Auto-post due recurring transactions asynchronously without blocking critical path
+  postRecurringTransactions(currentMonth, currentYear).catch(err => {
     console.error('Auto post recurring error:', err);
-  }
+  });
 
   type UserSettingsType = typeof import('@/db/schema').settings.$inferSelect;
   type UserType = typeof import('@/db/schema').users.$inferSelect;

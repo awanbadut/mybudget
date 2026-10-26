@@ -7,7 +7,14 @@ import { safeRevalidate, getUserId } from '@/lib/server-utils';
 import { ensureAccountsTable, getAccounts } from '@/actions/accounts';
 import { eq, and, or, like, ne } from 'drizzle-orm';
 
+let savingsCategoryCache: Record<string, any> = {};
+const initializedUsers = new Set<string>();
+
 export async function ensureSavingsCategory(userId: string) {
+  if (initializedUsers.has(userId) && savingsCategoryCache[userId]) {
+    return savingsCategoryCache[userId];
+  }
+
   await ensureAccountsTable();
 
   let savingsCat = await db.query.categories.findFirst({
@@ -24,6 +31,9 @@ export async function ensureSavingsCategory(userId: string) {
     }).returning();
     savingsCat = inserted;
   }
+
+  savingsCategoryCache[userId] = savingsCat;
+  initializedUsers.add(userId);
 
   // Auto-detect any wallet named "Tabungan" / "Simpanan" / "Celengan" and mark its type as 'savings'
   try {
