@@ -24,6 +24,7 @@ import { DashboardTabsClient } from '@/components/DashboardTabsClient';
 import { CycleCalendarHeatmap } from '@/components/CycleCalendarHeatmap';
 import { getAccounts } from '@/actions/accounts';
 import { postRecurringTransactions } from '@/actions/recurring';
+import { ensureSavingsCategory } from '@/actions/savings';
 import Link from 'next/link';
 import { Plus, ChevronRight, AlertTriangle, Calendar } from 'lucide-react';
 
@@ -60,6 +61,7 @@ export default async function DashboardPage({
   let fetchError: string | null = null;
 
   try {
+    await ensureSavingsCategory(DEV_USER_ID);
     const data = await Promise.all([
       db.query.settings.findFirst({
         where: (s, { eq: eqFn }) => eqFn(s.userId, DEV_USER_ID),

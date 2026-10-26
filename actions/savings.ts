@@ -5,7 +5,68 @@ import { savingsGoals, savingsTransactions, transactions, categories, accounts }
 import { SavingsGoalSchema, SavingsTransactionSchema } from '@/lib/validation';
 import { safeRevalidate, getUserId } from '@/lib/server-utils';
 import { ensureAccountsTable } from '@/actions/accounts';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or, like, ne } from 'drizzle-orm';
+
+export async function ensureSavingsCategory(userId: string) {
+  let savingsCat = await db.query.categories.findFirst({
+    where: (c, { and: a, eq: e }) => a(e(c.userId, userId), e(c.name, 'Tabungan'), e(c.type, 'expense')),
+  });
+
+  if (!savingsCat) {
+    const [inserted] = await db.insert(categories).values({
+      userId,
+      name: 'Tabungan',
+      type: 'expense',
+      color: '#10b981',
+      icon: 'PiggyBank',
+    }).returning();
+    savingsCat = inserted;
+  }
+
+  // Auto-repair: find any past savings transactions that were mistakenly linked to Kos or another category
+  try {
+    const brokenTxs = await db.query.transactions.findMany({
+      where: (t, { and: a, eq: e, or: o, like: l, ne: n }) => a(
+        e(t.userId, userId),
+        o(
+          l(t.name, 'Setor Tabungan%'),
+          l(t.note, '%[Tabungan]%'),
+          l(t.note, '%Sweeping Sisa Uang Siklus%')
+        ),
+        n(t.categoryId, savingsCat.id)
+      ),
+    });
+
+    if (brokenTxs.length > 0) {
+      for (const bTx of brokenTxs) {
+        await db.update(transactions)
+          .set({ categoryId: savingsCat.id, updatedAt: new Date() })
+          .where(eq(transactions.id, bTx.id));
+      }
+    }
+  } catch (repairErr) {
+    console.warn('Auto-repair savings transactions note:', repairErr);
+  }
+
+  return savingsCat;
+}
+
+export async function repairSavingsCategoryAction() {
+  try {
+    const userId = await getUserId();
+    const cat = await ensureSavingsCategory(userId);
+    safeRevalidate('/budget');
+    safeRevalidate('/');
+    safeRevalidate('/savings');
+    safeRevalidate('/transactions');
+    safeRevalidate('/reports');
+    safeRevalidate('/admin');
+    return { success: true, categoryId: cat.id };
+  } catch (err) {
+    console.error('repairSavingsCategoryAction error:', err);
+    return { success: false, error: 'Gagal memperbaiki kategori tabungan.' };
+  }
+}
 
 export async function createSavingsGoal(data: unknown) {
   try {
@@ -70,19 +131,11 @@ export async function addSavings(data: unknown) {
 
     // If deductFromCash is true, record matching expense in cash ledger
     if (validated.deductFromCash) {
-      // Find category for tabungan
-      let savingsCat = await db.query.categories.findFirst({
-        where: (c, { and: a, eq: e }) => a(e(c.userId, userId), e(c.name, 'Tabungan'), e(c.type, 'expense')),
-      });
-      if (!savingsCat) {
-        savingsCat = await db.query.categories.findFirst({
-          where: (c, { and: a, eq: e }) => a(e(c.userId, userId), e(c.type, 'expense')),
-        });
-      }
+      const savingsCat = await ensureSavingsCategory(userId);
 
       const [cashTx] = await db.insert(transactions).values({
         userId,
-        categoryId: savingsCat?.id || null,
+        categoryId: savingsCat.id,
         accountId: validated.accountId || null,
         type: 'expense',
         name: `Setor Tabungan: ${goal.name}`,
@@ -113,6 +166,7 @@ export async function addSavings(data: unknown) {
     
     safeRevalidate('/savings');
     safeRevalidate('/');
+    safeRevalidate('/budget');
     safeRevalidate('/transactions');
     safeRevalidate('/reports');
     safeRevalidate('/admin');

@@ -5,6 +5,7 @@ import { BudgetClient } from '@/components/BudgetClient';
 import { getCurrentMonth, getCycleByOffset, getRecentCycles } from '@/lib/dates';
 import { getOrInitializeBudgets } from '@/lib/budget-utils';
 import { getUserId } from '@/lib/auth';
+import { ensureSavingsCategory } from '@/actions/savings';
 
 export default async function BudgetPage({
   searchParams,
@@ -16,6 +17,8 @@ export default async function BudgetPage({
   const cycleOffset = Number.isNaN(rawOffset) ? 0 : Math.min(0, rawOffset);
 
   const DEV_USER_ID = await getUserId();
+  // Auto-heal: ensure Tabungan category exists and any past Setor Tabungan transactions are not linked to Kos
+  await ensureSavingsCategory(DEV_USER_ID);
   const { month: currentMonth, year: currentYear } = getCurrentMonth();
 
   const userSettings = await db.query.settings.findFirst({

@@ -72,6 +72,7 @@ async function seed() {
     { name: 'Kos', color: '#6366f1', icon: 'Home' },
     { name: 'Makan', color: '#f59e0b', icon: 'UtensilsCrossed' },
     { name: 'Utang', color: '#ef4444', icon: 'CreditCard' },
+    { name: 'Tabungan', color: '#10b981', icon: 'PiggyBank' },
     { name: 'Hiburan', color: '#ec4899', icon: 'Music' },
     { name: 'Toiletries', color: '#8b5cf6', icon: 'ShoppingBag' },
     { name: 'Transport', color: '#06b6d4', icon: 'Car' },
