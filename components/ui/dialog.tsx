@@ -35,7 +35,7 @@ const DialogContent = React.forwardRef<
       className={cn(
         // Mobile bottom sheet / Desktop centered modal
         'fixed z-50 grid w-full gap-4 bg-background p-6 shadow-2xl duration-200',
-        'bottom-0 left-0 right-0 rounded-t-3xl max-h-[92vh] overflow-y-auto',
+        'bottom-0 left-0 right-0 rounded-t-3xl max-h-[92vh] overflow-y-auto overflow-x-hidden',
         'sm:bottom-auto sm:left-[50%] sm:top-[50%] sm:max-w-lg sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-3xl',
         'data-[state=open]:animate-in data-[state=closed]:animate-out',
         'data-[state=closed]:slide-out-to-bottom sm:data-[state=closed]:slide-out-to-left-1/2 sm:data-[state=closed]:slide-out-to-top-[48%]',

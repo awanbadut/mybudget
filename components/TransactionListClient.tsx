@@ -8,7 +8,7 @@ import { createTransaction, updateTransaction, deleteTransaction } from '@/actio
 import { transferBetweenAccounts, AccountWithBalance } from '@/actions/accounts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat, ArrowLeftRight, ArrowDownToLine, Lightbulb, Calculator, Sparkles } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat, ArrowLeftRight, ArrowDownToLine, Lightbulb, Calculator, Sparkles, Building2, Coins, Smartphone, Wallet, X, Check } from 'lucide-react';
 import { RecurringManager, RecurringItem } from '@/components/RecurringManager';
 import { TransferModal } from '@/components/TransferModal';
 import { CycleOption } from '@/components/CycleSelector';
@@ -659,7 +659,7 @@ export function TransactionListClient({
 
       {/* Add/Edit Form Dialog */}
       <Dialog open={showForm} onOpenChange={(open) => { if (!open) { setShowForm(false); resetForm(); } }}>
-        <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-5 sm:p-6 w-full">
+        <DialogContent className="max-w-lg bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-3xl shadow-2xl p-5 sm:p-6 w-full max-h-[92vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle className="font-bold text-base sm:text-lg text-zinc-900 dark:text-white">
               {editingTx
@@ -668,7 +668,7 @@ export function TransactionListClient({
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4 text-xs pt-1 sm:pt-2">
+          <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4 text-xs pt-1 sm:pt-2 overflow-x-hidden">
             {/* Type toggle */}
             <div className="flex gap-1.5 p-1 bg-stone-100 dark:bg-zinc-800 rounded-xl">
               {(['expense', 'income', 'transfer'] as const).map(type => (
@@ -816,7 +816,7 @@ export function TransactionListClient({
                         <span>Isi Cepat 1-Ketuk:</span>
                       </span>
                     </div>
-                    <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                    <div className="flex flex-wrap gap-1.5">
                       {(formType === 'expense'
                         ? [
                             { name: 'Makan Siang', amount: 25000, categoryKeywords: ['makan', 'konsumsi'] },
@@ -835,7 +835,7 @@ export function TransactionListClient({
                           key={preset.name}
                           type="button"
                           onClick={() => applyQuickPreset(preset)}
-                          className="px-2.5 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-[11px] font-semibold whitespace-nowrap flex-shrink-0 active:scale-95 transition-all touch-manipulation border border-stone-200/60 dark:border-zinc-700"
+                          className="px-2.5 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-[11px] font-semibold flex-shrink-0 active:scale-95 transition-all touch-manipulation border border-stone-200/60 dark:border-zinc-700"
                         >
                           {preset.name}
                           {preset.amount > 0 ? ` · ${preset.amount / 1000}rb` : ''}
@@ -851,7 +851,7 @@ export function TransactionListClient({
                     placeholder="Contoh: Makan Siang / Gaji Bulanan"
                     value={formName}
                     onChange={e => setFormName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                    className="w-full px-3.5 py-2.5 bg-stone-50 dark:bg-zinc-800/70 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white transition-colors"
                   />
                 </div>
 
@@ -880,36 +880,89 @@ export function TransactionListClient({
                   </div>
                 )}
 
-                <div className="space-y-1">
-                  <label className="font-semibold text-zinc-700 dark:text-zinc-300">Kategori</label>
-                  <select
-                    value={formCategory}
-                    onChange={e => setFormCategory(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
-                  >
-                    <option value="">Pilih Kategori</option>
-                    {filteredCategories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
+                {/* Visual Category Selection */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">
+                      Pos Belanja / Kategori
+                    </label>
+                    <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
+                      {filteredCategories.find(c => c.id === formCategory)?.name || 'Pilih salah satu'}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1 overscroll-contain">
+                    {filteredCategories.map(cat => {
+                      const isSelected = formCategory === cat.id;
+                      const CatIcon = (cat.icon && ICON_MAP[cat.icon]) ? ICON_MAP[cat.icon] : MoreHorizontal;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setFormCategory(cat.id)}
+                          className={cn(
+                            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border touch-manipulation',
+                            isSelected
+                              ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-xs scale-[1.02]'
+                              : 'bg-stone-50 dark:bg-zinc-800/60 hover:bg-stone-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-stone-200/80 dark:border-zinc-700/60'
+                          )}
+                        >
+                          <CatIcon className={cn('w-3.5 h-3.5 flex-shrink-0', isSelected ? 'text-white dark:text-zinc-900' : 'text-zinc-500 dark:text-zinc-400')} />
+                          <span>{cat.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
+                {/* Visual Wallet / Account Selection */}
                 {accounts.length > 0 && (
-                  <div className="space-y-1">
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">
-                      {formType === 'expense' ? 'Sumber Dompet (Saldo Berkurang)' : 'Dompet Penerima (Saldo Masuk)'}
-                    </label>
-                    <select
-                      value={formAccount}
-                      onChange={e => setFormAccount(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
-                    >
-                      {accounts.map(acc => (
-                        <option key={acc.id} value={acc.id}>
-                          {acc.name} ({formatCurrency(acc.balance)})
-                        </option>
-                      ))}
-                    </select>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">
+                        {formType === 'expense' ? 'Sumber Dompet (Saldo Berkurang)' : 'Dompet Penerima (Saldo Masuk)'}
+                      </label>
+                      <span className="text-[11px] text-zinc-400 dark:text-zinc-500">Pilih dompet</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {accounts.map(acc => {
+                        const isSelected = formAccount === acc.id;
+                        const AccIcon = acc.type === 'bank' ? Building2 : acc.type === 'cash' ? Coins : acc.type === 'ewallet' ? Smartphone : Wallet;
+                        return (
+                          <button
+                            key={acc.id}
+                            type="button"
+                            onClick={() => setFormAccount(acc.id)}
+                            className={cn(
+                              'p-2.5 rounded-xl border text-left transition-all relative flex flex-col justify-between touch-manipulation',
+                              isSelected
+                                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-xs scale-[1.01]'
+                                : 'bg-stone-50/70 dark:bg-zinc-800/60 text-zinc-800 dark:text-zinc-200 border-stone-200/80 dark:border-zinc-700 hover:border-zinc-400'
+                            )}
+                          >
+                            <div className="flex items-center justify-between w-full mb-1">
+                              <div className="flex items-center gap-1.5 truncate">
+                                <AccIcon className={cn('w-3.5 h-3.5 flex-shrink-0', isSelected ? 'text-white dark:text-zinc-900' : 'text-zinc-500')} />
+                                <span className="font-bold text-xs truncate">{acc.name}</span>
+                              </div>
+                              {acc.isDefault && (
+                                <span className={cn(
+                                  'text-[9px] px-1 py-0.2 rounded font-semibold flex-shrink-0',
+                                  isSelected ? 'bg-white/20 dark:bg-zinc-900/20 text-white dark:text-zinc-900' : 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400'
+                                )}>
+                                  Utama
+                                </span>
+                              )}
+                            </div>
+                            <span className={cn(
+                              'font-sans text-[11px] font-semibold tabular-nums truncate',
+                              isSelected ? 'text-zinc-200 dark:text-zinc-700' : 'text-zinc-500 dark:text-zinc-400'
+                            )}>
+                              {formatCurrency(acc.balance)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </>
@@ -1003,21 +1056,24 @@ export function TransactionListClient({
                 />
               </div>
 
-              {/* Quick Nominal Chips */}
-              <div className="flex gap-1.5 overflow-x-auto pt-1 pb-1 w-full max-w-full">
-                {(formType === 'transfer' ? [50000, 100000, 200000, 500000, 1000000, 2000000] : [10000, 25000, 50000, 100000, 500000]).map(amt => (
+              {/* Quick Nominal Chips - Responsive Grid with NO Horizontal Scroll */}
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 pt-1">
+                {(formType === 'transfer' ? [50000, 100000, 200000, 500000, 1000000, 2000000] : [10000, 20000, 50000, 100000, 200000, 500000]).map(amt => (
                   <button
                     key={amt}
                     type="button"
                     onClick={() => {
                       if (formType === 'transfer') {
                         setFormAmount(String(amt));
+                        setCalcExpr(String(amt));
                       } else {
                         const cur = parseInt(formAmount || '0', 10);
-                        setFormAmount(String(cur + amt));
+                        const nextVal = String(cur + amt);
+                        setFormAmount(nextVal);
+                        setCalcExpr(nextVal);
                       }
                     }}
-                    className="px-2.5 py-1 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg text-[11px] font-medium transition-colors flex-shrink-0 touch-manipulation"
+                    className="py-1.5 px-2 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-semibold transition-all active:scale-95 shadow-xs flex items-center justify-center touch-manipulation border border-stone-200/60 dark:border-zinc-700"
                   >
                     {formType === 'transfer'
                       ? (amt >= 1000000 ? `${amt / 1000000} Juta` : `${amt / 1000}rb`)
@@ -1054,28 +1110,35 @@ export function TransactionListClient({
               )}
             </div>
 
-            <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal</label>
-              <input
-                type="date"
-                value={formDate}
-                onChange={e => setFormDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
-              />
+            {/* Tanggal & Catatan Responsive Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="space-y-1">
+                <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Transaksi</label>
+                <input
+                  type="date"
+                  value={formDate}
+                  onChange={e => setFormDate(e.target.value)}
+                  className="w-full px-3 py-2 bg-stone-50 dark:bg-zinc-800/70 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-zinc-700 dark:text-zinc-300">Catatan (opsional)</label>
+                <input
+                  type="text"
+                  placeholder={formType === 'transfer' ? 'Tarik tunai untuk belanja mingguan...' : 'Catatan tambahan...'}
+                  value={formNote}
+                  onChange={e => setFormNote(e.target.value)}
+                  className="w-full px-3 py-2 bg-stone-50 dark:bg-zinc-800/70 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                />
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">Catatan (opsional)</label>
-              <textarea
-                placeholder={formType === 'transfer' ? 'Tarik tunai untuk belanja mingguan...' : 'Catatan tambahan...'}
-                value={formNote}
-                onChange={e => setFormNote(e.target.value)}
-                rows={2}
-                className="w-full px-3.5 py-2 bg-white dark:bg-zinc-800 border border-stone-200/80 dark:border-zinc-700 rounded-xl text-base sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
-              />
-            </div>
-
-            {formError && <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">{formError}</p>}
+            {formError && (
+              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 font-semibold text-xs">
+                {formError}
+              </div>
+            )}
 
             <DialogFooter className="pt-2 flex flex-row gap-2 justify-end">
               <button
