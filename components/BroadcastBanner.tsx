@@ -80,6 +80,7 @@ export function BroadcastBanner({ message, messages }: BroadcastBannerProps) {
           onClick={() => setClosed(true)}
           className="p-1 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-colors flex-shrink-0 z-20 touch-manipulation active:scale-95"
           title="Tutup pengumuman"
+          aria-label="Tutup pengumuman"
         >
           <X className="w-3.5 h-3.5" />
         </button>

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useToast } from '@/hooks/use-toast';
 import { Building2, Smartphone, Coins, Wallet, CreditCard, Trash2, PiggyBank } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 interface AccountModalProps {
   open: boolean;
@@ -27,6 +28,7 @@ const COLOR_OPTIONS = [
 export function AccountModal({ open, onOpenChange, account, onSuccess }: AccountModalProps) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const [name, setName] = useState(account?.name || '');
   const [type, setType] = useState<'bank' | 'ewallet' | 'cash' | 'savings' | 'other'>((account?.type as any) || 'bank');
@@ -104,10 +106,15 @@ export function AccountModal({ open, onOpenChange, account, onSuccess }: Account
 
   function handleDelete() {
     if (!account) return;
-    if (!confirm(`Hapus dompet "${account.name}"?`)) return;
+    setConfirmDeleteOpen(true);
+  }
+
+  function confirmDelete() {
+    if (!account) return;
 
     startTransition(async () => {
       const res = await deleteAccount(account.id);
+      setConfirmDeleteOpen(false);
       if (res.success) {
         toast({ title: 'Dompet Dihapus' });
         onOpenChange(false);
@@ -119,6 +126,7 @@ export function AccountModal({ open, onOpenChange, account, onSuccess }: Account
   }
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border border-stone-200 dark:border-zinc-800 rounded-2xl shadow-xl p-6">
         <DialogHeader>
@@ -285,5 +293,17 @@ export function AccountModal({ open, onOpenChange, account, onSuccess }: Account
         </form>
       </DialogContent>
     </Dialog>
+
+    <ConfirmDialog
+      open={confirmDeleteOpen}
+      onOpenChange={setConfirmDeleteOpen}
+      title="Hapus dompet?"
+      description={`Dompet "${account?.name ?? ''}" akan dihapus. Pastikan saldo dan transaksi terkait sudah kamu periksa.`}
+      confirmLabel="Hapus Dompet"
+      destructive
+      pending={isPending}
+      onConfirm={confirmDelete}
+    />
+    </>
   );
 }

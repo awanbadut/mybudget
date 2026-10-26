@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useTransition } from 'react';
+import { useState, useMemo, useTransition, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatCurrency } from '@/lib/currency';
 import { formatDateShort, toDateString } from '@/lib/dates';
@@ -8,6 +8,7 @@ import { createTransaction, updateTransaction, deleteTransaction } from '@/actio
 import { transferBetweenAccounts, AccountWithBalance } from '@/actions/accounts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import { Search, Plus, Pencil, Trash2, Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car, ShoppingCart, FileText, Heart, MoreHorizontal, TrendingUp, Banknote, Gift, Laptop, ArrowDownLeft, ArrowUpRight, Repeat, ArrowLeftRight, ArrowDownToLine, Lightbulb, Calculator, Sparkles, Building2, Coins, Smartphone, Wallet, X, Check, PiggyBank, Scale, ChevronDown } from 'lucide-react';
 import { RecurringManager, RecurringItem } from '@/components/RecurringManager';
 import { TransferModal } from '@/components/TransferModal';
@@ -94,7 +95,9 @@ export function TransactionListClient({
   const [showForm, setShowForm] = useState(openForm || false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  // Undo-delete: baris disembunyikan lokal, hapus ke server ditunda selama jendela undo
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const pendingDeletes = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const [subTab, setSubTab] = useState<'ledger' | 'recurring'>('ledger');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense' | 'transfer'>(initialType || 'all');
@@ -118,6 +121,7 @@ export function TransactionListClient({
   const [formCategory, setFormCategory] = useState('');
   const [showCategorySheet, setShowCategorySheet] = useState(false);
   const [categorySearch, setCategorySearch] = useState('');
+  const [showAccountSheet, setShowAccountSheet] = useState(false);
   const [formAccount, setFormAccount] = useState(defaultAccount?.id || '');
   const [formToAccount, setFormToAccount] = useState('');
   const [formAmount, setFormAmount] = useState(initialAmount || '');
@@ -183,6 +187,7 @@ export function TransactionListClient({
       filterCycle !== 'all' ? cycles.find(c => String(c.offset) === filterCycle) : undefined;
 
     return transactions.filter(t => {
+      if (hiddenIds.has(t.id)) return false;
       if (filterType !== 'all' && t.type !== filterType) return false;
       if (filterCategory !== 'all' && t.categoryId !== filterCategory) return false;
       if (filterAccount !== 'all') {
@@ -209,7 +214,7 @@ export function TransactionListClient({
       }
       return true;
     });
-  }, [transactions, filterType, filterCategory, filterAccount, filterCycle, cycles, filterMonth, searchQuery]);
+  }, [transactions, hiddenIds, filterType, filterCategory, filterAccount, filterCycle, cycles, filterMonth, searchQuery]);
 
   const filteredCategories = categories.filter(c => c.type === formType);
 
@@ -218,6 +223,7 @@ export function TransactionListClient({
     setFormCategory('');
     setShowCategorySheet(false);
     setCategorySearch('');
+    setShowAccountSheet(false);
     setFormAccount(defaultAccount?.id || '');
     setFormToAccount('');
     setFormAmount('');
@@ -391,15 +397,67 @@ export function TransactionListClient({
     });
   }
 
-  async function handleDelete() {
-    if (!deleteId) return;
-    startTransition(async () => {
-      const result = await deleteTransaction(deleteId);
+  const UNDO_WINDOW_MS = 5000;
+
+  // Jika pengguna meninggalkan halaman, eksekusi hapus yang masih menunggu agar tidak "menggantung"
+  useEffect(() => {
+    const pending = pendingDeletes.current;
+    return () => {
+      pending.forEach((timer, id) => {
+        clearTimeout(timer);
+        void deleteTransaction(id);
+      });
+      pending.clear();
+    };
+  }, []);
+
+  function unhide(id: string) {
+    setHiddenIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }
+
+  function undoDelete(id: string) {
+    const timer = pendingDeletes.current.get(id);
+    if (!timer) return;
+    clearTimeout(timer);
+    pendingDeletes.current.delete(id);
+    unhide(id);
+    triggerHaptic('light');
+    toast({ title: 'Penghapusan dibatalkan ✓' });
+  }
+
+  function scheduleDelete(id: string, name: string) {
+    triggerHaptic('medium');
+    setHiddenIds(prev => new Set(prev).add(id));
+
+    const timer = setTimeout(async () => {
+      pendingDeletes.current.delete(id);
+      const result = await deleteTransaction(id);
       if (result.success) {
-        toast({ title: 'Transaksi dihapus' });
-        setDeleteId(null);
         router.refresh();
+      } else {
+        unhide(id);
+        toast({
+          title: 'Gagal menghapus transaksi',
+          description: result.error,
+          variant: 'destructive',
+        });
       }
+    }, UNDO_WINDOW_MS);
+    pendingDeletes.current.set(id, timer);
+
+    toast({
+      title: 'Transaksi dihapus',
+      description: name,
+      duration: UNDO_WINDOW_MS,
+      action: (
+        <ToastAction altText="Urungkan penghapusan transaksi" onClick={() => undoDelete(id)}>
+          Urungkan
+        </ToastAction>
+      ),
     });
   }
 
@@ -660,18 +718,22 @@ export function TransactionListClient({
 
                   <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
                     <button
+                      type="button"
                       onClick={() => openEdit(tx)}
-                      className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-800 rounded-lg transition-colors touch-manipulation"
+                      className="p-2.5 sm:p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-800 rounded-xl transition-colors touch-manipulation"
                       title="Edit"
+                      aria-label={`Ubah transaksi ${tx.name}`}
                     >
-                      <Pencil className="w-3.5 h-3.5" />
+                      <Pencil className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => setDeleteId(tx.id)}
-                      className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors touch-manipulation"
+                      type="button"
+                      onClick={() => scheduleDelete(tx.id, tx.name)}
+                      className="p-2.5 sm:p-2 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors touch-manipulation"
                       title="Hapus"
+                      aria-label={`Hapus transaksi ${tx.name}`}
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -1047,57 +1109,134 @@ export function TransactionListClient({
                   </Dialog>
                 </div>
 
-                {/* Visual Wallet / Account Selection */}
-                {accounts.length > 0 && (
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">
-                        {formType === 'expense' ? 'Sumber Dompet (Saldo Berkurang)' : 'Dompet Penerima (Saldo Masuk)'}
-                      </label>
-                      <span className="text-[11px] text-zinc-400 dark:text-zinc-500">Pilih dompet</span>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {accounts.map(acc => {
-                        const isSelected = formAccount === acc.id;
-                        const AccIcon = acc.type === 'bank' ? Building2 : acc.type === 'cash' ? Coins : acc.type === 'ewallet' ? Smartphone : Wallet;
-                        return (
-                          <button
-                            key={acc.id}
-                            type="button"
-                            onClick={() => setFormAccount(acc.id)}
-                            className={cn(
-                              'p-2.5 rounded-xl border text-left transition-all relative flex flex-col justify-between touch-manipulation',
-                              isSelected
-                                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-xs scale-[1.01]'
-                                : 'bg-stone-50/70 dark:bg-zinc-800/60 text-zinc-800 dark:text-zinc-200 border-stone-200/80 dark:border-zinc-700 hover:border-zinc-400'
-                            )}
-                          >
-                            <div className="flex items-center justify-between w-full mb-1">
-                              <div className="flex items-center gap-1.5 truncate">
-                                <AccIcon className={cn('w-3.5 h-3.5 flex-shrink-0', isSelected ? 'text-white dark:text-zinc-900' : 'text-zinc-500')} />
-                                <span className="font-bold text-xs truncate">{acc.name}</span>
-                              </div>
-                              {acc.isDefault && (
-                                <span className={cn(
-                                  'text-[9px] px-1 py-0.2 rounded font-semibold flex-shrink-0',
-                                  isSelected ? 'bg-white/20 dark:bg-zinc-900/20 text-white dark:text-zinc-900' : 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400'
-                                )}>
-                                  Utama
-                                </span>
-                              )}
-                            </div>
-                            <span className={cn(
-                              'font-sans text-[11px] font-semibold tabular-nums truncate',
-                              isSelected ? 'text-zinc-200 dark:text-zinc-700' : 'text-zinc-500 dark:text-zinc-400'
+                {/* Gojek-Style Wallet Dropdown Selector */}
+                {accounts.length > 0 && (() => {
+                  const selectedAcc = accounts.find(a => a.id === formAccount);
+                  const accIconFor = (type: string) =>
+                    type === 'bank' ? Building2 : type === 'cash' ? Coins : type === 'ewallet' ? Smartphone : Wallet;
+                  const SelIcon = accIconFor(selectedAcc?.type || '');
+                  return (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="font-semibold text-zinc-700 dark:text-zinc-300">
+                          {formType === 'expense' ? 'Sumber Dompet (Saldo Berkurang)' : 'Dompet Penerima (Saldo Masuk)'}
+                        </label>
+                        <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
+                          {accounts.length} dompet
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerHaptic('selection');
+                          setShowAccountSheet(true);
+                        }}
+                        aria-label="Pilih dompet"
+                        className={cn(
+                          'w-full p-2.5 sm:p-3 rounded-2xl border flex items-center justify-between gap-3 text-left transition-all active:scale-[0.99] touch-manipulation',
+                          selectedAcc
+                            ? 'bg-stone-50/90 dark:bg-zinc-800/80 border-stone-300/80 dark:border-zinc-700 shadow-2xs'
+                            : 'bg-stone-50 dark:bg-zinc-800/50 border-dashed border-stone-300 dark:border-zinc-700 hover:border-zinc-400'
+                        )}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className={cn(
+                            'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0',
+                            selectedAcc
+                              ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs'
+                              : 'bg-stone-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400'
+                          )}>
+                            <SelIcon className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className={cn(
+                              'text-xs sm:text-sm font-bold truncate',
+                              selectedAcc ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400 font-medium'
                             )}>
-                              {formatCurrency(acc.balance)}
-                            </span>
-                          </button>
-                        );
-                      })}
+                              {selectedAcc?.name || 'Pilih dompet...'}
+                            </div>
+                            <div className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums">
+                              {selectedAcc ? `Saldo ${formatCurrency(selectedAcc.balance)}` : 'Pilih sumber dana transaksi ini'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-700 text-xs font-semibold text-zinc-600 dark:text-zinc-300 shadow-2xs flex-shrink-0">
+                          <span className="hidden sm:inline">Ganti</span>
+                          <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+                        </div>
+                      </button>
+
+                      <Dialog open={showAccountSheet} onOpenChange={setShowAccountSheet}>
+                        <DialogContent className="max-w-md bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 p-0 overflow-hidden flex flex-col max-h-[82vh] rounded-3xl shadow-2xl">
+                          <DialogHeader className="px-5 pt-4 pb-3 border-b border-stone-100 dark:border-zinc-800">
+                            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white flex items-center gap-2">
+                              <Wallet className="w-4 h-4 text-emerald-500" />
+                              <span>Pilih Dompet</span>
+                            </DialogTitle>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                              {formType === 'expense' ? 'Saldo dompet ini akan berkurang' : 'Saldo dompet ini akan bertambah'}
+                            </p>
+                          </DialogHeader>
+                          <div className="flex-1 overflow-y-auto p-3 space-y-1">
+                            {accounts.map(acc => {
+                              const isSelected = formAccount === acc.id;
+                              const AccIcon = accIconFor(acc.type);
+                              return (
+                                <button
+                                  key={acc.id}
+                                  type="button"
+                                  onClick={() => {
+                                    triggerHaptic('selection');
+                                    setFormAccount(acc.id);
+                                    setShowAccountSheet(false);
+                                  }}
+                                  className={cn(
+                                    'w-full p-2.5 sm:p-3 rounded-2xl flex items-center justify-between gap-3 transition-all active:scale-[0.99] touch-manipulation',
+                                    isSelected
+                                      ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-sm'
+                                      : 'hover:bg-stone-100 dark:hover:bg-zinc-800/70 text-zinc-800 dark:text-zinc-200'
+                                  )}
+                                >
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <div className={cn(
+                                      'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0',
+                                      isSelected
+                                        ? 'bg-white/20 dark:bg-black/10 text-white dark:text-zinc-900'
+                                        : 'bg-stone-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                                    )}>
+                                      <AccIcon className="w-4 h-4" />
+                                    </div>
+                                    <div className="min-w-0 text-left">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-semibold text-xs sm:text-sm truncate">{acc.name}</span>
+                                        {acc.isDefault && (
+                                          <span className={cn(
+                                            'text-[9px] px-1.5 py-0.5 rounded font-semibold flex-shrink-0',
+                                            isSelected ? 'bg-white/20 dark:bg-zinc-900/20' : 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400'
+                                          )}>
+                                            Utama
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className={cn(
+                                        'text-[11px] tabular-nums',
+                                        isSelected ? 'opacity-80' : 'text-zinc-500 dark:text-zinc-400'
+                                      )}>
+                                        {formatCurrency(acc.balance)}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {isSelected && <Check className="w-4 h-4 flex-shrink-0" />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </>
             )}
 
@@ -1299,35 +1438,6 @@ export function TransactionListClient({
               </button>
             </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation */}
-      <Dialog open={!!deleteId} onOpenChange={(open) => { if (!open) setDeleteId(null); }}>
-        <DialogContent className="max-w-sm bg-white dark:bg-zinc-900 border border-stone-200/80 dark:border-zinc-800 rounded-2xl shadow-xl p-5 sm:p-6 w-full">
-          <DialogHeader>
-            <DialogTitle className="font-bold text-base text-zinc-900 dark:text-white">
-              Hapus Transaksi
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Apakah kamu yakin ingin menghapus catatan transaksi ini?
-          </p>
-          <DialogFooter className="pt-3 flex flex-row gap-2 justify-end">
-            <button
-              onClick={() => setDeleteId(null)}
-              className="flex-1 sm:flex-initial px-3.5 py-1.5 border border-stone-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-zinc-800"
-            >
-              Batal
-            </button>
-            <button
-              onClick={handleDelete}
-              disabled={isPending}
-              className="flex-1 sm:flex-initial px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-medium shadow-sm"
-            >
-              {isPending ? 'Menghapus...' : 'Hapus'}
-            </button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 

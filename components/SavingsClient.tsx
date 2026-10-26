@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Target, Plus, Pencil, Trash2, PiggyBank, ChevronDown, ChevronUp, Wallet, RefreshCw, CheckCircle2, X, Sparkles, CalendarClock } from 'lucide-react';
 import { calculateProgress } from '@/lib/calculations';
 import { PaginationBar } from '@/components/PaginationBar';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { cn } from '@/lib/utils';
 
 interface SavingsTransaction {
@@ -47,6 +48,7 @@ export function SavingsClient({
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [editGoal, setEditGoal] = useState<SavingsGoal | null>(null);
   const [deleteGoalId, setDeleteGoalId] = useState<string | null>(null);
+  const [deleteEntry, setDeleteEntry] = useState<{ txId: string; goalId: string } | null>(null);
   const [addSavingsGoalId, setAddSavingsGoalId] = useState<string | null>(null);
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [txPage, setTxPage] = useState(1);
@@ -143,10 +145,16 @@ export function SavingsClient({
     });
   }
 
-  async function handleDeleteSavingsEntry(txId: string, goalId: string) {
-    if (!confirm('Hapus setoran tabungan ini? Jika terpotong dari kas, saldo akan dikembalikan ke dompet.')) return;
+  function handleDeleteSavingsEntry(txId: string, goalId: string) {
+    setDeleteEntry({ txId, goalId });
+  }
+
+  function confirmDeleteSavingsEntry() {
+    if (!deleteEntry) return;
+    const { txId, goalId } = deleteEntry;
     startTransition(async () => {
       const result = await deleteSavingsTransaction(txId, goalId);
+      setDeleteEntry(null);
       if (result.success) {
         toast({ title: 'Setoran tabungan dihapus & saldo kas dikembalikan ✓' });
       }
@@ -725,6 +733,17 @@ export function SavingsClient({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deleteEntry}
+        onOpenChange={(open) => { if (!open) setDeleteEntry(null); }}
+        title="Hapus setoran tabungan?"
+        description="Jika setoran ini terpotong dari kas, saldo akan dikembalikan ke dompet."
+        confirmLabel="Hapus Setoran"
+        destructive
+        pending={isPending}
+        onConfirm={confirmDeleteSavingsEntry}
+      />
     </div>
   );
 }

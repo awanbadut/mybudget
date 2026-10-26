@@ -15,6 +15,7 @@ import { DailyBudget } from '@/components/DailyBudget';
 import { SavingsGoalCard } from '@/components/SavingsGoalCard';
 import { DashboardCharts } from '@/components/DashboardCharts';
 import { OnboardingModal } from '@/components/OnboardingModal';
+import { OnboardingChecklist } from '@/components/OnboardingChecklist';
 import { FinancialHealthScore } from '@/components/FinancialHealthScore';
 import { NetWorthCard } from '@/components/NetWorthCard';
 import { ForecastCard } from '@/components/ForecastCard';
@@ -357,6 +358,17 @@ export default async function DashboardPage({
           isStudentMode={isStudentMode}
         />
       </div>
+
+      {/* ═══════════ Panduan Memulai (hilang otomatis jika semua langkah selesai) ═══════════ */}
+      {!payrollCycle.isHistorical && (
+        <div className="reveal-up reveal-up-2">
+          <OnboardingChecklist
+            hasSalary={(userSettings?.salary || 0) > 0}
+            hasTransaction={allTransactions.length > 0}
+            hasSavingsGoal={savingsGoalsList.length > 0}
+          />
+        </div>
+      )}
 
       {/* ═══════════ 3-Tab Mobile-First Dashboard ═══════════ */}
       <DashboardTabsClient

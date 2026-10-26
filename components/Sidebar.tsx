@@ -29,7 +29,7 @@ const userNavItems = [
   { href: '/',             label: 'Beranda',      icon: Home },
   { href: '/transactions', label: 'Transaksi',    icon: ArrowLeftRight },
   { href: '/budget',       label: 'Anggaran',     icon: PieChart },
-  { href: '/debts',        label: 'Utang',        icon: CreditCard },
+  { href: '/debts',        label: 'Utang & Cicilan', icon: CreditCard },
   { href: '/savings',      label: 'Tabungan',     icon: Target },
   { href: '/reports',      label: 'Laporan',      icon: BarChart3 },
   { href: '/settings',     label: 'Pengaturan',   icon: Settings },
@@ -79,6 +79,7 @@ export function Sidebar({ userName, userRole, isImpersonating }: SidebarProps) {
         type="button"
         onClick={toggleSidebar}
         title={isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
+        aria-label={isCollapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'}
         className={cn(
           'absolute -right-3.5 top-1/2 -translate-y-1/2 z-50',
           'w-7 h-7 rounded-full',
@@ -154,6 +155,8 @@ export function Sidebar({ userName, userRole, isImpersonating }: SidebarProps) {
               key={item.href}
               href={item.href}
               prefetch={true}
+              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
               className={cn(
                 'group relative flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-150 touch-manipulation',
                 isCollapsed
@@ -218,6 +221,7 @@ export function Sidebar({ userName, userRole, isImpersonating }: SidebarProps) {
                 onClick={handleLogout}
                 disabled={isPending}
                 title="Keluar Akun"
+                aria-label="Keluar dari akun"
                 className="p-1.5 text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg transition-colors flex-shrink-0 active:scale-95"
               >
                 <LogOut className="w-3.5 h-3.5" strokeWidth={2} />
@@ -235,6 +239,7 @@ export function Sidebar({ userName, userRole, isImpersonating }: SidebarProps) {
                 onClick={handleLogout}
                 disabled={isPending}
                 title="Keluar"
+                aria-label="Keluar dari akun"
                 className="group relative p-2 text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-xl transition-colors active:scale-95"
               >
                 <LogOut className="w-4 h-4" strokeWidth={2} />

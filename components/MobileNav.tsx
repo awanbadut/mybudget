@@ -21,49 +21,49 @@ import { cn } from '@/lib/utils';
 const APP_MENU_ITEMS = [
   {
     href: '/',
-    label: 'Beranda Utama',
+    label: 'Beranda',
     desc: 'Ringkasan saldo, kartu ATM & siklus',
     icon: Home,
     color: 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900',
   },
   {
     href: '/savings',
-    label: 'Target Tabungan',
+    label: 'Tabungan',
     desc: 'Simpanan & rencana dana masa depan',
     icon: PiggyBank,
     color: 'bg-blue-600 text-white',
   },
   {
     href: '/budget',
-    label: 'Anggaran Bulanan',
+    label: 'Anggaran',
     desc: 'Jatah belanja per pos kategori',
     icon: PieChart,
     color: 'bg-emerald-600 text-white',
   },
   {
     href: '/transactions',
-    label: 'Buku Transaksi',
+    label: 'Transaksi',
     desc: 'Arus kas masuk, keluar & tagihan',
     icon: ArrowLeftRight,
     color: 'bg-indigo-600 text-white',
   },
   {
     href: '/debts',
-    label: 'Cicilan & Utang',
+    label: 'Utang & Cicilan',
     desc: 'Jadwal angsuran & pelunasan',
     icon: CreditCard,
     color: 'bg-amber-500 text-white',
   },
   {
     href: '/reports',
-    label: 'Laporan & Siklus',
+    label: 'Laporan',
     desc: 'Riwayat siklus 25-24 & ekspor Excel',
     icon: BarChart3,
     color: 'bg-rose-600 text-white',
   },
   {
     href: '/settings',
-    label: 'Pengaturan Akun',
+    label: 'Pengaturan',
     desc: 'Gaji, tanggal siklus & kategori pos',
     icon: Settings,
     color: 'bg-stone-700 text-white',
@@ -269,6 +269,7 @@ function NavItem({
     <Link
       href={href}
       prefetch={true}
+      aria-current={isActive ? 'page' : undefined}
       className={cn(
         'flex-1 flex flex-col items-center justify-center py-1.5 gap-0.5 transition-all active:scale-95 touch-manipulation rounded-xl',
         isActive
