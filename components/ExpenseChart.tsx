@@ -108,3 +108,5 @@ export function ExpenseChart({ data = {}, total = 0 }: ExpenseChartProps) {
     </div>
   );
 }
+
+export default ExpenseChart;

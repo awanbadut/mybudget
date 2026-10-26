@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 
 const ExpenseChart = dynamic(
-  () => import('@/components/ExpenseChart').then((mod) => mod.ExpenseChart),
+  () => import('@/components/ExpenseChart').then((mod) => ({ default: mod.ExpenseChart || mod.default })),
   {
     ssr: false,
     loading: () => (
@@ -20,7 +20,7 @@ const ExpenseChart = dynamic(
 );
 
 const SavingsChartClient = dynamic(
-  () => import('@/components/SavingsChartClient').then((mod) => mod.SavingsChartClient),
+  () => import('@/components/SavingsChartClient').then((mod) => ({ default: mod.SavingsChartClient || mod.default })),
   {
     ssr: false,
     loading: () => (

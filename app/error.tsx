@@ -23,9 +23,9 @@ export default function Error({
         </div>
 
         <div>
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Data gagal dimuat</h2>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Gagal Memuat Halaman</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
-            Terjadi kendala saat menghubungkan ke database server.
+            Terjadi kendala saat memuat antarmuka aplikasi.
           </p>
         </div>
 

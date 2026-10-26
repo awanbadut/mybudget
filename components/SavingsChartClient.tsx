@@ -52,3 +52,5 @@ export function SavingsChartClient({ data = [] }: SavingsChartClientProps) {
     </div>
   );
 }
+
+export default SavingsChartClient;
