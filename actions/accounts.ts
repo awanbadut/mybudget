@@ -97,7 +97,6 @@ const healedUsers = new Set<string>();
 
 export async function getAccounts(): Promise<{ success: boolean; data: AccountWithBalance[] }> {
   try {
-    await ensureAccountsTable();
     const userId = await getUserId();
 
     let userAccounts = await db.query.accounts.findMany({

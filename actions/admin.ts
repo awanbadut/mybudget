@@ -233,7 +233,6 @@ export async function adminStopImpersonating() {
 // 7. Manage System Broadcast Announcements (Supports Multiple Active Broadcasts)
 export async function getActiveBroadcasts(): Promise<string[]> {
   try {
-    await ensureAnnouncementTable();
     const result: any = await db.execute(sql`
       SELECT message FROM system_announcements 
       WHERE is_active = true AND TRIM(message) != ''
@@ -343,7 +342,6 @@ export interface MaintenanceStatus {
 
 export async function getMaintenanceStatus(): Promise<MaintenanceStatus> {
   try {
-    await ensureMaintenanceTable();
     const result: any = await db.execute(sql`
       SELECT is_active, title, message, estimated_end_time 
       FROM system_maintenance 

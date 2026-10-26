@@ -49,7 +49,6 @@ async function ensureTable() {
 
 export async function getRecurringTransactions() {
   try {
-    await ensureTable();
     const userId = await getUserId();
     const items = await db.query.recurringTransactions.findMany({
       where: (r, { eq: eqFn }) => eqFn(r.userId, userId),
@@ -150,8 +149,6 @@ export async function postRecurringTransactions(month: number, year: number) {
     if (lastCheckedCycleUser.has(cycleKey)) {
       return { success: true, count: 0 };
     }
-
-    await ensureTable();
 
     const activeList = await db.query.recurringTransactions.findMany({
       where: (r, { and: a, eq: e }) => a(e(r.userId, userId), e(r.isActive, true)),

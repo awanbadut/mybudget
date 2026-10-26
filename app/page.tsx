@@ -49,11 +49,6 @@ export default async function DashboardPage({
   const DEV_USER_ID = await getUserId();
   const { month: currentMonth, year: currentYear } = getCurrentMonth();
 
-  // Auto-post due recurring transactions asynchronously without blocking critical path
-  postRecurringTransactions(currentMonth, currentYear).catch(err => {
-    console.error('Auto post recurring error:', err);
-  });
-
   type UserSettingsType = typeof import('@/db/schema').settings.$inferSelect;
   type UserType = typeof import('@/db/schema').users.$inferSelect;
 
@@ -68,11 +63,6 @@ export default async function DashboardPage({
   let fetchError: string | null = null;
 
   try {
-    // Non-blocking initialization of savings category to prevent blocking SSR
-    ensureSavingsCategory(DEV_USER_ID).catch(err => {
-      console.warn('[DashboardPage] ensureSavingsCategory non-blocking notice:', err);
-    });
-
     const [s, u, tx, cats, g, d, accRes] = await Promise.all([
       withDbRetry(
         () => db.query.settings.findFirst({
@@ -286,18 +276,19 @@ export default async function DashboardPage({
 
   // 10. Pending installments in active cycle
   const pendingInstallments = activeDebts.flatMap(d =>
-    (d.installments || []).filter((i: any) =>
+    (d?.installments || []).filter((i: any) =>
+      i &&
       i.status === 'pending' &&
       i.dueDate >= payrollCycle.startDateStr &&
       i.dueDate <= payrollCycle.endDateStr
     )
   );
 
-  const monthlyDebtAmount = pendingInstallments.reduce((sum: number, i: any) => sum + (i.amount || 0), 0);
+  const monthlyDebtAmount = pendingInstallments.reduce((sum: number, i: any) => sum + (i?.amount || 0), 0);
   const totalPendingDebtAmount = activeDebts
-    .flatMap((d: any) => d.installments || [])
-    .filter((i: any) => i.status === 'pending')
-    .reduce((sum: number, i: any) => sum + (i.amount || 0), 0);
+    .flatMap((d: any) => d?.installments || [])
+    .filter((i: any) => i && i.status === 'pending')
+    .reduce((sum: number, i: any) => sum + (i?.amount || 0), 0);
 
   // Pre-calculate last 6 months savings chart data
   const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -314,9 +305,9 @@ export default async function DashboardPage({
     const sDate = `${year}-${String(month).padStart(2, '0')}-01`;
     const eDate = `${year}-${String(month).padStart(2, '0')}-31`;
 
-    const monthSavings = savingsGoalsList.flatMap((g: any) => g.transactions || [])
-      .filter((t: any) => t.transactionDate >= sDate && t.transactionDate <= eDate)
-      .reduce((sum: number, t: any) => sum + t.amount, 0);
+    const monthSavings = savingsGoalsList.flatMap((g: any) => g?.transactions || [])
+      .filter((t: any) => t && t.transactionDate >= sDate && t.transactionDate <= eDate)
+      .reduce((sum: number, t: any) => sum + (t?.amount || 0), 0);
 
     cumulativeSavings += monthSavings;
     return { label, amount: cumulativeSavings, monthly: monthSavings };

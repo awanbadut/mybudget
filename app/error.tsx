@@ -29,16 +29,23 @@ export default function Error({
           </p>
         </div>
 
-        {error.digest && (
+        {(error.message || error.digest) && (
           <div className="bg-stone-50 dark:bg-zinc-800/60 border border-stone-200/60 dark:border-zinc-700/60 rounded-xl p-3 text-left space-y-1">
             <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
               Diagnostic Info
             </p>
-            <p className="text-xs text-zinc-600 dark:text-zinc-300 font-mono break-all">
-              Error Digest: {error.digest}
-            </p>
+            {error.message && (
+              <p className="text-xs text-zinc-700 dark:text-zinc-300 font-mono break-all">
+                {error.message}
+              </p>
+            )}
+            {error.digest && (
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono break-all">
+                Digest: {error.digest}
+              </p>
+            )}
             <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-              💡 Pastikan Environment Variable <strong>DATABASE_URL</strong> sudah diatur di dashboard Vercel.
+              💡 Pastikan koneksi internet stabil atau muat ulang halaman.
             </p>
           </div>
         )}

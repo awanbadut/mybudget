@@ -16,8 +16,6 @@ export async function ensureSavingsCategory(userId: string) {
   }
 
   try {
-    await ensureAccountsTable();
-
     let savingsCat = await db.query.categories.findFirst({
       where: (c, { and: a, eq: e }) => a(e(c.userId, userId), e(c.name, 'Tabungan'), e(c.type, 'expense')),
     });
