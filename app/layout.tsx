@@ -15,6 +15,7 @@ import { BroadcastBanner } from '@/components/BroadcastBanner';
 import { getActiveBroadcasts, getMaintenanceStatus } from '@/actions/admin';
 import { MaintenanceScreen } from '@/components/MaintenanceScreen';
 import { MaintenanceBanner } from '@/components/MaintenanceBanner';
+import { OnlineStatusIndicator } from '@/components/OnlineStatusIndicator';
 import { SidebarProvider } from '@/components/SidebarProvider';
 import { AppMainContent } from '@/components/AppMainContent';
 import { Suspense } from 'react';
@@ -190,6 +191,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {/* PWA Components */}
               <InstallPWA />
               <ServiceWorkerRegistrar />
+              <OnlineStatusIndicator />
               <Toaster />
             </SidebarProvider>
           </BalanceVisibilityProvider>

@@ -14,7 +14,7 @@ const PAGE_SIZE = 1000; // load riwayat transaksi lengkap lintas siklus
 export default async function TransactionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; action?: string }>;
+  searchParams: Promise<{ type?: string; action?: string; name?: string; amount?: string }>;
 }) {
   const params = await searchParams;
   const userId = await getUserId();
@@ -62,7 +62,9 @@ export default async function TransactionsPage({
       currentMonth={currentMonth}
       currentYear={currentYear}
       initialType={(params.type as 'income' | 'expense' | 'transfer') || undefined}
-      openForm={params.action === 'new'}
+      initialName={params.name || ''}
+      initialAmount={params.amount || ''}
+      openForm={params.action === 'new' || Boolean(params.name)}
     />
   );
 }

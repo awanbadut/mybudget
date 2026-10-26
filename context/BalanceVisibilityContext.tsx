@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { formatCurrency } from '@/lib/currency';
+import { triggerHaptic } from '@/lib/utils';
 
 interface BalanceVisibilityContextType {
   showBalance: boolean;
@@ -42,6 +43,7 @@ export function BalanceVisibilityProvider({ children }: { children: React.ReactN
   }, []);
 
   const toggleBalance = useCallback(() => {
+    triggerHaptic('light');
     setShowBalance((prev) => {
       const next = !prev;
       try {

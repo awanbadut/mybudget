@@ -30,6 +30,9 @@ import {
   Wrench,
   Clock,
   Plus,
+  Activity,
+  Database,
+  Sparkles,
 } from 'lucide-react';
 import { logoutAction } from '@/actions/auth';
 import {
@@ -41,8 +44,11 @@ import {
   adminSaveBroadcast,
   adminDeleteBroadcast,
   adminSetMaintenance,
+  adminFlushCacheAction,
+  adminGetSystemHealth,
   BroadcastItem,
   MaintenanceStatus,
+  SystemHealth,
 } from '@/actions/admin';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -131,6 +137,7 @@ interface AdminDashboardClientProps {
   initialBroadcast?: { message: string; isActive: boolean };
   initialBroadcasts?: BroadcastItem[];
   initialMaintenance?: MaintenanceStatus;
+  initialHealth?: SystemHealth;
 }
 
 export function AdminDashboardClient({
@@ -140,6 +147,7 @@ export function AdminDashboardClient({
   initialBroadcast = { message: '', isActive: false },
   initialBroadcasts = [],
   initialMaintenance,
+  initialHealth,
 }: AdminDashboardClientProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -179,6 +187,46 @@ export function AdminDashboardClient({
   const [maintenanceTitle, setMaintenanceTitle] = useState(initialMaintenance?.title || 'Sistem Sedang Dalam Pemeliharaan');
   const [maintenanceMsg, setMaintenanceMsg] = useState(initialMaintenance?.message || 'Kami sedang melakukan peningkatan performa dan pembaruan sistem. Mohon tunggu beberapa saat.');
   const [maintenanceEndTime, setMaintenanceEndTime] = useState(initialMaintenance?.estimatedEndTime || '');
+
+  // System Health & Telemetry State
+  const [health, setHealth] = useState<SystemHealth | undefined>(initialHealth);
+  const [isFlushing, setIsFlushing] = useState(false);
+
+  function applyDurationPreset(minutes: number) {
+    const target = new Date(Date.now() + minutes * 60 * 1000);
+    const hours = String(target.getHours()).padStart(2, '0');
+    const mins = String(target.getMinutes()).padStart(2, '0');
+    setMaintenanceEndTime(`${hours}:${mins} WIB`);
+  }
+
+  function handleRefreshHealth() {
+    startTransition(async () => {
+      const res = await adminGetSystemHealth();
+      setHealth(res);
+      toast({
+        title: 'Status Sistem Diperbarui ✓',
+        description: `Latensi Neon DB: ${res.latencyMs}ms (${res.status}).`,
+      });
+    });
+  }
+
+  async function handleFlushCache() {
+    setIsFlushing(true);
+    try {
+      const res = await adminFlushCacheAction();
+      if (res.success) {
+        toast({
+          title: 'Cache Sistem Berhasil Dibersihkan ⚡',
+          description: 'Seluruh halaman telah di-revalidate ulang ke database Neon.',
+        });
+        router.refresh();
+      } else {
+        toast({ title: res.error || 'Gagal membersihkan cache', variant: 'destructive' });
+      }
+    } finally {
+      setIsFlushing(false);
+    }
+  }
 
   const activeBroadcastCount = broadcastList.filter((b) => b.isActive && b.message.trim()).length;
 
@@ -447,6 +495,66 @@ export function AdminDashboardClient({
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        {/* System Health Telemetry Bar */}
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-3 sm:p-3.5 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-5">
+            {/* DB Ping status */}
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className={cn(
+                  "animate-ping absolute inline-flex h-full w-full rounded-full opacity-75",
+                  health?.status === 'healthy' ? "bg-emerald-400" : "bg-rose-400"
+                )} />
+                <span className={cn(
+                  "relative inline-flex rounded-full h-2.5 w-2.5",
+                  health?.status === 'healthy' ? "bg-emerald-500" : "bg-rose-500"
+                )} />
+              </span>
+              <span className="font-bold text-zinc-900 dark:text-white flex items-center gap-1">
+                <Database className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Neon DB:</span>
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-mono text-[11px] font-bold border border-emerald-200/60 dark:border-emerald-800/60">
+                {health?.latencyMs ?? 15}ms
+              </span>
+            </div>
+
+            {/* Counts summary */}
+            <div className="hidden md:flex items-center gap-2 text-zinc-500 dark:text-zinc-400 text-[11px]">
+              <span>📊 Data Aktif:</span>
+              <strong className="text-zinc-800 dark:text-zinc-200">{health?.counts?.transactions ?? totalTransactions}</strong> transaksi
+              <span>·</span>
+              <strong className="text-zinc-800 dark:text-zinc-200">{health?.counts?.accounts ?? '-'}</strong> dompet
+              <span>·</span>
+              <strong className="text-zinc-800 dark:text-zinc-200">{health?.counts?.debts ?? '-'}</strong> cicilan
+            </div>
+          </div>
+
+          {/* Quick Actions: Ping & Flush Cache */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleRefreshHealth}
+              disabled={isPending}
+              className="px-2.5 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-[11px] font-semibold transition-all active:scale-95 flex items-center gap-1 touch-manipulation"
+              title="Ping ulang database"
+            >
+              <Activity className={cn("w-3 h-3 text-emerald-500", isPending && "animate-spin")} />
+              <span>Ping DB</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleFlushCache}
+              disabled={isFlushing}
+              className="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-[11px] font-bold transition-all active:scale-95 flex items-center gap-1 shadow-2xs touch-manipulation disabled:opacity-60"
+              title="Bersihkan cache Next.js dan revalidate semua data"
+            >
+              <RefreshCw className={cn("w-3 h-3", isFlushing && "animate-spin")} />
+              <span>{isFlushing ? 'Revalidating...' : 'Flush Cache'}</span>
+            </button>
+          </div>
+        </div>
+
         {/* Real Ecosystem Metric Cards */}
         <div id="metrics" className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 scroll-mt-20">
           <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-4 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-colors space-y-1.5">
@@ -1035,11 +1143,53 @@ export function AdminDashboardClient({
               />
             </div>
 
-            {/* Estimated Completion Time */}
-            <div className="space-y-1">
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300">
-                Estimasi Waktu Selesai (Opsional)
-              </label>
+            {/* Estimated Completion Time & Quick Presets */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="font-semibold text-zinc-700 dark:text-zinc-300">
+                  Estimasi Waktu Selesai (Opsional)
+                </label>
+                <span className="text-[10px] text-zinc-400">Preset Cepat:</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => applyDurationPreset(30)}
+                  className="px-2 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-[10px] font-semibold transition-all active:scale-95 touch-manipulation"
+                >
+                  +30 Menit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyDurationPreset(60)}
+                  className="px-2 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-[10px] font-semibold transition-all active:scale-95 touch-manipulation"
+                >
+                  +1 Jam
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyDurationPreset(120)}
+                  className="px-2 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-[10px] font-semibold transition-all active:scale-95 touch-manipulation"
+                >
+                  +2 Jam
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMaintenanceEndTime('23:59 WIB')}
+                  className="px-2 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-[10px] font-semibold transition-all active:scale-95 touch-manipulation"
+                >
+                  Hari Ini 23:59 WIB
+                </button>
+                {maintenanceEndTime && (
+                  <button
+                    type="button"
+                    onClick={() => setMaintenanceEndTime('')}
+                    className="px-1.5 py-1 text-rose-500 hover:text-rose-600 text-[10px] font-semibold touch-manipulation"
+                  >
+                    Hapus
+                  </button>
+                )}
+              </div>
               <input
                 type="text"
                 placeholder="Contoh: 16:30 WIB atau 2 jam lagi"

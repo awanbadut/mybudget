@@ -14,7 +14,7 @@ import { TransferModal } from '@/components/TransferModal';
 import { CycleOption } from '@/components/CycleSelector';
 import { FilterBottomSheet } from '@/components/FilterBottomSheet';
 import { PaginationBar } from '@/components/PaginationBar';
-import { cn } from '@/lib/utils';
+import { cn, triggerHaptic } from '@/lib/utils';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Home, UtensilsCrossed, CreditCard, Music, ShoppingBag, Car,
@@ -64,6 +64,8 @@ interface Props {
   currentMonth?: number;
   currentYear?: number;
   initialType?: 'income' | 'expense' | 'transfer';
+  initialName?: string;
+  initialAmount?: string;
   openForm?: boolean;
 }
 
@@ -76,6 +78,8 @@ export function TransactionListClient({
   currentMonth = new Date().getMonth() + 1,
   currentYear = new Date().getFullYear(),
   initialType,
+  initialName = '',
+  initialAmount = '',
   openForm,
 }: Props) {
   const router = useRouter();
@@ -110,16 +114,16 @@ export function TransactionListClient({
   // Form states
   const [formType, setFormType] = useState<'income' | 'expense' | 'transfer'>(initialType || 'expense');
   const [transferSubMode, setTransferSubMode] = useState<'withdraw' | 'deposit' | 'free'>('withdraw');
-  const [formName, setFormName] = useState('');
+  const [formName, setFormName] = useState(initialName || '');
   const [formCategory, setFormCategory] = useState('');
   const [formAccount, setFormAccount] = useState(defaultAccount?.id || '');
   const [formToAccount, setFormToAccount] = useState('');
-  const [formAmount, setFormAmount] = useState('');
+  const [formAmount, setFormAmount] = useState(initialAmount || '');
   const [formDate, setFormDate] = useState(toDateString(new Date()));
   const [formNote, setFormNote] = useState('');
   const [formError, setFormError] = useState('');
   const [showCalc, setShowCalc] = useState(false);
-  const [calcExpr, setCalcExpr] = useState('');
+  const [calcExpr, setCalcExpr] = useState(initialAmount || '');
 
   function evaluateMathExpression(expr: string): number | null {
     const cleaned = expr.replace(/\./g, '').replace(/,/g, '').replace(/[x×]/gi, '*').replace(/[^0-9+\-*]/g, '');
@@ -147,6 +151,7 @@ export function TransactionListClient({
   }
 
   function applyQuickPreset(preset: { name: string; amount: number; categoryKeywords: string[] }) {
+    triggerHaptic('selection');
     setFormName(preset.name);
     if (preset.amount > 0) {
       setFormAmount(String(preset.amount));
@@ -371,6 +376,7 @@ export function TransactionListClient({
         : await createTransaction(data);
 
       if (result.success) {
+        triggerHaptic('success');
         toast({ title: editingTx ? 'Transaksi diperbarui' : 'Transaksi ditambahkan', description: `${formName} ${formatCurrency(amount)}` });
         setShowForm(false);
         resetForm();

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Wallet, PieChart, BarChart3, ArrowRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, triggerHaptic } from '@/lib/utils';
 import { TabErrorBoundary } from '@/components/TabErrorBoundary';
 
 interface DashboardTabsClientProps {
@@ -26,13 +26,18 @@ export function DashboardTabsClient({
     isHistorical ? 'cycle' : 'summary'
   );
 
+  function handleTabChange(tab: 'summary' | 'cycle' | 'analytics') {
+    triggerHaptic('selection');
+    setActiveTab(tab);
+  }
+
   return (
     <div className="space-y-4 w-full min-w-0">
       {/* Sticky App-Style 3-Tab Switcher (High Contrast & Tactile Floating UX) */}
       <div className="sticky top-[calc(var(--broadcast-height,0px)+3.75rem)] md:top-2 z-30 bg-stone-100/90 dark:bg-zinc-900/90 backdrop-blur-xl p-1.5 rounded-2xl border border-stone-200/90 dark:border-zinc-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] grid grid-cols-3 gap-1.5 transition-all">
         <button
           type="button"
-          onClick={() => setActiveTab('summary')}
+          onClick={() => handleTabChange('summary')}
           className={cn(
             'relative py-2.5 px-2 rounded-xl text-xs sm:text-[13px] font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-200 active:scale-[0.97] touch-manipulation select-none',
             activeTab === 'summary'
@@ -46,7 +51,7 @@ export function DashboardTabsClient({
 
         <button
           type="button"
-          onClick={() => setActiveTab('cycle')}
+          onClick={() => handleTabChange('cycle')}
           className={cn(
             'relative py-2.5 px-2 rounded-xl text-xs sm:text-[13px] font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-200 active:scale-[0.97] touch-manipulation select-none',
             activeTab === 'cycle'
@@ -70,7 +75,7 @@ export function DashboardTabsClient({
 
         <button
           type="button"
-          onClick={() => setActiveTab('analytics')}
+          onClick={() => handleTabChange('analytics')}
           className={cn(
             'relative py-2.5 px-2 rounded-xl text-xs sm:text-[13px] font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-200 active:scale-[0.97] touch-manipulation select-none',
             activeTab === 'analytics'

@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Wrench, RefreshCw, Clock, ShieldCheck, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Wrench, RefreshCw, Clock, ShieldCheck, ArrowRight, Timer } from 'lucide-react';
 import Link from 'next/link';
 
 interface MaintenanceScreenProps {
@@ -10,11 +10,63 @@ interface MaintenanceScreenProps {
   estimatedEndTime?: string;
 }
 
+function parseTargetTimestamp(endTimeStr: string): number | null {
+  if (!endTimeStr) return null;
+  const trimmed = endTimeStr.trim();
+
+  // Try direct date parse
+  const directDate = new Date(trimmed);
+  if (!isNaN(directDate.getTime()) && directDate.getFullYear() > 2020) {
+    return directDate.getTime();
+  }
+
+  // Try HH:mm or HH:mm WIB
+  const match = trimmed.match(/(\d{1,2})[:.](\d{2})/);
+  if (match) {
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const target = new Date();
+    target.setHours(hours, minutes, 0, 0);
+    if (target.getTime() < Date.now()) {
+      target.setDate(target.getDate() + 1);
+    }
+    return target.getTime();
+  }
+
+  return null;
+}
+
 export function MaintenanceScreen({
   title = 'Sistem Sedang Dalam Pemeliharaan',
   message = 'Kami sedang melakukan peningkatan performa dan pembaruan sistem. Mohon tunggu beberapa saat.',
   estimatedEndTime = '',
 }: MaintenanceScreenProps) {
+  const [timeLeft, setTimeLeft] = useState<string>('');
+
+  useEffect(() => {
+    const target = parseTargetTimestamp(estimatedEndTime);
+    if (!target) return;
+
+    function updateTimer() {
+      const diff = target! - Date.now();
+      if (diff <= 0) {
+        setTimeLeft('Waktu estimasi telah tercapai (Memeriksa status...)');
+        setTimeout(() => window.location.reload(), 2500);
+        return;
+      }
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeLeft(
+        `${hours > 0 ? `${hours}j ` : ''}${String(mins).padStart(2, '0')}m ${String(secs).padStart(2, '0')}d`
+      );
+    }
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [estimatedEndTime]);
+
   function handleRefresh() {
     window.location.reload();
   }
@@ -48,9 +100,17 @@ export function MaintenanceScreen({
 
         {/* Estimated Completion Timer if provided */}
         {estimatedEndTime && (
-          <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-zinc-800/70 border border-stone-200/80 dark:border-zinc-700/60 flex items-center justify-center gap-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-            <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
-            <span>Estimasi Selesai: <strong>{estimatedEndTime}</strong></span>
+          <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-zinc-800/70 border border-stone-200/80 dark:border-zinc-700/60 text-xs font-semibold text-zinc-700 dark:text-zinc-300 space-y-1">
+            <div className="flex items-center justify-center gap-2">
+              <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
+              <span>Estimasi Selesai: <strong>{estimatedEndTime}</strong></span>
+            </div>
+            {timeLeft && (
+              <div className="font-mono text-amber-600 dark:text-amber-400 text-xs font-bold pt-0.5 flex items-center justify-center gap-1">
+                <Timer className="w-3.5 h-3.5 animate-pulse" />
+                <span>Sisa Waktu: {timeLeft}</span>
+              </div>
+            )}
           </div>
         )}
 

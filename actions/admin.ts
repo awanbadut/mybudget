@@ -409,3 +409,79 @@ export async function adminSetMaintenance(
     return { success: false, error: error.message || 'Gagal mengatur mode pemeliharaan.' };
   }
 }
+
+// 9. System Health & Database Telemetry
+export interface SystemHealth {
+  status: 'healthy' | 'degraded';
+  latencyMs: number;
+  database: string;
+  counts: {
+    users: number;
+    transactions: number;
+    accounts: number;
+    savings: number;
+    debts: number;
+  };
+  checkedAt: string;
+}
+
+export async function adminGetSystemHealth(): Promise<SystemHealth> {
+  const start = Date.now();
+  try {
+    await requireAdmin();
+    await db.execute(sql`SELECT 1;`);
+    const latencyMs = Math.max(1, Date.now() - start);
+
+    const [userCountRes, txCountRes, accCountRes, savCountRes, debtCountRes]: any = await Promise.all([
+      db.execute(sql`SELECT COUNT(*)::int as count FROM users;`),
+      db.execute(sql`SELECT COUNT(*)::int as count FROM transactions;`),
+      db.execute(sql`SELECT COUNT(*)::int as count FROM accounts;`),
+      db.execute(sql`SELECT COUNT(*)::int as count FROM savings_goals;`),
+      db.execute(sql`SELECT COUNT(*)::int as count FROM debts;`),
+    ]);
+
+    const getCount = (res: any) => {
+      const row = res?.rows ? res.rows[0] : (Array.isArray(res) ? res[0] : null);
+      return Number(row?.count || 0);
+    };
+
+    return {
+      status: 'healthy',
+      latencyMs,
+      database: 'Neon Serverless PostgreSQL',
+      counts: {
+        users: getCount(userCountRes),
+        transactions: getCount(txCountRes),
+        accounts: getCount(accCountRes),
+        savings: getCount(savCountRes),
+        debts: getCount(debtCountRes),
+      },
+      checkedAt: new Date().toISOString(),
+    };
+  } catch (e: any) {
+    return {
+      status: 'degraded',
+      latencyMs: Math.max(1, Date.now() - start),
+      database: 'Neon PostgreSQL (Unreachable)',
+      counts: { users: 0, transactions: 0, accounts: 0, savings: 0, debts: 0 },
+      checkedAt: new Date().toISOString(),
+    };
+  }
+}
+
+export async function adminFlushCacheAction() {
+  try {
+    await requireAdmin();
+    safeRevalidate('/');
+    safeRevalidate('/admin');
+    safeRevalidate('/budget');
+    safeRevalidate('/reports');
+    safeRevalidate('/transactions');
+    safeRevalidate('/savings');
+    safeRevalidate('/debts');
+    safeRevalidate('/settings');
+    return { success: true, timestamp: new Date().toISOString() };
+  } catch (e: any) {
+    return { success: false, error: e.message || 'Gagal membersihkan cache.' };
+  }
+}
