@@ -95,6 +95,14 @@ export function TransactionListClient({
   const [showForm, setShowForm] = useState(openForm || false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+
+  // Optimistic UI state for instant responsiveness
+  const [localTransactions, setLocalTransactions] = useState<Transaction[]>(transactions);
+
+  useEffect(() => {
+    setLocalTransactions(transactions);
+  }, [transactions]);
+
   // Undo-delete: baris disembunyikan lokal, hapus ke server ditunda selama jendela undo
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const pendingDeletes = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
@@ -174,19 +182,19 @@ export function TransactionListClient({
   // Months list from data
   const months = useMemo(() => {
     const set = new Set<string>();
-    transactions.forEach(t => {
+    localTransactions.forEach(t => {
       const d = t.transactionDate.substring(0, 7);
       set.add(d);
     });
     return Array.from(set).sort().reverse();
-  }, [transactions]);
+  }, [localTransactions]);
 
   // Filtered transactions
   const filtered = useMemo(() => {
     const activeCycleObj =
       filterCycle !== 'all' ? cycles.find(c => String(c.offset) === filterCycle) : undefined;
 
-    return transactions.filter(t => {
+    return localTransactions.filter(t => {
       if (hiddenIds.has(t.id)) return false;
       if (filterType !== 'all' && t.type !== filterType) return false;
       if (filterCategory !== 'all' && t.categoryId !== filterCategory) return false;
@@ -214,7 +222,7 @@ export function TransactionListClient({
       }
       return true;
     });
-  }, [transactions, hiddenIds, filterType, filterCategory, filterAccount, filterCycle, cycles, filterMonth, searchQuery]);
+  }, [localTransactions, hiddenIds, filterType, filterCategory, filterAccount, filterCycle, cycles, filterMonth, searchQuery]);
 
   const filteredCategories = categories.filter(c => c.type === formType);
 
@@ -315,23 +323,46 @@ export function TransactionListClient({
         return;
       }
 
-      startTransition(async () => {
-        const fromAcc = accounts.find(a => a.id === formAccount);
-        const toAcc = accounts.find(a => a.id === formToAccount);
-        let defaultName = formName.trim();
-        if (!defaultName) {
-          if (fromAcc?.type === 'bank' && toAcc?.type === 'cash') {
-            defaultName = `Tarik Tunai: ${fromAcc.name} → Tunai`;
-          } else if (fromAcc?.type === 'cash' && toAcc?.type === 'bank') {
-            defaultName = `Setor Tunai: Tunai → ${toAcc.name}`;
-          } else {
-            defaultName = `Transfer: ${fromAcc?.name} → ${toAcc?.name}`;
-          }
+      const fromAcc = accounts.find(a => a.id === formAccount);
+      const toAcc = accounts.find(a => a.id === formToAccount);
+      let defaultName = formName.trim();
+      if (!defaultName) {
+        if (fromAcc?.type === 'bank' && toAcc?.type === 'cash') {
+          defaultName = `Tarik Tunai: ${fromAcc.name} → Tunai`;
+        } else if (fromAcc?.type === 'cash' && toAcc?.type === 'bank') {
+          defaultName = `Setor Tunai: Tunai → ${toAcc.name}`;
+        } else {
+          defaultName = `Transfer: ${fromAcc?.name} → ${toAcc?.name}`;
         }
+      }
 
-        let result;
-        if (editingTx) {
-          result = await updateTransaction(editingTx.id, {
+      if (editingTx) {
+        const originalTx = editingTx;
+        const updatedTransfer: Transaction = {
+          ...originalTx,
+          type: 'transfer',
+          name: defaultName,
+          accountId: formAccount,
+          account: fromAcc ? { id: fromAcc.id, name: fromAcc.name, type: fromAcc.type, color: fromAcc.color, icon: fromAcc.icon } : null,
+          toAccountId: formToAccount,
+          toAccount: toAcc ? { id: toAcc.id, name: toAcc.name, type: toAcc.type, color: toAcc.color, icon: toAcc.icon } : null,
+          amount,
+          transactionDate: formDate,
+          note: formNote.trim() || defaultName,
+        };
+
+        // Instant optimistic update
+        setLocalTransactions(prev => prev.map(t => t.id === originalTx.id ? updatedTransfer : t));
+        setShowForm(false);
+        resetForm();
+        triggerHaptic('success');
+        toast({
+          title: 'Transfer diperbarui',
+          description: `${formatCurrency(amount)} dipindahkan dari ${fromAcc?.name || 'Dompet'} ke ${toAcc?.name || 'Dompet'}`,
+        });
+
+        startTransition(async () => {
+          const result = await updateTransaction(originalTx.id, {
             type: 'transfer',
             name: defaultName,
             accountId: formAccount,
@@ -340,8 +371,48 @@ export function TransactionListClient({
             transactionDate: formDate,
             note: formNote.trim() || defaultName,
           });
-        } else {
-          result = await transferBetweenAccounts({
+
+          if (result.success) {
+            router.refresh();
+          } else {
+            // Rollback
+            setLocalTransactions(prev => prev.map(t => t.id === originalTx.id ? originalTx : t));
+            toast({
+              title: 'Gagal memperbarui transfer',
+              description: result.error || 'Terjadi kesalahan saat memproses transfer',
+              variant: 'destructive',
+            });
+          }
+        });
+      } else {
+        const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        const optimisticTransfer: Transaction = {
+          id: tempId,
+          type: 'transfer',
+          name: defaultName,
+          amount,
+          transactionDate: formDate,
+          note: formNote.trim() || defaultName,
+          accountId: formAccount,
+          account: fromAcc ? { id: fromAcc.id, name: fromAcc.name, type: fromAcc.type, color: fromAcc.color, icon: fromAcc.icon } : null,
+          toAccountId: formToAccount,
+          toAccount: toAcc ? { id: toAcc.id, name: toAcc.name, type: toAcc.type, color: toAcc.color, icon: toAcc.icon } : null,
+          categoryId: null,
+          category: null,
+        };
+
+        // Instant optimistic prepend
+        setLocalTransactions(prev => [optimisticTransfer, ...prev]);
+        setShowForm(false);
+        resetForm();
+        triggerHaptic('success');
+        toast({
+          title: 'Tarik Tunai / Transfer Berhasil! ✓',
+          description: `${formatCurrency(amount)} dipindahkan dari ${fromAcc?.name || 'Dompet'} ke ${toAcc?.name || 'Dompet'}`,
+        });
+
+        startTransition(async () => {
+          const result = await transferBetweenAccounts({
             name: defaultName,
             fromAccountId: formAccount,
             toAccountId: formToAccount,
@@ -349,20 +420,21 @@ export function TransactionListClient({
             transactionDate: formDate,
             note: formNote.trim() || defaultName,
           });
-        }
 
-        if (result.success) {
-          toast({
-            title: editingTx ? 'Transfer diperbarui' : 'Tarik Tunai / Transfer Berhasil! ✓',
-            description: `${formatCurrency(amount)} dipindahkan dari ${fromAcc?.name} ke ${toAcc?.name}`,
-          });
-          setShowForm(false);
-          resetForm();
-          router.refresh();
-        } else {
-          setFormError(result.error || 'Terjadi kesalahan saat memproses transfer');
-        }
-      });
+          if (result.success && result.data) {
+            setLocalTransactions(prev => prev.map(t => t.id === tempId ? { ...t, id: result.data.id } : t));
+            router.refresh();
+          } else if (!result.success) {
+            // Rollback
+            setLocalTransactions(prev => prev.filter(t => t.id !== tempId));
+            toast({
+              title: 'Gagal memproses transfer',
+              description: result.error || 'Terjadi kesalahan',
+              variant: 'destructive',
+            });
+          }
+        });
+      }
       return;
     }
 
@@ -370,31 +442,127 @@ export function TransactionListClient({
     if (!formName.trim()) { setFormError('Nama transaksi harus diisi'); return; }
     if (!formCategory) { setFormError('Pilih kategori'); return; }
 
-    startTransition(async () => {
-      const data = {
-        type: formType,
-        name: formName.trim(),
-        categoryId: formCategory || null,
-        accountId: formAccount || null,
+    const catObj = categories.find(c => c.id === formCategory) || null;
+    const accObj = accounts.find(a => a.id === formAccount) || null;
+    const cleanName = formName.trim();
+    const cleanNote = formNote.trim() || null;
+
+    if (editingTx) {
+      const originalTx = editingTx;
+      const updatedTx: Transaction = {
+        ...originalTx,
+        name: cleanName,
         amount,
+        type: formType,
         transactionDate: formDate,
-        note: formNote.trim() || null,
+        note: cleanNote,
+        categoryId: formCategory || null,
+        category: catObj,
+        accountId: formAccount || null,
+        account: accObj ? {
+          id: accObj.id,
+          name: accObj.name,
+          type: accObj.type,
+          color: accObj.color,
+          icon: accObj.icon,
+        } : null,
+        toAccountId: null,
+        toAccount: null,
       };
 
-      const result = editingTx
-        ? await updateTransaction(editingTx.id, data)
-        : await createTransaction(data);
+      // Instant optimistic update
+      setLocalTransactions(prev => prev.map(t => t.id === originalTx.id ? updatedTx : t));
+      setShowForm(false);
+      resetForm();
+      triggerHaptic('success');
+      toast({
+        title: 'Transaksi diperbarui',
+        description: `${cleanName} ${formatCurrency(amount)}`,
+      });
 
-      if (result.success) {
-        triggerHaptic('success');
-        toast({ title: editingTx ? 'Transaksi diperbarui' : 'Transaksi ditambahkan', description: `${formName} ${formatCurrency(amount)}` });
-        setShowForm(false);
-        resetForm();
-        router.refresh();
-      } else {
-        setFormError(result.error || 'Terjadi kesalahan');
-      }
-    });
+      startTransition(async () => {
+        const data = {
+          type: formType,
+          name: cleanName,
+          categoryId: formCategory || null,
+          accountId: formAccount || null,
+          amount,
+          transactionDate: formDate,
+          note: cleanNote,
+        };
+
+        const result = await updateTransaction(originalTx.id, data);
+        if (result.success) {
+          router.refresh();
+        } else {
+          // Rollback
+          setLocalTransactions(prev => prev.map(t => t.id === originalTx.id ? originalTx : t));
+          toast({
+            title: 'Gagal memperbarui transaksi',
+            description: result.error || 'Terjadi kesalahan',
+            variant: 'destructive',
+          });
+        }
+      });
+    } else {
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const optimisticTx: Transaction = {
+        id: tempId,
+        name: cleanName,
+        amount,
+        type: formType,
+        transactionDate: formDate,
+        note: cleanNote,
+        categoryId: formCategory || null,
+        category: catObj,
+        accountId: formAccount || null,
+        account: accObj ? {
+          id: accObj.id,
+          name: accObj.name,
+          type: accObj.type,
+          color: accObj.color,
+          icon: accObj.icon,
+        } : null,
+        toAccountId: null,
+        toAccount: null,
+      };
+
+      // Instant optimistic prepend
+      setLocalTransactions(prev => [optimisticTx, ...prev]);
+      setShowForm(false);
+      resetForm();
+      triggerHaptic('success');
+      toast({
+        title: 'Transaksi ditambahkan',
+        description: `${cleanName} ${formatCurrency(amount)}`,
+      });
+
+      startTransition(async () => {
+        const data = {
+          type: formType,
+          name: cleanName,
+          categoryId: formCategory || null,
+          accountId: formAccount || null,
+          amount,
+          transactionDate: formDate,
+          note: cleanNote,
+        };
+
+        const result = await createTransaction(data);
+        if (result.success && result.data) {
+          setLocalTransactions(prev => prev.map(t => t.id === tempId ? { ...t, id: result.data.id } : t));
+          router.refresh();
+        } else if (!result.success) {
+          // Rollback
+          setLocalTransactions(prev => prev.filter(t => t.id !== tempId));
+          toast({
+            title: 'Gagal menyimpan transaksi',
+            description: result.error || 'Terjadi kesalahan',
+            variant: 'destructive',
+          });
+        }
+      });
+    }
   }
 
   const UNDO_WINDOW_MS = 5000;
@@ -437,6 +605,7 @@ export function TransactionListClient({
       pendingDeletes.current.delete(id);
       const result = await deleteTransaction(id);
       if (result.success) {
+        setLocalTransactions(prev => prev.filter(t => t.id !== id));
         router.refresh();
       } else {
         unhide(id);
@@ -510,7 +679,7 @@ export function TransactionListClient({
               : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
           )}
         >
-          Buku Kas Harian ({transactions.length})
+          Buku Kas Harian ({localTransactions.length})
         </button>
         <button
           type="button"

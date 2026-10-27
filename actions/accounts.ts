@@ -194,7 +194,6 @@ export async function getAccounts(): Promise<{ success: boolean; data: AccountWi
 
 export async function createAccount(data: unknown) {
   try {
-    await ensureAccountsTable();
     const validated = AccountSchema.parse(data);
     const userId = await getUserId();
 
@@ -227,7 +226,6 @@ export async function createAccount(data: unknown) {
 
 export async function updateAccount(id: string, data: unknown) {
   try {
-    await ensureAccountsTable();
     const validated = AccountSchema.parse(data);
     const userId = await getUserId();
 
@@ -262,7 +260,6 @@ export async function updateAccount(id: string, data: unknown) {
 
 export async function deleteAccount(id: string) {
   try {
-    await ensureAccountsTable();
     const userId = await getUserId();
 
     const acc = await db.query.accounts.findFirst({
@@ -295,7 +292,6 @@ export async function deleteAccount(id: string) {
 
 export async function transferBetweenAccounts(data: unknown) {
   try {
-    await ensureAccountsTable();
     const validated = TransferSchema.parse(data);
     const userId = await getUserId();
 

@@ -4,12 +4,10 @@ import { db } from '@/db';
 import { transactions } from '@/db/schema';
 import { TransactionSchema } from '@/lib/validation';
 import { safeRevalidate, getUserId } from '@/lib/server-utils';
-import { ensureAccountsTable } from '@/actions/accounts';
 import { eq, and } from 'drizzle-orm';
 
 export async function createTransaction(data: unknown) {
   try {
-    await ensureAccountsTable();
     const validated = TransactionSchema.parse(data);
     const userId = await getUserId();
 
@@ -22,17 +20,18 @@ export async function createTransaction(data: unknown) {
       accountId = defaultAcc?.id || null;
     }
 
-    await db.insert(transactions).values({
+    const [created] = await db.insert(transactions).values({
       userId,
       ...validated,
       accountId,
-    });
+    }).returning();
+
     safeRevalidate('/');
     safeRevalidate('/transactions');
     safeRevalidate('/budget');
     safeRevalidate('/reports');
     safeRevalidate('/admin');
-    return { success: true };
+    return { success: true, data: created };
   } catch (error: any) {
     console.error('createTransaction error:', error);
     if (error?.name === 'ZodError') {
@@ -44,18 +43,18 @@ export async function createTransaction(data: unknown) {
 
 export async function updateTransaction(id: string, data: unknown) {
   try {
-    await ensureAccountsTable();
     const validated = TransactionSchema.parse(data);
     const userId = await getUserId();
-    await db.update(transactions)
+    const [updated] = await db.update(transactions)
       .set({ ...validated, updatedAt: new Date() })
-      .where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
+      .where(and(eq(transactions.id, id), eq(transactions.userId, userId)))
+      .returning();
     safeRevalidate('/');
     safeRevalidate('/transactions');
     safeRevalidate('/budget');
     safeRevalidate('/reports');
     safeRevalidate('/admin');
-    return { success: true };
+    return { success: true, data: updated };
   } catch (error: any) {
     console.error('updateTransaction error:', error);
     if (error?.name === 'ZodError') {
