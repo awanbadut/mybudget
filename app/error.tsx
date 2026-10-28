@@ -11,6 +11,14 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const isChunkOrCallError =
+    Boolean(error?.message && (
+      error.message.includes('call') ||
+      error.message.includes('306') ||
+      error.message.includes('Loading chunk') ||
+      error.message.includes('ChunkLoadError')
+    ));
+
   useEffect(() => {
     console.error('App Error:', error);
   }, [error]);
@@ -23,9 +31,13 @@ export default function Error({
         </div>
 
         <div>
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Gagal Memuat Halaman</h2>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
+            {isChunkOrCallError ? 'Pembaruan Sistem Tersedia' : 'Gagal Memuat Halaman'}
+          </h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
-            Terjadi kendala saat memuat antarmuka aplikasi.
+            {isChunkOrCallError
+              ? 'Terdapat pembaruan versi aplikasi. Silakan muat ulang halaman untuk memuat versi terbaru.'
+              : 'Terjadi kendala saat memuat antarmuka aplikasi.'}
           </p>
         </div>
 
@@ -45,7 +57,7 @@ export default function Error({
               </p>
             )}
             <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-              💡 Pastikan koneksi internet stabil atau muat ulang halaman.
+              💡 {isChunkOrCallError ? 'Klik "Muat Ulang Halaman" untuk sinkronisasi pembaruan.' : 'Pastikan koneksi internet stabil atau muat ulang halaman.'}
             </p>
           </div>
         )}
@@ -74,8 +86,12 @@ export default function Error({
                   const regs = await navigator.serviceWorker.getRegistrations();
                   await Promise.all(regs.map(r => r.unregister()));
                 }
+                if (typeof window !== 'undefined') {
+                  sessionStorage.clear();
+                }
               } catch (_) {}
-              window.location.reload();
+              // Hard reload bypassing cache with timestamp
+              window.location.href = window.location.pathname + '?_v=' + Date.now();
             }}
             variant="outline"
             className="flex-1 gap-2 rounded-xl font-semibold text-xs sm:text-sm border-zinc-200 dark:border-zinc-700"

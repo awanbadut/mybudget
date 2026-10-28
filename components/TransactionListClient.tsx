@@ -97,10 +97,10 @@ export function TransactionListClient({
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
 
   // Optimistic UI state for instant responsiveness
-  const [localTransactions, setLocalTransactions] = useState<Transaction[]>(transactions);
+  const [localTransactions, setLocalTransactions] = useState<Transaction[]>(transactions || []);
 
   useEffect(() => {
-    setLocalTransactions(transactions);
+    setLocalTransactions(transactions || []);
   }, [transactions]);
 
   // Undo-delete: baris disembunyikan lokal, hapus ke server ditunda selama jendela undo
