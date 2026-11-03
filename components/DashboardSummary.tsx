@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import Link from 'next/link';
 import { formatCurrency } from '@/lib/currency';
 import { useBalanceVisibility } from '@/context/BalanceVisibilityContext';
 import {
@@ -11,8 +11,8 @@ import {
   PiggyBank,
   TrendUp,
 } from '@phosphor-icons/react';
-import { Sparkles, ShieldCheck } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Sparkles, ShieldCheck, ArrowUpRight, ArrowDownLeft, ArrowLeftRight } from 'lucide-react';
+import { cn, triggerHaptic } from '@/lib/utils';
 
 interface DashboardSummaryProps {
   balance: number;
@@ -32,9 +32,7 @@ export function DashboardSummary({
   balance,
   totalIncome,
   totalExpense,
-  totalSavings,
   savingRate,
-  effectiveIncome,
   cycleLabel,
   isHistorical = false,
   budgetRemainingTotal = 0,
@@ -54,128 +52,140 @@ export function DashboardSummary({
   const isPositive = heroValue >= 0;
 
   return (
-    /* Double-Bezel outer shell */
-    <div className="p-1.5 rounded-[1.6rem] bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 w-full min-w-0">
-      {/* Inner core */}
-      <div className="relative overflow-hidden bg-white dark:bg-zinc-900 rounded-[calc(1.6rem-0.375rem)] shadow-[0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.40)] p-5 sm:p-6 w-full min-w-0 transition-colors">
-        {/* Inset top highlight */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent dark:via-white/10 pointer-events-none" aria-hidden />
-
-        {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <span className="text-[10.5px] font-semibold tracking-[0.14em] uppercase text-zinc-400 dark:text-zinc-500 select-none">
-            {isHistorical
-              ? `Uang Sisa Siklus (${cycleLabel})`
-              : 'Saldo Tersedia (Semua Dompet)'}
+    <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200/90 dark:border-zinc-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] p-4 sm:p-6 w-full min-w-0 transition-colors space-y-4">
+      {/* Top Row: Label + Eye Toggle & Status Pill */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 select-none">
+            {isHistorical ? `Sisa Siklus (${cycleLabel})` : 'Total Saldo Aktif'}
           </span>
           <button
             type="button"
             onClick={toggleBalance}
-            className="flex items-center gap-1.5 text-[11.5px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 px-2.5 py-1 rounded-lg transition-all duration-200 active:scale-95"
+            className="w-7 h-7 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95"
             aria-label={showAmount ? 'Sembunyikan saldo' : 'Tampilkan saldo'}
           >
-            {showAmount
-              ? <EyeSlash size={14} weight="regular" />
-              : <Eye size={14} weight="regular" />}
-            <span className="hidden sm:inline">{showAmount ? 'Sembunyikan' : 'Tampilkan'}</span>
+            {showAmount ? <EyeSlash size={14} weight="bold" /> : <Eye size={14} weight="bold" />}
           </button>
         </div>
 
-        {/* Balance block */}
-        <div className="mb-6 min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-end gap-3 min-w-0">
-            <p className="font-bold text-[clamp(2.2rem,6.5vw,3.8rem)] text-zinc-900 dark:text-white tracking-[-0.04em] tabular-nums leading-none break-all min-w-0">
-              {heroValue < 0 && showAmount && <span className="text-red-600 dark:text-red-500">-</span>}
-              {display(heroValue)}
-            </p>
-            {/* Status badge — solid, no washed-out pastels */}
-            <span className={`self-start sm:self-auto mb-0.5 inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full ${
+        <div className="flex items-center gap-1.5">
+          {!isHistorical && daysRemaining !== undefined && (
+            <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-full">
+              {daysRemaining}h lagi
+            </span>
+          )}
+          <span
+            className={cn(
+              'inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full',
               isPositive
-                ? 'bg-green-600 text-white'
-                : 'bg-red-600 text-white'
-            }`}>
-              <span className="w-1.5 h-1.5 rounded-full bg-white/60 flex-shrink-0" />
-              {isHistorical
-                ? (isPositive ? 'Surplus Siklus' : 'Defisit Siklus')
-                : (isPositive ? 'Kas Sehat' : 'Defisit')}
+                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
+            )}
+          >
+            <span className={cn('w-1.5 h-1.5 rounded-full', isPositive ? 'bg-emerald-500' : 'bg-rose-500')} />
+            {isHistorical ? (isPositive ? 'Surplus' : 'Defisit') : isPositive ? 'Aman' : 'Defisit'}
+          </span>
+        </div>
+      </div>
+
+      {/* Main Balance & Safe Daily Spend Pill */}
+      <div>
+        <p className="font-extrabold text-[clamp(2rem,6vw,3.2rem)] text-zinc-900 dark:text-white tracking-[-0.03em] tabular-nums leading-none break-all">
+          {heroValue < 0 && showAmount && <span className="text-rose-600 dark:text-rose-500">-</span>}
+          {display(heroValue)}
+        </p>
+
+        {!isHistorical && safeDailySpend !== undefined && (
+          <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-stone-100/90 dark:bg-zinc-800/80 text-xs">
+            {safeDailySpend > 0 ? (
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+            ) : (
+              <ShieldCheck className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 flex-shrink-0" />
+            )}
+            <span className="text-zinc-500 dark:text-zinc-400 font-medium">Aman belanja:</span>
+            <span className="font-bold text-zinc-900 dark:text-white tabular-nums">
+              {display(safeDailySpend)}/hari
             </span>
           </div>
-          <p className="text-[12px] text-zinc-400 dark:text-zinc-500 mt-2 leading-snug">
-            {isHistorical
-              ? 'Sisa uang murni dari Pemasukan dikurangi Pengeluaran pada siklus ini (bukan saldo gabungan semua waktu)'
-              : isPositive
-              ? 'Total kas bersih yang tersedia di dompet & rekening saat ini'
-              : 'Pengeluaran melebihi pemasukan tercatat'}
-          </p>
+        )}
+      </div>
 
-          {/* Safe-to-spend today guidance for active cycle */}
-          {!isHistorical && safeDailySpend !== undefined && (
-            <div className="mt-4 pt-3.5 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-2.5">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className={cn(
-                  'w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0',
-                  safeDailySpend > 0
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-                )}>
-                  {safeDailySpend > 0 ? (
-                    <Sparkles className="w-3.5 h-3.5" />
-                  ) : (
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[11.5px] font-medium text-zinc-500 dark:text-zinc-400">
-                      Aman Belanja Hari Ini:
-                    </span>
-                    <span className="font-bold text-[13.5px] text-zinc-900 dark:text-white tabular-nums">
-                      {display(safeDailySpend)}
-                      <span className="text-[11px] font-normal text-zinc-400 dark:text-zinc-500"> / hari</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-              {daysRemaining !== undefined && (
-                <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 rounded-lg border border-zinc-200/60 dark:border-zinc-700/60">
-                  Sisa {daysRemaining} hari siklus
-                </span>
-              )}
+      {/* DANA-Style 4 Primary Quick Actions Dock */}
+      {!isHistorical && (
+        <div className="grid grid-cols-4 gap-2 pt-2 border-t border-stone-100 dark:border-zinc-800/80">
+          <Link
+            href="/transactions?action=new&type=expense"
+            onClick={() => triggerHaptic('light')}
+            className="group flex flex-col items-center gap-1.5 py-2 rounded-2xl hover:bg-stone-50 dark:hover:bg-zinc-800/50 active:scale-95 transition-all touch-manipulation"
+          >
+            <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+              <ArrowUpRight className="w-5 h-5 stroke-[2.25]" />
             </div>
-          )}
-        </div>
+            <span className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">Keluar</span>
+          </Link>
 
-        {/* 4-metric strip — solid icon backgrounds */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-zinc-100 dark:bg-zinc-800 rounded-xl overflow-hidden border border-zinc-100 dark:border-zinc-800">
-          <MetricCell
-            label="Pemasukan Siklus"
-            value={display(totalIncome)}
-            sub={effectiveIncome > 0 && effectiveIncome !== totalIncome ? `Est. ${display(effectiveIncome)}` : (cycleLabel ?? 'Siklus ini')}
-            icon={<ArrowDown size={13} weight="bold" className="text-white" />}
-            iconBg="bg-green-600"
-          />
-          <MetricCell
-            label="Pengeluaran Siklus"
-            value={display(totalExpense)}
-            sub={cycleLabel ?? 'Siklus ini'}
-            icon={<ArrowUp size={13} weight="bold" className="text-white" />}
-            iconBg="bg-red-600"
-          />
-          <MetricCell
-            label="Sisa Uang Siklus"
-            value={`${cycleNetCash < 0 && showAmount ? '-' : ''}${display(cycleNetCash)}`}
-            sub="Masuk − Keluar siklus ini"
-            icon={<PiggyBank size={13} weight="fill" className="text-white" />}
-            iconBg={cycleNetCash >= 0 ? 'bg-emerald-600' : 'bg-rose-600'}
-          />
-          <MetricCell
-            label="Sisa Pos Budgeting"
-            value={`${budgetRemainingTotal < 0 && showAmount ? '-' : ''}${display(budgetRemainingTotal)}`}
-            sub={`Saving rate: ${showAmount ? `${savingRate}%` : mask}`}
-            icon={<TrendUp size={13} weight="bold" className="text-white" />}
-            iconBg={budgetRemainingTotal >= 0 ? 'bg-blue-600' : 'bg-amber-600'}
-          />
+          <Link
+            href="/transactions?action=new&type=income"
+            onClick={() => triggerHaptic('light')}
+            className="group flex flex-col items-center gap-1.5 py-2 rounded-2xl hover:bg-stone-50 dark:hover:bg-zinc-800/50 active:scale-95 transition-all touch-manipulation"
+          >
+            <div className="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+              <ArrowDownLeft className="w-5 h-5 stroke-[2.25]" />
+            </div>
+            <span className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">Masuk</span>
+          </Link>
+
+          <Link
+            href="/transactions?action=new&type=transfer"
+            onClick={() => triggerHaptic('light')}
+            className="group flex flex-col items-center gap-1.5 py-2 rounded-2xl hover:bg-stone-50 dark:hover:bg-zinc-800/50 active:scale-95 transition-all touch-manipulation"
+          >
+            <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+              <ArrowLeftRight className="w-5 h-5 stroke-[2.25]" />
+            </div>
+            <span className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">Pindah</span>
+          </Link>
+
+          <Link
+            href="/savings"
+            onClick={() => triggerHaptic('light')}
+            className="group flex flex-col items-center gap-1.5 py-2 rounded-2xl hover:bg-stone-50 dark:hover:bg-zinc-800/50 active:scale-95 transition-all touch-manipulation"
+          >
+            <div className="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+              <PiggyBank size={20} weight="fill" />
+            </div>
+            <span className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">Tabungan</span>
+          </Link>
         </div>
+      )}
+
+      {/* Clean 2x2 Cashflow Strip */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 pt-1">
+        <MetricCell
+          label="Pemasukan"
+          value={display(totalIncome)}
+          icon={<ArrowDown size={12} weight="bold" className="text-emerald-600 dark:text-emerald-400" />}
+          iconBg="bg-emerald-50 dark:bg-emerald-950/50"
+        />
+        <MetricCell
+          label="Pengeluaran"
+          value={display(totalExpense)}
+          icon={<ArrowUp size={12} weight="bold" className="text-rose-600 dark:text-rose-400" />}
+          iconBg="bg-rose-50 dark:bg-rose-950/50"
+        />
+        <MetricCell
+          label="Selisih Siklus"
+          value={`${cycleNetCash < 0 && showAmount ? '-' : ''}${display(cycleNetCash)}`}
+          icon={<PiggyBank size={12} weight="fill" className="text-blue-600 dark:text-blue-400" />}
+          iconBg="bg-blue-50 dark:bg-blue-950/50"
+        />
+        <MetricCell
+          label={`Sisa Budget (${showAmount ? `${savingRate}%` : '••'})`}
+          value={`${budgetRemainingTotal < 0 && showAmount ? '-' : ''}${display(budgetRemainingTotal)}`}
+          icon={<TrendUp size={12} weight="bold" className="text-amber-600 dark:text-amber-400" />}
+          iconBg="bg-amber-50 dark:bg-amber-950/50"
+        />
       </div>
     </div>
   );
@@ -184,26 +194,25 @@ export function DashboardSummary({
 function MetricCell({
   label,
   value,
-  sub,
   icon,
   iconBg,
 }: {
   label: string;
   value: string;
-  sub: string;
   icon: React.ReactNode;
   iconBg: string;
 }) {
   return (
-    <div className="bg-white dark:bg-zinc-900 px-3.5 py-3 space-y-1.5 min-w-0">
+    <div className="bg-stone-50/80 dark:bg-zinc-800/50 rounded-2xl px-3 py-2.5 space-y-1 min-w-0 border border-stone-100 dark:border-zinc-800">
       <div className="flex items-center gap-1.5">
-        <div className={`w-[22px] h-[22px] rounded-md ${iconBg} flex items-center justify-center flex-shrink-0`}>
+        <div className={`w-5 h-5 rounded-md ${iconBg} flex items-center justify-center flex-shrink-0`}>
           {icon}
         </div>
-        <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 truncate">{label}</span>
+        <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 truncate">{label}</span>
       </div>
-      <p className="font-bold text-[14px] sm:text-[15px] text-zinc-900 dark:text-white tabular-nums truncate leading-none">{value}</p>
-      <p className="text-[10.5px] text-zinc-400 dark:text-zinc-500 truncate leading-none">{sub}</p>
+      <p className="font-bold text-[13.5px] sm:text-sm text-zinc-900 dark:text-white tabular-nums truncate leading-tight">
+        {value}
+      </p>
     </div>
   );
 }

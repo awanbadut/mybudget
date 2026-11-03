@@ -169,21 +169,6 @@ export function TransactionListClient({
     }
   }
 
-  function applyQuickPreset(preset: { name: string; amount: number; categoryKeywords: string[] }) {
-    triggerHaptic('selection');
-    setFormName(preset.name);
-    if (preset.amount > 0) {
-      setFormAmount(String(preset.amount));
-      setCalcExpr(String(preset.amount));
-    }
-    const matchedCat = filteredCategories.find(c =>
-      preset.categoryKeywords.some(kw => c.name.toLowerCase().includes(kw.toLowerCase()))
-    ) || filteredCategories[0];
-    if (matchedCat) {
-      setFormCategory(matchedCat.id);
-    }
-  }
-
   // Months list from data
   const months = useMemo(() => {
     const set = new Set<string>();
@@ -1080,44 +1065,6 @@ export function TransactionListClient({
               </div>
             ) : (
               <>
-                {/* 1-Tap Quick Presets for Fast Mobile Entry */}
-                {!editingTx && (
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-amber-500" />
-                        <span>Isi Cepat 1-Ketuk:</span>
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {(formType === 'expense'
-                        ? [
-                            { name: 'Makan Siang', amount: 25000, categoryKeywords: ['makan', 'konsumsi'] },
-                            { name: 'Sarapan / Kopi', amount: 15000, categoryKeywords: ['makan', 'hiburan'] },
-                            { name: 'Bensin / Transport', amount: 25000, categoryKeywords: ['transport', 'bensin'] },
-                            { name: 'Belanja Harian', amount: 50000, categoryKeywords: ['belanja', 'kebutuhan', 'toilet'] },
-                            { name: 'Parkir', amount: 2000, categoryKeywords: ['transport', 'lain'] },
-                          ]
-                        : [
-                            { name: 'Gaji Bulanan', amount: 0, categoryKeywords: ['gaji', 'utama'] },
-                            { name: 'Kiriman Orang Tua', amount: 500000, categoryKeywords: ['kiriman', 'saku', 'ortu', 'gaji'] },
-                            { name: 'Bonus / Freelance', amount: 250000, categoryKeywords: ['bonus', 'freelance', 'lain'] },
-                          ]
-                      ).map(preset => (
-                        <button
-                          key={preset.name}
-                          type="button"
-                          onClick={() => applyQuickPreset(preset)}
-                          className="px-2.5 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-[11px] font-semibold flex-shrink-0 active:scale-95 transition-all touch-manipulation border border-stone-200/60 dark:border-zinc-700"
-                        >
-                          {preset.name}
-                          {preset.amount > 0 ? ` · ${preset.amount / 1000}rb` : ''}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 <div className="space-y-1">
                   <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nama Transaksi</label>
                   <input

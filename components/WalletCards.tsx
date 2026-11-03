@@ -73,134 +73,87 @@ export function WalletCards({
   }
 
   return (
-    <div className="space-y-3 font-sans">
-      {/* Top Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center shadow-sm">
-            <Wallet className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-zinc-900 dark:text-white tracking-tight">
-                Dompet & Rekening
-              </h2>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
-                {accounts.length} Dompet
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 flex-wrap">
-              <span>Kas Operasional:</span>
-              <span className="font-semibold text-zinc-900 dark:text-white tabular-nums">
-                {formatMasked(savingsAccounts.length > 0 ? operationalBalance : totalBalance)}
-              </span>
-              {savingsAccounts.length > 0 && (
-                <>
-                  <span className="text-zinc-300 dark:text-zinc-600">·</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums">
-                    Tabungan: {formatMasked(savingsWalletsBalance)}
-                  </span>
-                </>
-              )}
-              <button
-                type="button"
-                onClick={toggleBalance}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors ml-0.5 touch-manipulation"
-                title={showBalance ? 'Sembunyikan saldo' : 'Tampilkan saldo'}
-                aria-label={showBalance ? 'Sembunyikan saldo' : 'Tampilkan saldo'}
-              >
-                {showBalance ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              </button>
-            </div>
-          </div>
+    <div className="space-y-2.5 font-sans">
+      {/* Compact Header Row */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <h2 className="text-[15px] sm:text-base font-bold text-zinc-900 dark:text-white tracking-tight truncate">
+            Dompet &amp; Rekening
+          </h2>
+          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-stone-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+            {accounts.length}
+          </span>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+        {/* Sleek Action Pills */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           <button
+            type="button"
             onClick={() => openWithdraw()}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-[0.98] touch-manipulation"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-xl text-[11px] font-bold transition-all active:scale-95 touch-manipulation"
           >
             <Banknote className="w-3.5 h-3.5" />
-            <span>Tarik Tunai</span>
+            <span>Tarik</span>
           </button>
 
           <button
+            type="button"
             onClick={() => openTransfer()}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-[0.98] touch-manipulation"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/50 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded-xl text-[11px] font-bold transition-all active:scale-95 touch-manipulation"
           >
             <ArrowLeftRight className="w-3.5 h-3.5" />
-            <span>Pindah Saldo</span>
+            <span>Pindah</span>
           </button>
 
           <button
+            type="button"
             onClick={() => { setSelectedAccount(null); setShowAddAccount(true); }}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-semibold transition-all active:scale-[0.98] touch-manipulation"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-xl text-[11px] font-bold transition-all active:scale-95 touch-manipulation"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Tambah</span>
+            <span className="hidden sm:inline">Dompet</span>
           </button>
         </div>
       </div>
 
-      {/* Mobile Swipe Hint */}
-      {accounts.length > 1 && (
-        <div className="flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500 sm:hidden px-0.5">
-          <span>Ketuk kartu untuk buka riwayat saldo</span>
-          <span className="font-semibold text-zinc-500 dark:text-zinc-400">Geser ({accounts.length}) →</span>
-        </div>
-      )}
-
-      {/* Cards Carousel on Mobile / Grid on Tablet & Desktop */}
-      <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1.5 -mx-4 px-4 no-scrollbar sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:mx-0 sm:px-0 sm:overflow-visible">
+      {/* Clean 2-Column Mobile Grid (DANA Pocket Style) */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5">
         {accounts.map((acc) => {
           const isSavingsAcc = acc.type === 'savings' || /tabungan|simpanan|celengan|saving/i.test(acc.name);
           const Icon = isSavingsAcc ? PiggyBank : (ICON_MAP[acc.icon || 'Wallet'] || (acc.type === 'bank' ? Building2 : acc.type === 'ewallet' ? Smartphone : Coins));
           const accentColor = isSavingsAcc ? '#16a34a' : (acc.color || '#2563eb');
+          const typeLabel = isSavingsAcc
+            ? 'Tabungan'
+            : acc.type === 'bank'
+            ? 'Bank'
+            : acc.type === 'ewallet'
+            ? 'E-Wallet'
+            : acc.type === 'cash'
+            ? 'Tunai'
+            : 'Dompet';
 
           return (
             <div
               key={acc.id}
               onClick={() => { setHistoryAccount(acc); setShowHistory(true); }}
-              className="w-[84vw] max-w-[305px] sm:w-auto sm:max-w-none snap-center flex-shrink-0 group relative bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-4 shadow-sm hover:border-zinc-400 dark:hover:border-zinc-600 transition-all cursor-pointer active:scale-[0.99] touch-manipulation"
-              title="Klik untuk melihat riwayat penambahan & pengurangan saldo"
+              className="group relative bg-white dark:bg-zinc-900 rounded-2xl border border-stone-200/80 dark:border-zinc-800 p-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] hover:border-zinc-400 dark:hover:border-zinc-600 transition-all cursor-pointer active:scale-[0.98] touch-manipulation flex flex-col justify-between gap-2.5 min-w-0"
+              title="Ketuk untuk riwayat & penyesuaian saldo"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold shadow-sm"
-                    style={{ backgroundColor: accentColor }}
-                  >
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-bold text-sm text-zinc-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                        {acc.name}
-                      </span>
-                      {isSavingsAcc && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
-                          Dompet Tabungan
-                        </span>
-                      )}
-                      {acc.isDefault && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
-                          Utama
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
-                      {isSavingsAcc ? 'Tempat Tabungan (Sinkron Menu Tabungan)' : acc.type === 'bank' ? 'Bank Rekening' : acc.type === 'ewallet' ? 'E-Wallet' : acc.type === 'cash' ? 'Uang Tunai / Cash' : 'Lainnya'}
-                      {acc.accountNumber ? ` · ${acc.accountNumber}` : ''}
-                    </span>
-                  </div>
+              {/* Top Row: Icon & Edit Button */}
+              <div className="flex items-start justify-between gap-1.5">
+                <div
+                  className="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-xs flex-shrink-0"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  <Icon className="w-4 h-4" />
                 </div>
 
                 <div className="flex items-center gap-1">
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-stone-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-950/50 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    <History className="w-3 h-3" />
-                    <span>Mutasi</span>
-                  </span>
+                  {acc.isDefault && (
+                    <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-stone-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+                      Utama
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -208,81 +161,32 @@ export function WalletCards({
                       setSelectedAccount(acc);
                       setShowAddAccount(true);
                     }}
-                    className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-800 transition-colors"
+                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-zinc-800 transition-colors"
                     title="Edit Dompet"
                   >
-                    <Pencil className="w-3.5 h-3.5" />
+                    <Pencil className="w-3 h-3" />
                   </button>
                 </div>
               </div>
 
-              {/* Balance & Breakdown */}
-              <div className="mt-3 pt-3 border-t border-stone-100 dark:border-zinc-800/80 space-y-1.5">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Saldo Dompet</span>
-                  <span className={cn(
-                    'text-base font-extrabold tabular-nums tracking-tight',
-                    acc.balance >= 0 ? 'text-zinc-900 dark:text-white' : 'text-rose-600 dark:text-rose-400'
-                  )}>
-                    {formatMasked(acc.balance)}
+              {/* Bottom Row: Name & Balance */}
+              <div className="min-w-0">
+                <div className="flex items-center gap-1 min-w-0">
+                  <p className="font-bold text-xs sm:text-[13px] text-zinc-900 dark:text-white truncate">
+                    {acc.name}
+                  </p>
+                  <span className="text-[10px] text-zinc-400 dark:text-zinc-500 flex-shrink-0">
+                    · {typeLabel}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500 pt-0.5">
-                  <span>Saldo Awal: {formatMasked(acc.initialBalance)}</span>
-                  {((acc.totalIncome || 0) > 0 || (acc.totalExpense || 0) > 0) && (
-                    <span className="font-medium text-zinc-600 dark:text-zinc-400">
-                      {showBalance ? (
-                        `+${(acc.totalIncome || 0) > 0 ? formatCurrency(acc.totalIncome) : '0'} / -${(acc.totalExpense || 0) > 0 ? formatCurrency(acc.totalExpense) : '0'}`
-                      ) : (
-                        '+•••••• / -••••••'
-                      )}
-                    </span>
+                <p
+                  className={cn(
+                    'text-sm sm:text-[15px] font-extrabold tabular-nums tracking-tight truncate mt-0.5',
+                    acc.balance >= 0 ? 'text-zinc-900 dark:text-white' : 'text-rose-600 dark:text-rose-400'
                   )}
-                </div>
-
-                {/* Instant Quick Action Buttons per Card */}
-                <div className="pt-2 flex items-center gap-1.5">
-                  {acc.type === 'bank' && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openWithdraw(acc.id);
-                      }}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-lg text-[11px] font-semibold transition-colors touch-manipulation"
-                    >
-                      <Banknote className="w-3.5 h-3.5" />
-                      <span>Tarik Tunai ATM</span>
-                    </button>
-                  )}
-
-                  {acc.type === 'cash' && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openDeposit(acc.id);
-                      }}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 px-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded-lg text-[11px] font-semibold transition-colors touch-manipulation"
-                    >
-                      <ArrowDownToLine className="w-3.5 h-3.5" />
-                      <span>Setor ke Bank</span>
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openTransfer(acc.id);
-                    }}
-                    className="inline-flex items-center justify-center gap-1 py-1.5 px-2 bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-lg text-[11px] font-medium transition-colors touch-manipulation"
-                    title="Pindah Saldo"
-                  >
-                    <ArrowLeftRight className="w-3 h-3" />
-                    <span>Pindah</span>
-                  </button>
-                </div>
+                >
+                  {formatMasked(acc.balance)}
+                </p>
               </div>
             </div>
           );

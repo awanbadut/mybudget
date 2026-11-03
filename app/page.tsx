@@ -9,7 +9,6 @@ import { getOrInitializeBudgets } from '@/lib/budget-utils';
 import { formatCurrency } from '@/lib/currency';
 import { DashboardSummary } from '@/components/DashboardSummary';
 import { RecentTransactions } from '@/components/RecentTransactions';
-import { QuickActions } from '@/components/QuickActions';
 import { InsightCard } from '@/components/InsightCard';
 import { DailyBudget } from '@/components/DailyBudget';
 import { SavingsGoalCard } from '@/components/SavingsGoalCard';
@@ -317,26 +316,24 @@ export default async function DashboardPage({
   const safeDailySpend = Math.max(0, Math.round(realAvailableBalance / remainingDaysInCycle));
 
   return (
-    <div className="space-y-3.5 sm:space-y-5 w-full max-w-full min-w-0 overflow-x-hidden">
+    <div className="space-y-3 sm:space-y-4 w-full max-w-full min-w-0 overflow-x-hidden">
       {/* ═══════════ Compact Mobile-First Header ═══════════ */}
-      <header className="flex items-center justify-between gap-3 min-w-0 pt-1 reveal-up reveal-up-1">
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
-            <span className="truncate">
-              {payrollCycle.isHistorical
-                ? `Riwayat Selesai (${payrollCycle.totalDays} hari)`
-                : isStudentMode
-                ? `Bulan Kalender · ${payrollCycle.daysRemaining}h lagi`
-                : `Siklus Tgl ${salaryDate} · ${payrollCycle.daysRemaining}h lagi`}
-            </span>
-          </div>
-          <h1 className="font-extrabold text-lg sm:text-2xl text-zinc-900 dark:text-white tracking-tight leading-tight mt-0.5">
+      <header className="flex items-center justify-between gap-2 min-w-0 pt-0.5 reveal-up reveal-up-1">
+        <div className="flex items-center gap-2 min-w-0">
+          <h1 className="font-extrabold text-base sm:text-xl text-zinc-900 dark:text-white tracking-tight truncate">
             Halo, {user?.name || 'Pengguna'}
           </h1>
+          <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 bg-stone-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            {payrollCycle.isHistorical
+              ? `Riwayat (${payrollCycle.totalDays}h)`
+              : isStudentMode
+              ? `Bulanan · ${payrollCycle.daysRemaining}h lagi`
+              : `Siklus Tgl ${salaryDate} · ${payrollCycle.daysRemaining}h lagi`}
+          </span>
         </div>
 
-        {/* Action Buttons */}
+        {/* Setup Button */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <OnboardingModal
             initialSalary={userSettings?.salary || 0}
@@ -345,15 +342,6 @@ export default async function DashboardPage({
             hasTransactions={allTransactions.length > 0}
             isStudentMode={isStudentMode}
           />
-          <Link
-            href="/transactions?action=new"
-            className="press group inline-flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 pl-3.5 pr-1.5 py-1.5 sm:pl-4 sm:pr-2 sm:py-2 rounded-full text-xs font-semibold shadow-sm transition-all duration-200 whitespace-nowrap"
-          >
-            <span>Catat</span>
-            <span className="w-6 h-6 rounded-full bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center flex-shrink-0">
-              <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-            </span>
-          </Link>
         </div>
       </header>
 
@@ -385,7 +373,7 @@ export default async function DashboardPage({
         txCount={cycleTransactions.length}
         summaryContent={
           <div className="space-y-4">
-            {/* 1. Saldo Utama / Uang Sisa Siklus */}
+            {/* 1. Saldo Utama + DANA-Style Quick Actions */}
             <DashboardSummary
               balance={realAvailableBalance}
               totalIncome={cycleIncome}
@@ -400,7 +388,7 @@ export default async function DashboardPage({
               daysRemaining={payrollCycle.daysRemaining}
             />
 
-            {/* 2. Dompet & Rekening (Horizontal Swipe Carousel di HP + Ketuk untuk Mutasi Saldo) */}
+            {/* 2. Dompet & Rekening (2-Column Grid di HP + Ketuk untuk Mutasi Saldo) */}
             <WalletCards
               accounts={userAccounts}
               transactions={allTransactions}
@@ -418,16 +406,12 @@ export default async function DashboardPage({
               cycleOffset={cycleOffset}
             />
 
-            {/* 4. Aksi Cepat */}
-            <QuickActions />
-
-            {/* 5. Transaksi Terbaru di Siklus Ini */}
-            <section className="space-y-2.5 w-full min-w-0">
+            {/* 4. Transaksi Terbaru di Siklus Ini */}
+            <section className="space-y-2 w-full min-w-0">
               <SectionHeader
-                title="Transaksi Siklus Ini"
-                desc={`5 aktivitas terakhir pada ${payrollCycle.label}`}
+                title="Transaksi Terakhir"
                 href="/transactions"
-                linkLabel="Semua"
+                linkLabel="Lihat Semua"
               />
               <RecentTransactions transactions={recentTransactions} />
             </section>
