@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import type { Metadata, Viewport } from 'next';
 import { Spline_Sans_Mono, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';

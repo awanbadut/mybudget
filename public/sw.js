@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mybudget-v10';
+const CACHE_NAME = 'mybudget-v11';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/brand/mybudget-symbol-light.svg',
@@ -26,34 +26,20 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  if (event.request.method !== 'GET') return;
 
-  // CRITICAL: NEVER intercept or cache Next.js internal bundles (_next/).
-  // Next.js handles static chunk hashing and HTTP caching natively.
-  // Intercepting _next/ with SW causes fatal Webpack chunk mismatches across deploys!
-  if (url.pathname.startsWith('/_next/')) {
-    return;
-  }
-  
-  // Network-first for API and pages (always fresh)
-  if (url.pathname.startsWith('/api') || event.request.headers.get('accept')?.includes('text/html')) {
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+
+  // ONLY serve explicitly whitelisted static assets (manifest, brand logos, icons)
+  if (STATIC_ASSETS.includes(url.pathname)) {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
+      caches.match(event.request).then((cached) => cached || fetch(event.request))
     );
     return;
   }
 
-  // Cache-first for static branding/manifest assets
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        if (response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
-      });
-    })
-  );
+  // ALL OTHER REQUESTS (Next.js pages, RSC streams, chunks, API, server actions):
+  // DO NOT INTERCEPT! Let browser handle network & native HTTP cache directly.
+  return;
 });

@@ -100,7 +100,12 @@ export function TransactionListClient({
   const [localTransactions, setLocalTransactions] = useState<Transaction[]>(transactions || []);
 
   useEffect(() => {
-    setLocalTransactions(transactions || []);
+    setLocalTransactions((prev) => {
+      const pendingOptimistic = prev.filter((t) => t.id.startsWith('temp-'));
+      const serverList = transactions || [];
+      if (pendingOptimistic.length === 0) return serverList;
+      return [...pendingOptimistic, ...serverList];
+    });
   }, [transactions]);
 
   // Undo-delete: baris disembunyikan lokal, hapus ke server ditunda selama jendela undo
