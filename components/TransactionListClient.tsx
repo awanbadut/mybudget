@@ -430,9 +430,9 @@ export function TransactionListClient({
 
     // Regular Income / Expense transaction
     if (!formName.trim()) { setFormError('Nama transaksi harus diisi'); return; }
-    if (!formCategory) { setFormError('Pilih kategori'); return; }
 
-    const catObj = categories.find(c => c.id === formCategory) || null;
+    const effectiveCategoryId = formCategory && formCategory !== '__none__' ? formCategory : null;
+    const catObj = effectiveCategoryId ? (categories.find(c => c.id === effectiveCategoryId) || null) : null;
     const accObj = accounts.find(a => a.id === formAccount) || null;
     const cleanName = formName.trim();
     const cleanNote = formNote.trim() || null;
@@ -446,7 +446,7 @@ export function TransactionListClient({
         type: formType,
         transactionDate: formDate,
         note: cleanNote,
-        categoryId: formCategory || null,
+        categoryId: effectiveCategoryId,
         category: catObj,
         accountId: formAccount || null,
         account: accObj ? {
@@ -474,7 +474,7 @@ export function TransactionListClient({
         const data = {
           type: formType,
           name: cleanName,
-          categoryId: formCategory || null,
+          categoryId: effectiveCategoryId,
           accountId: formAccount || null,
           amount,
           transactionDate: formDate,
@@ -503,7 +503,7 @@ export function TransactionListClient({
         type: formType,
         transactionDate: formDate,
         note: cleanNote,
-        categoryId: formCategory || null,
+        categoryId: effectiveCategoryId,
         category: catObj,
         accountId: formAccount || null,
         account: accObj ? {
@@ -531,7 +531,7 @@ export function TransactionListClient({
         const data = {
           type: formType,
           name: cleanName,
-          categoryId: formCategory || null,
+          categoryId: effectiveCategoryId,
           accountId: formAccount || null,
           amount,
           transactionDate: formDate,
@@ -837,9 +837,13 @@ export function TransactionListClient({
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">
                           Transfer Antar Dompet
                         </span>
+                      ) : !tx.category?.name ? (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">
+                          Non-Budget (Uang Hilang/Umum)
+                        </span>
                       ) : (
                         <span className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 truncate">
-                          {tx.category?.name || 'Umum'}
+                          {tx.category.name}
                         </span>
                       )}
                       {accountName && (
@@ -1107,7 +1111,7 @@ export function TransactionListClient({
                       Pos Belanja / Kategori
                     </label>
                     <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
-                      {formCategory ? '1 dipilih' : 'Wajib dipilih'}
+                      {formCategory === '__none__' ? 'Non-Budget' : formCategory ? '1 dipilih' : 'Pilihan'}
                     </span>
                   </div>
 
@@ -1120,7 +1124,9 @@ export function TransactionListClient({
                     }}
                     className={cn(
                       'w-full p-2.5 sm:p-3 rounded-2xl border flex items-center justify-between gap-3 text-left transition-all active:scale-[0.99] touch-manipulation',
-                      formCategory
+                      formCategory === '__none__'
+                        ? 'bg-amber-50/90 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800/80 shadow-2xs'
+                        : formCategory
                         ? 'bg-stone-50/90 dark:bg-zinc-800/80 border-stone-300/80 dark:border-zinc-700 shadow-2xs'
                         : 'bg-stone-50 dark:bg-zinc-800/50 border-dashed border-stone-300 dark:border-zinc-700 hover:border-zinc-400'
                     )}
@@ -1128,11 +1134,14 @@ export function TransactionListClient({
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className={cn(
                         'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors',
-                        formCategory
+                        formCategory === '__none__'
+                          ? 'bg-amber-500 text-white shadow-xs'
+                          : formCategory
                           ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs'
                           : 'bg-stone-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400'
                       )}>
                         {(() => {
+                          if (formCategory === '__none__') return <Scale className="w-4 h-4" />;
                           const cat = filteredCategories.find(c => c.id === formCategory);
                           const IconComp = (cat?.icon && ICON_MAP[cat.icon]) ? ICON_MAP[cat.icon] : MoreHorizontal;
                           return <IconComp className="w-4 h-4" />;
@@ -1141,12 +1150,22 @@ export function TransactionListClient({
                       <div className="min-w-0">
                         <div className={cn(
                           'text-xs sm:text-sm font-bold truncate',
-                          formCategory ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400 font-medium'
+                          formCategory === '__none__'
+                            ? 'text-amber-800 dark:text-amber-300'
+                            : formCategory
+                            ? 'text-zinc-900 dark:text-white'
+                            : 'text-zinc-500 dark:text-zinc-400 font-medium'
                         )}>
-                          {filteredCategories.find(c => c.id === formCategory)?.name || 'Pilih Pos Belanja / Kategori...'}
+                          {formCategory === '__none__'
+                            ? 'Tanpa Pos Anggaran (Non-Budget / Uang Hilang)'
+                            : filteredCategories.find(c => c.id === formCategory)?.name || 'Pilih Pos Belanja / Kategori...'}
                         </div>
                         <div className="text-[10px] text-zinc-400 dark:text-zinc-500">
-                          {formCategory ? 'Ketuk untuk mengganti pos belanja' : 'Pilih pos anggaran untuk transaksi ini'}
+                          {formCategory === '__none__'
+                            ? 'Dihitung ke pengeluaran kas, tidak memotong pos anggaran'
+                            : formCategory
+                            ? 'Ketuk untuk mengganti pos belanja'
+                            : 'Pilih pos anggaran untuk transaksi ini'}
                         </div>
                       </div>
                     </div>
@@ -1182,6 +1201,42 @@ export function TransactionListClient({
                       </DialogHeader>
 
                       <div className="flex-1 overflow-y-auto p-3 space-y-1">
+                        {/* Quick Option: Tanpa Pos Anggaran (Uang Hilang / Non-Budget) */}
+                        {(!categorySearch.trim() || 'uang hilang selisih non budget tanpa pos'.includes(categorySearch.toLowerCase())) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHaptic('selection');
+                              setFormCategory('__none__');
+                              setShowCategorySheet(false);
+                              setCategorySearch('');
+                            }}
+                            className={cn(
+                              'w-full p-2.5 sm:p-3 rounded-2xl flex items-center justify-between transition-all active:scale-[0.99] touch-manipulation border mb-1.5',
+                              formCategory === '__none__'
+                                ? 'bg-amber-500 text-white border-amber-600 shadow-sm'
+                                : 'bg-amber-50/60 dark:bg-amber-950/30 border-amber-200/80 dark:border-amber-900/50 text-amber-900 dark:text-amber-200 hover:bg-amber-100/60'
+                            )}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={cn(
+                                'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors',
+                                formCategory === '__none__'
+                                  ? 'bg-white/20 text-white'
+                                  : 'bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400'
+                              )}>
+                                <Scale className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0 text-left">
+                                <span className="font-bold text-xs sm:text-sm block truncate">Tanpa Pos Anggaran (Non-Budget)</span>
+                                <span className={cn('text-[10px] block truncate', formCategory === '__none__' ? 'text-white/80' : 'text-zinc-500 dark:text-zinc-400')}>
+                                  Untuk Uang Hilang, Selisih Kas (Tidak potong pos budget)
+                                </span>
+                              </div>
+                            </div>
+                            {formCategory === '__none__' && <Check className="w-4 h-4 flex-shrink-0" />}
+                          </button>
+                        )}
                         {filteredCategories
                           .filter(c => c.name.toLowerCase().includes(categorySearch.toLowerCase()))
                           .map(cat => {

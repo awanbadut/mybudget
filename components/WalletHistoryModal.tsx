@@ -336,14 +336,14 @@ export function WalletHistoryModal({
                         startTransition(async () => {
                           const isIncome = diff > 0;
                           const res = await createTransaction({
-                            type: 'transfer',
+                            type: isIncome ? 'income' : 'expense',
                             name: `Penyesuaian Saldo: ${account.name}`,
-                            categoryId: null, // Murni opname catatan dompet, JANGAN bebani Pos Lainnya / anggaran
-                            accountId: isIncome ? null : account.id,
-                            toAccountId: isIncome ? account.id : null,
+                            categoryId: null, // Non-budget: Masuk ke pengeluaran kas tapi JANGAN potong pos anggaran belanja
+                            accountId: account.id,
+                            toAccountId: null,
                             amount: Math.abs(diff),
                             transactionDate: toDateString(new Date()),
-                            note: `Penyesuaian saldo dari ${formatCurrency(account.balance)} menjadi ${formatCurrency(targetBal)}`,
+                            note: `Penyesuaian saldo fisik (${isIncome ? 'Temu Uang / Selisih Lebih' : 'Uang Hilang / Selisih Fisik'}) dari ${formatCurrency(account.balance)} menjadi ${formatCurrency(targetBal)}`,
                           });
 
                           if (res.success) {
